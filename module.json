@@ -1,0 +1,22 @@
+{
+  "name": "ble-cliapp",
+  "version": "0.0.1",
+  "description": "BLE cli application",
+  "keywords": [
+    "ble"
+  ],
+  "author": "Jussi Vatjus-Anttila",
+  "repository": {
+    "url": "git@github.com:ARMmbed/mbed-clitest-bleapp.git",
+    "type": "git"
+  },
+  "homepage": "https://github.com/ARMmbed/mbed-client-cliapp",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "mbed-drivers": "*",
+    "ble": "ARMmbed/ble",
+    "mbed-client-cli": "ARMmbed/mbed-client-cli"
+  },
+  "targetDependencies": {},
+  "bin": "./source"
+}
