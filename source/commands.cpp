@@ -5,6 +5,9 @@
 
 // libraries
 #include "mbed-client-cli/ns_cmdline.h"
+#include "mbed-client-trace/mbed_client_trace.h"
+
+#define TRACE_GROUP "appl"
 
 // application
 #include "commands.h"
@@ -41,7 +44,10 @@ char* cmd_print_address(Gap::Address_t addr)
 }
 int cmd_ifconfig_print(int argc, char* argv[])
 {
+    tr_debug("called cmd_ifconfig_print()");
     // print all current interface configurations
+    
+    cmd_printf(" Interface ble0\r\n");
     
     /* Read in the MAC address of this peripheral. The corresponding central will be
      * commanded to co-ordinate with this address. */
@@ -65,6 +71,7 @@ int cmd_ifconfig_print(int argc, char* argv[])
 }
 int cmd_ifconfig_ble(int argc, char* argv[])
 {
+    tr_debug("called cmd_ifconfig_ble()");
     int ival;
     char *val;
     int ret = -1;
@@ -88,6 +95,7 @@ int cmd_ifconfig_ble(int argc, char* argv[])
 
 int cmd_ifconfig(int argc, char* argv[])
 {
+    tr_debug("called cmd_ifconfig()");
     //default ble0 -interface
     return cmd_ifconfig_ble(argc, argv);
 }

@@ -2,6 +2,7 @@
 #include "ble/BLE.h"
 #include "ble/services/iBeacon.h"
 #include "mbed-client-cli/ns_cmdline.h"
+#include "mbed-client-trace/mbed_client_trace.h"
 
 #include "commands.h"
 
@@ -9,6 +10,12 @@
 void cmd_ready_cb(int retcode);
 
 Serial pc(USBTX, USBRX);
+
+void trace_printer(const char* str)
+{
+	pc.printf("%s\r\n", str);
+	cmd_output();
+}
 
 void custom_cmd_response_out(const char* fmt, va_list ap)
 {
@@ -24,7 +31,7 @@ void cmd_cb(void)
 	cmd_char_input(pc.getc());
 }
 
-// this function should be inside some event scheduler
+// this function should be inside some "event scheduler", because
 // then cli can be use also with async commands
 // see example with event-loop (/minar): https://github.com/ARMmbed/mbed-client-cliapp/blob/master/source/cmd_commands.c
 void cmd_ready_cb(int retcode)
@@ -37,6 +44,12 @@ void app_start(int, char*[])
     //configure serial port
     pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
     pc.attach(&cmd_cb);
+    
+    // initialize trace libary
+    mbed_client_trace_init();
+    mbed_client_trace_print_function_set( trace_printer );
+    mbed_client_trace_cmdprint_function_set( cmd_printer );
+    mbed_client_trace_config_set(TRACE_MODE_COLOR|TRACE_ACTIVE_LEVEL_DEBUG|TRACE_CARRIAGE_RETURN);
     
     cmd_init( &custom_cmd_response_out );
     cmd_set_ready_cb( cmd_ready_cb );
