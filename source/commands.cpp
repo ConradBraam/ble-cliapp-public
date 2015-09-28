@@ -5,6 +5,7 @@
 
 // libraries
 #include "mbed-client-cli/ns_cmdline.h"
+#include "mbed-client-cli/ns_types.h"
 #include "mbed-client-trace/mbed_client_trace.h"
 
 #define TRACE_GROUP "appl"
@@ -126,7 +127,7 @@ void cmd_ifconfig_ble_reset(void)
 int cmd_ifconfig_ble(int argc, char* argv[])
 {
     tr_debug("called cmd_ifconfig_ble()");
-    int ival;
+    int32_t ival;
     char *val;
     int ret = -1;
     
