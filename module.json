@@ -15,7 +15,7 @@
   "dependencies": {
     "mbed-drivers": "*",
     "ble": "ARMmbed/ble",
-    "mbed-client-cli": "ARMmbed/mbed-client-cli#unittests",
+    "mbed-client-cli": "ARMmbed/mbed-client-cli",
     "mbed-client-trace": "ARMmbed/mbed-client-trace"
   },
   "targetDependencies": {},
