@@ -34,7 +34,7 @@
 /**
  * Global static objects.
  */
-BLE *ble_ptr;
+static BLE *ble_ptr;
 int shutdownTest(void);
 int setTimeoutTest(void);
 int responseTest(void);
@@ -45,9 +45,8 @@ int setupIBeaconTest(void);
 
 
 /**
- * Returns a pointer to the test function wanting to run. Sets up a table which maps strings to functions.
  */
-int cmd_test_A(int argc, char* argv[], BLE *ble)
+int cmd_test_A_node1(int argc, char* argv[], BLE *ble)
 {
     ble_ptr = ble;
     if( cmd_parameter_index(argc, argv, "setAddr") > 0 )
