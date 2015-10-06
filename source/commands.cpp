@@ -390,10 +390,13 @@ int cmd_ifconfig_ble(int argc, char* argv[])
         Gap::ConnectionParams_t params =  {50, 500, 0, 500};
         for(int i=0;i<4; i++) {
             if( *ptr && ptr[1] != 0 ) {
-                uint16_t value = strtoul((ptr+1), &ptr, 10);
+                if (*ptr == ',') {
+                    ++ptr;
+                }
+                unsigned value = strtoul(ptr, &ptr, 10);
                 switch(i) {
-                    case(0): params.maxConnectionInterval = value; break;
-                    case(1): params.minConnectionInterval = value; break;
+                    case(0): params.minConnectionInterval = value; break;
+                    case(1): params.maxConnectionInterval = value; break;
                     case(2): params.slaveLatency = value; break;
                     case(3): params.connectionSupervisionTimeout = value; break;
                     default: break;

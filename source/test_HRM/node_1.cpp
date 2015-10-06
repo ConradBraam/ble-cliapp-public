@@ -43,7 +43,7 @@ static ButtonService *btnServicePtr;
 static int init_HRM_test(void);
 static int setDeviceNameTest(char *device_name);
 static int appearanceTest(const int ble_appearance);
-static int connParamTest();
+static int connParamTest(Gap::ConnectionParams_t params);
 static int notificationTest();
 
 static const char     DEVICE_NAME[] = "HRMTEST";
@@ -74,7 +74,26 @@ int cmd_test_HRM_node1(int argc, char* argv[], BLE *ble)
         }
     }  else if( cmd_parameter_index(argc, argv, "connParam") > 0 )
     {
-        return connParamTest();
+        if( cmd_parameter_val(argc, argv, "connParam", &val) ) {
+            char *ptr = val;
+            Gap::ConnectionParams_t params =  {0, 0, 0, 0};
+            for(int i=0;i<4; i++) {
+                if( *ptr && ptr[1] != 0 ) {
+                    if (*ptr == ',') {
+                        ++ptr;
+                    }
+                    unsigned value = strtoul(ptr, &ptr, 10);
+                    switch(i) {
+                        case(0): params.minConnectionInterval = value; break;
+                        case(1): params.maxConnectionInterval = value; break;
+                        case(2): params.slaveLatency = value; break;
+                        case(3): params.connectionSupervisionTimeout = value; break;
+                        default: break;
+                    }
+                }
+            }
+            return connParamTest(params);
+        }
     } else if( cmd_parameter_index(argc, argv, "notification") > 0 )
     {
         return notificationTest();
@@ -156,7 +175,7 @@ static int appearanceTest(const int ble_appearance)
 /**
  * Tests the get and set Preferred Connection Params functions
  */
-static int connParamTest()
+static int connParamTest(Gap::ConnectionParams_t params)
 {
     if ((ble_ptr->gap().getState().connected)) {
         cmd_printf("Device must be disconnected\n");
@@ -166,20 +185,19 @@ static int connParamTest()
     Gap::ConnectionParams_t originalParams;
     ASSERT_NO_FAILURE(ble_ptr->gap().getPreferredConnectionParams(&originalParams));
 
-    Gap::ConnectionParams_t params;
-    Gap::ConnectionParams_t paramsOut = {50, 500, 0, 500};
-    ASSERT_NO_FAILURE(ble_ptr->gap().setPreferredConnectionParams(&paramsOut));
+    ASSERT_NO_FAILURE(ble_ptr->gap().setPreferredConnectionParams(&params));
+
+    Gap::ConnectionParams_t paramsOut = {0, 0, 0, 0};
+    ASSERT_NO_FAILURE(ble_ptr->gap().getPreferredConnectionParams(&paramsOut));
 
     cmd_printf("ASSERTIONS DONE\r\n");
 
-    ble_ptr->gap().getPreferredConnectionParams(&params);
+    cmd_printf("minConnectionInterval: %d\r\n", paramsOut.minConnectionInterval);
+    cmd_printf("maxConnectionInterval: %d\r\n", paramsOut.maxConnectionInterval);
+    cmd_printf("slaveLatency: %d\r\n", paramsOut.slaveLatency);
+    cmd_printf("connectionSupervisionTimeout: %d\r\n", paramsOut.connectionSupervisionTimeout);
 
-    cmd_printf("%d\n", params.minConnectionInterval);
-    cmd_printf("%d\n", params.maxConnectionInterval);
-    cmd_printf("%d\n", params.slaveLatency);
-    cmd_printf("%d\n", params.connectionSupervisionTimeout);
-
-    ble_ptr->gap().setPreferredConnectionParams(&originalParams);
+    ASSERT_NO_FAILURE(ble_ptr->gap().setPreferredConnectionParams(&originalParams));
     return 0;
 }
 
