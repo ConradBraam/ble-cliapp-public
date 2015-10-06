@@ -33,8 +33,8 @@ char* cmd_print_address(Gap::Address_t addr);
 
 #define MAN_IFCONFIG    "ifconfig (<iface>) ([options])\r\n"\
                     "<iface>                Interface, default: ble0\r\n"\
-                    "ifup                   Initializa\r\n"\
-                    "ifdown                 Interface down\r\n"\
+                    "up                     Initializa\r\n"\
+                    "down                   Interface down\r\n"\
                     "reset                  Reset interface\r\n"\
                     "--set-dev-name <name>  Set Device Name\r\n"\
                     "--addr <addr>          Set Address\r\n"\
@@ -189,9 +189,9 @@ int cmd_ifconfig_ble(int argc, char* argv[])
     }
     if( cmd_parameter_index(argc, argv, "reset" ) == 1 ) {
         cmd_ifconfig_ble_reset();
-    } else if( cmd_parameter_index(argc, argv, "ifup" ) == 1 ) {
+    } else if( cmd_parameter_index(argc, argv, "up" ) == 1 ) {
         ret = ble.init();
-    } else if( cmd_parameter_index(argc, argv, "ifdown" ) == 1 ) {
+    } else if( cmd_parameter_index(argc, argv, "down" ) == 1 ) {
         ble.shutdown();
         ret = 0;
     } else if( cmd_parameter_val(argc, argv, "--set-dev-name", &val) ) {

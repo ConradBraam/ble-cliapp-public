@@ -11,7 +11,7 @@ class Testcase(Bench):
                        requirements={
                            "duts": {
                                '*': { #requirements for all nodes
-                                    "count":1,
+                                    "count":2,
                                     "type": "hardware",
                                     "application":{ "name":"generalTestApplication", "version": "1.0"},
                                }
@@ -29,8 +29,10 @@ class Testcase(Bench):
         # just print all existing commands..
         self.command(1, "help")
 
-        self.command(1, "ifconfig").verifyMessage(['ble0'])
-        self.command(1, "ifconfig ifup")
+        resp = self.command(1, "ifconfig")
+        resp.verifyMessage(['ble0'])
+        
+        self.command('*', "ifconfig up")
 
 
     def rampDown(self):
