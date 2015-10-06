@@ -41,8 +41,8 @@ static BLE *ble_ptr;
 static ButtonService *btnServicePtr;
 
 static int init_HRM_test(void);
-static int setDeviceNameTest();
-static int appearanceTest();
+static int setDeviceNameTest(char *device_name);
+static int appearanceTest(const int ble_appearance);
 static int connParamTest();
 static int notificationTest();
 
@@ -56,16 +56,22 @@ static const uint16_t uuid16_list[] = {GattService::UUID_HEART_RATE_SERVICE,
 int cmd_test_HRM_node1(int argc, char* argv[], BLE *ble)
 {
     ble_ptr = ble;
-    
+
     //ASSERT_NO_FAILURE(  );
     init_HRM_test();
-    
+
+    char *val;
+
     if( cmd_parameter_index(argc, argv, "setDeviceName") > 0 )
     {
-        return setDeviceNameTest();
+        if( cmd_parameter_val(argc, argv, "setDeviceName", &val) ) {
+            return setDeviceNameTest(val);
+        }
     } else if( cmd_parameter_index(argc, argv, "appearance") > 0 )
     {
-        return appearanceTest();
+        if( cmd_parameter_val(argc, argv, "appearance", &val) ) {
+            return appearanceTest(atoi(val));
+        }
     }  else if( cmd_parameter_index(argc, argv, "connParam") > 0 )
     {
         return connParamTest();
@@ -75,8 +81,8 @@ int cmd_test_HRM_node1(int argc, char* argv[], BLE *ble)
     }
     return CMDLINE_RETCODE_INVALID_PARAMETERS;
 }
-                                       
-                                       
+
+
 /**
  * Restarts advertising
  */
@@ -97,19 +103,18 @@ static void connectionCallback(const Gap::ConnectionCallbackParams_t *params){
 /**
  * Tests the set and get Device Name functions
  */
-static int setDeviceNameTest()
+static int setDeviceNameTest(char *device_name)
 {
     if (ble_ptr->gap().getState().connected) {
         cmd_printf("Device must be disconnected\n");
         return 100;
     }
 
-    uint8_t deviceNameIn[] = "Josh-test";
+    uint8_t *deviceNameIn = (uint8_t*)device_name;
     ASSERT_NO_FAILURE(ble_ptr->gap().setDeviceName(deviceNameIn));
-    wait(0.5);  /* TODO: remove this. */
 
     static const size_t MAX_DEVICE_NAME_LEN = 50;
-    uint8_t  deviceName[MAX_DEVICE_NAME_LEN];
+    uint8_t deviceName[MAX_DEVICE_NAME_LEN];
     unsigned length = MAX_DEVICE_NAME_LEN;
     ASSERT_NO_FAILURE(ble_ptr->gap().getDeviceName(deviceName, &length));
 
@@ -129,15 +134,18 @@ static int setDeviceNameTest()
 /**
  * Tests the set and get Apeparance functions
  */
-static int appearanceTest()
+static int appearanceTest(const int ble_appearance)
 {
+    GapAdvertisingData::Appearance appearance = (GapAdvertisingData::Appearance)ble_appearance;
+
     if ((ble_ptr->gap().getState().connected)) {
         cmd_printf("Device must be disconnected\n");
         return 100;
     }
 
-    ASSERT_NO_FAILURE(ble_ptr->gap().setAppearance(GapAdvertisingData::GENERIC_PHONE));
-    GapAdvertisingData::Appearance appearance;
+    ASSERT_NO_FAILURE(ble_ptr->gap().setAppearance(appearance));
+
+    appearance = GapAdvertisingData::UNKNOWN;
     ASSERT_NO_FAILURE(ble_ptr->gap().getAppearance(&appearance));
     cmd_printf("ASSERTIONS DONE\r\n");
 
