@@ -7,6 +7,7 @@ class Testcase(Bench):
                        title = "Smoke test for command line interface",
                        status = "development",
                        purpose = "Verify Command Line Interface",
+                       component=['ble'],
                        type="smoke", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
@@ -33,7 +34,6 @@ class Testcase(Bench):
         resp.verifyMessage(['ble0'])
         
         self.command('*', "ifconfig up")
-
 
     def rampDown(self):
         # nothing for now

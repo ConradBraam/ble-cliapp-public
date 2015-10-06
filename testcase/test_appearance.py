@@ -7,6 +7,7 @@ class Testcase(Bench):
                        title = "",
                        status = "development",
                        purpose = "",
+                       component=['ble'],
                        type="smoke", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
