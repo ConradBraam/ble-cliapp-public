@@ -80,7 +80,7 @@ int cmd_test_HRM_node1(int argc, char* argv[], BLE *ble)
 /**
  * Restarts advertising
  */
-static void disconnectionCallback(Gap::Handle_t handle, Gap::DisconnectionReason_t reason)
+static void disconnectionCallback(const Gap::DisconnectionCallbackParams_t *params)
 {
     cmd_printf("Disconnected\r\n");
     ble_ptr->gap().startAdvertising(); // restart advertising

@@ -76,7 +76,7 @@ int cmd_test_HRM_node2(int argc, char* argv[], BLE *ble)
     return CMDLINE_RETCODE_INVALID_PARAMETERS;
 }
 
-static void disconnectionCallback(Gap::Handle_t handle, Gap::DisconnectionReason_t reason)
+static void disconnectionCallback(const Gap::DisconnectionCallbackParams_t *params)
 {
     cmd_printf("Disconnected\r\n");
 }
