@@ -28,6 +28,7 @@ int cmd_ifconfig_ble(int argc, char* argv[]);
 int cmd_ifconfig_print(int argc, char* argv[]);
 
 char* ble_error_to_text(ble_error_t erno);
+char* ble_appearance_to_text(GapAdvertisingData::Appearance appearance);
 
 
 // help function for cmd_print
@@ -145,70 +146,139 @@ char* ble_error_to_text(ble_error_t erno)
             
     }
 }
+char* ble_appearance_to_text(GapAdvertisingData::Appearance appearance)
+{
+    /// @todo separate table, which can be use like this, but also
+    ///       to convert text to GapAdvertisingData::Appearance 
+    ///       for cmd: "ifconfig --set-appearance <appearance>"
+    switch(appearance) {
+        case(GapAdvertisingData::UNKNOWN):
+            return "Unknown of unspecified appearance type";
+        case(GapAdvertisingData::GENERIC_PHONE):
+            return "Generic Phone";
+        case(GapAdvertisingData::GENERIC_COMPUTER): return "Generic Computer";
+        case(GapAdvertisingData::GENERIC_WATCH): return "Generic Watch";
+        case(GapAdvertisingData::WATCH_SPORTS_WATCH): return "Sports Watch";
+        case(GapAdvertisingData::GENERIC_CLOCK): return "Generic Clock";
+        case(GapAdvertisingData::GENERIC_DISPLAY): return "Generic Display";
+        case(GapAdvertisingData::GENERIC_REMOTE_CONTROL): return "Generic Remote Control";
+        case(GapAdvertisingData::GENERIC_EYE_GLASSES): return "Generic Eye Glasses";
+        case(GapAdvertisingData::GENERIC_TAG): return "Generic Tag";
+        case(GapAdvertisingData::GENERIC_KEYRING): return "Generic Keyring";
+        case(GapAdvertisingData::GENERIC_MEDIA_PLAYER): return "Generic Media Player";
+        case(GapAdvertisingData::GENERIC_BARCODE_SCANNER): return "Generic Barcode Scanner";
+        case(GapAdvertisingData::GENERIC_THERMOMETER): return "Generic Thermometer";
+        case(GapAdvertisingData::THERMOMETER_EAR): return "Ear Thermometer";
+        case(GapAdvertisingData::GENERIC_HEART_RATE_SENSOR): return "Generic Heart Rate Sensor";
+        case(GapAdvertisingData::HEART_RATE_SENSOR_HEART_RATE_BELT): return "Belt Heart Rate Sensor";
+        case(GapAdvertisingData::GENERIC_BLOOD_PRESSURE): return "Generic Blood Pressure";
+        case(GapAdvertisingData::BLOOD_PRESSURE_ARM): return "Arm Blood Pressure";
+        case(GapAdvertisingData::BLOOD_PRESSURE_WRIST): return "Wrist Blood Pressure";
+        case(GapAdvertisingData::HUMAN_INTERFACE_DEVICE_HID): return "Human Interface Device (HID)";
+        case(GapAdvertisingData::KEYBOARD): return "Keyboard";
+        case(GapAdvertisingData::MOUSE): return "Mouse";
+        case(GapAdvertisingData::JOYSTICK): return "Joystick";
+        case(GapAdvertisingData::GAMEPAD): return "Gamepad";
+        case(GapAdvertisingData::DIGITIZER_TABLET): return "Digitizer Tablet";
+        case(GapAdvertisingData::CARD_READER): return "Card Read";
+        case(GapAdvertisingData::DIGITAL_PEN): return "Digital Pen";
+        case(GapAdvertisingData::BARCODE_SCANNER): return "Barcode Scanner";
+        case(GapAdvertisingData::GENERIC_GLUCOSE_METER): return "Generic Glucose Meter";
+        case(GapAdvertisingData::GENERIC_RUNNING_WALKING_SENSOR): return "Generic Running/Walking Sensor";
+        case(GapAdvertisingData::RUNNING_WALKING_SENSOR_IN_SHOE): return "In Shoe Running/Walking Sensor";
+        case(GapAdvertisingData::RUNNING_WALKING_SENSOR_ON_SHOE): return "On Shoe Running/Walking Sensor";
+        case(GapAdvertisingData::RUNNING_WALKING_SENSOR_ON_HIP): return "On Hip Running/Walking Sensor";
+        case(GapAdvertisingData::GENERIC_CYCLING): return "Generic Cycling";
+        case(GapAdvertisingData::CYCLING_CYCLING_COMPUTER): return "Cycling Computer";
+        case(GapAdvertisingData::CYCLING_SPEED_SENSOR): return "Cycling Speed Senspr";
+        case(GapAdvertisingData::CYCLING_CADENCE_SENSOR): return "Cycling Cadence Sensor";
+        case(GapAdvertisingData::CYCLING_POWER_SENSOR): return "Cycling Power Sensor";
+        case(GapAdvertisingData::CYCLING_SPEED_AND_CADENCE_SENSOR):
+            return "Cycling Speed and Cadence Sensor";
+        case(GapAdvertisingData::PULSE_OXIMETER_GENERIC):
+            return "Generic Pulse Oximeter";
+        case(GapAdvertisingData::PULSE_OXIMETER_FINGERTIP):
+            return "Fingertip Pulse Oximeter";
+        case(GapAdvertisingData::PULSE_OXIMETER_WRIST_WORN):
+            return "Wrist Worn Pulse Oximeter";
+        case(GapAdvertisingData::OUTDOOR_GENERIC):
+            return "Generic Outdoor";
+        case(GapAdvertisingData::OUTDOOR_LOCATION_DISPLAY_DEVICE):
+            return "Outdoor Location Display Device";
+        case(GapAdvertisingData::OUTDOOR_LOCATION_AND_NAVIGATION_DISPLAY_DEVICE):
+            return "Outdoor Location and Navigation Display Device";
+        case(GapAdvertisingData::OUTDOOR_LOCATION_POD):
+            return "Outdoor Location Pod";
+        case(GapAdvertisingData::OUTDOOR_LOCATION_AND_NAVIGATION_POD):
+            return "Location And Navigarion POD";
+        default:
+            tr_warn("Unknown appearance: %d", appearance);
+            return "";
+    }
+}
 int cmd_ifconfig_print(int argc, char* argv[])
 {
+    ble_error_t erno;
     tr_debug("called cmd_ifconfig_print()");
     // print all current interface configurations
     
-    cmd_printf(" Interface ble0\r\n");
+    cmd_printf("Interface ble0\r\n");
+    
+    static const size_t MAX_DEVICE_NAME_LEN = 50;
+    uint8_t  deviceName[MAX_DEVICE_NAME_LEN];
+    unsigned length = MAX_DEVICE_NAME_LEN;
+    if( ble.gap().getDeviceName(deviceName, &length) == 0 ) {
+        cmd_printf("  Device Name:  %*s\r\n", length, deviceName);
+    } else {
+        cmd_printf("  Device Name:  Unknown\r\n");
+    }
+    
+    GapAdvertisingData::Appearance appearance;
+    if( ble.gap().getAppearance(&appearance) == 0 ) {
+        cmd_printf("  Appearance: %s\r\n", ble_appearance_to_text(appearance) );
+    } else {
+        cmd_printf("  Appearance: UNKNOWN\r\n");
+    }
+    
+    Gap::GapState_t state = ble.gap().getState();
+    cmd_printf("  Connected:   %s\r\n", state.connected?"true":"false");
+    cmd_printf("  Advertising: %s\r\n", state.advertising?"true":"false");
+    uint16_t interval = ble.gap().getAdvertisingParams().getInterval();
+    cmd_printf("  -interval: %d\r\n", interval);
+    
+    
+    Gap::ConnectionParams_t params;
+    if( (erno=ble.gap().getPreferredConnectionParams(&params)) == 0 ) {
+        cmd_printf("  Preferred Connection Parameters:\r\n");
+        cmd_printf("  -minConnectionInterval:        %d\r\n", params.minConnectionInterval);
+        cmd_printf("  -maxConnectionInterval:        %d\r\n", params.maxConnectionInterval);
+        cmd_printf("  -slaveLatency:                 %d\r\n", params.slaveLatency);
+        cmd_printf("  -connectionSupervisionTimeout: %d\r\n", params.connectionSupervisionTimeout);
+    }
     
     /* Read in the MAC address of this peripheral. The corresponding central will be
      * commanded to co-ordinate with this address. */
+    cmd_printf("  Radio if address\r\n");
     Gap::Address_t     address;
     Gap::AddressType_t addressType;
     ble.gap().getAddress(&addressType, address);
     switch( addressType  ) {
         case(Gap::ADDR_TYPE_PUBLIC):
-            cmd_printf("Public-Address: %s\r\n", cmd_print_address(address));
+            cmd_printf("   Public-Address: %s\r\n", cmd_print_address(address));
             break;
         case(Gap::ADDR_TYPE_RANDOM_STATIC):
-            cmd_printf("Random-Static-Address: %s\r\n", cmd_print_address(address));
+            cmd_printf("   Random-Static-Address: %s\r\n", cmd_print_address(address));
             break;
         case(Gap::ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE):
-            cmd_printf("Random-Private-Resolved-Address: %s\r\n", cmd_print_address(address));
+            cmd_printf("   Random-Private-Resolved-Address: %s\r\n", cmd_print_address(address));
             break;
         case(Gap::ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE):
-            cmd_printf("Random-Private-Resolved-Address: %s\r\n", cmd_print_address(address));
+            cmd_printf("   Random-Private-Non-Resolvable-Address: %s\r\n", cmd_print_address(address));
             break;
         default:
-            cmd_printf("Unknown-Type (%d) -Address: %s\r\n", addressType, cmd_print_address(address));
+            cmd_printf("   Unknown-Type (%d) -Address: %s\r\n", addressType, cmd_print_address(address));
             break;
     }
-    
-    uint16_t interval = ble.gap().getAdvertisingParams().getInterval();
-    cmd_printf("Advertising interval: %d\r\n", interval);
-    
-    /* Check that the state is one of the valid values. */
-    Gap::GapState_t state = ble.gap().getState();
-    if (state.connected == 1) cmd_printf("Connected\r\n");
-    if (state.advertising == 1) cmd_printf("Advertising\r\n");
-    
-    static const size_t MAX_DEVICE_NAME_LEN = 50;
-    uint8_t  deviceName[MAX_DEVICE_NAME_LEN];
-    unsigned length = MAX_DEVICE_NAME_LEN;
-    ASSERT_NO_FAILURE(ble.gap().getDeviceName(deviceName, &length));
-    cmd_printf("Device Name:  %*s\r\n", length, deviceName);
-    
-    GapAdvertisingData::Appearance appearance;
-    if( ble.gap().getAppearance(&appearance)) == 0 ) {
-        cmd_printf("Appearance:  ");
-        switch( appearance ){
-            case(GapAdvertisingData::GENERIC_PHONE):
-                cmd_printf("GENERIC_PHONE\r\n");
-                break;
-            default:
-                cmd_printf("UNKNOWN\r\n");
-                break;
-        }
-    }
-    
-    Gap::ConnectionParams_t params;
-    if( ble.gap().getPreferredConnectionParams(&params) == 0 ) {
-        cmd_printf(" minConnectionInterval:        %d\r\n", params.minConnectionInterval);
-        cmd_printf(" maxConnectionInterval:        %d\r\n", params.maxConnectionInterval);
-        cmd_printf(" slaveLatency:                 %d\r\n", params.slaveLatency);
-        cmd_printf(" connectionSupervisionTimeout: %d\r\n", params.connectionSupervisionTimeout);
-    } 
     //...
     
        
