@@ -27,6 +27,8 @@ int cmd_ifconfig(int argc, char* argv[]);
 int cmd_ifconfig_ble(int argc, char* argv[]);
 int cmd_ifconfig_print(int argc, char* argv[]);
 
+char* ble_error_to_text(ble_error_t erno);
+
 
 // help function for cmd_print
 char* cmd_print_address(Gap::Address_t addr);
@@ -114,6 +116,35 @@ char* cmd_print_address(Gap::Address_t addr)
     }
     return "";
 }
+char* ble_error_to_text(ble_error_t erno)
+{
+    switch(erno) {
+        case(BLE_ERROR_NONE): 
+            return "No error";
+        case(BLE_ERROR_BUFFER_OVERFLOW): 
+            return "The requested action would cause a buffer overflow and has been aborted";
+        case(BLE_ERROR_NOT_IMPLEMENTED):
+            return "Requested a feature that isn't yet implement or isn't supported by the target HW";
+        case(BLE_ERROR_PARAM_OUT_OF_RANGE): 
+            return "One of the supplied parameters is outside the valid range";
+        case(BLE_ERROR_INVALID_PARAM): 
+            return "One of the supplied parameters is invalid";
+        case(BLE_STACK_BUSY): 
+            return "The stack is busy";
+        case(BLE_ERROR_INVALID_STATE): 
+            return "Invalid state";
+        case(BLE_ERROR_NO_MEM): 
+            return "Out of Memory";
+        case(BLE_ERROR_OPERATION_NOT_PERMITTED ): 
+            return "Operation not permitted";
+        case(BLE_ERROR_UNSPECIFIED): 
+            return "Unspecified";
+        default:
+            tr_debug("Unknown ble_error_t: %d", erno);
+            return "Unknown ble_error_t error number";
+            
+    }
+}
 int cmd_ifconfig_print(int argc, char* argv[])
 {
     tr_debug("called cmd_ifconfig_print()");
@@ -126,8 +157,22 @@ int cmd_ifconfig_print(int argc, char* argv[])
     Gap::Address_t     address;
     Gap::AddressType_t addressType;
     ble.gap().getAddress(&addressType, address);
-    if( addressType == Gap::ADDR_TYPE_PUBLIC ) {
-        cmd_printf("Public-Address: %s\r\n", cmd_print_address(address));
+    switch( addressType  ) {
+        case(Gap::ADDR_TYPE_PUBLIC):
+            cmd_printf("Public-Address: %s\r\n", cmd_print_address(address));
+            break;
+        case(Gap::ADDR_TYPE_RANDOM_STATIC):
+            cmd_printf("Random-Static-Address: %s\r\n", cmd_print_address(address));
+            break;
+        case(Gap::ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE):
+            cmd_printf("Random-Private-Resolved-Address: %s\r\n", cmd_print_address(address));
+            break;
+        case(Gap::ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE):
+            cmd_printf("Random-Private-Resolved-Address: %s\r\n", cmd_print_address(address));
+            break;
+        default:
+            cmd_printf("Unknown-Type (%d) -Address: %s\r\n", addressType, cmd_print_address(address));
+            break;
     }
     
     uint16_t interval = ble.gap().getAdvertisingParams().getInterval();
@@ -145,24 +190,27 @@ int cmd_ifconfig_print(int argc, char* argv[])
     cmd_printf("Device Name:  %*s\r\n", length, deviceName);
     
     GapAdvertisingData::Appearance appearance;
-    ASSERT_NO_FAILURE(ble.gap().getAppearance(&appearance));
-    cmd_printf("Appearance:  ");
-    switch( appearance ){
-        case(GapAdvertisingData::GENERIC_PHONE):
-            cmd_printf("GENERIC_PHONE\r\n");
-            break;
-        default:
-            cmd_printf("UNKNOWN\r\n");
-            break;
+    if( ble.gap().getAppearance(&appearance)) == 0 ) {
+        cmd_printf("Appearance:  ");
+        switch( appearance ){
+            case(GapAdvertisingData::GENERIC_PHONE):
+                cmd_printf("GENERIC_PHONE\r\n");
+                break;
+            default:
+                cmd_printf("UNKNOWN\r\n");
+                break;
+        }
     }
     
     Gap::ConnectionParams_t params;
-    ble.gap().getPreferredConnectionParams(&params);
-    cmd_printf(" minConnectionInterval:        %d\r\n", params.minConnectionInterval);
-    cmd_printf(" maxConnectionInterval:        %d\r\n", params.maxConnectionInterval);
-    cmd_printf(" slaveLatency:                 %d\r\n", params.slaveLatency);
-    cmd_printf(" connectionSupervisionTimeout: %d\r\n", params.connectionSupervisionTimeout);
+    if( ble.gap().getPreferredConnectionParams(&params) == 0 ) {
+        cmd_printf(" minConnectionInterval:        %d\r\n", params.minConnectionInterval);
+        cmd_printf(" maxConnectionInterval:        %d\r\n", params.maxConnectionInterval);
+        cmd_printf(" slaveLatency:                 %d\r\n", params.slaveLatency);
+        cmd_printf(" connectionSupervisionTimeout: %d\r\n", params.connectionSupervisionTimeout);
+    } 
     //...
+    
        
     return CMDLINE_RETCODE_SUCCESS;
 }
