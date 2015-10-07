@@ -4,11 +4,11 @@ class Testcase(Bench):
     def __init__(self):
         Bench.__init__(self,
                        name="test_setdevicename",
-                       title = "",
-                       status = "development",
-                       purpose = "",
+                       title = "Set BLE device name",
+                       status = "released",
+                       purpose = "Verify BLE device name set/get functionality",
                        component=['ble'],
-                       type="smoke", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
+                       type="regression", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
                                '*': { #requirements for all nodes
@@ -26,7 +26,7 @@ class Testcase(Bench):
     def case(self):
 
         # Device Name configuration
-        
+
         self.command(1, "test HRM 1 setDeviceName Rohit-Device-1")
         self.command(1, "ifconfig").verifyMessage(['Rohit-Device-1'])
 

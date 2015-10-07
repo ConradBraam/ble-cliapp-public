@@ -4,12 +4,12 @@ class Testcase(Bench):
     def __init__(self):
         Bench.__init__(self,
                        name="test_notification",
-                       title = "Smoke test for command line interface",
-                       status = "development",
-                       purpose = "Verify Command Line Interface",
+                       title = "BLE notification",
+                       status = "broken",
+                       purpose = "Verify BLE notifications by changing button characteristic",
                        component=['ble'],
-                       feature=['ifconfig'],
-                       type="smoke", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
+                       feature=['notification'],
+                       type="regression", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
                                '*': { #requirements for all nodes
@@ -33,7 +33,7 @@ class Testcase(Bench):
         self.command(1, "ifconfig up")
 
         self.command(1, "test HRM 1 setDeviceName HRM-")
-        
+
         # Set up Node '2'
         self.command(2, "ifconfig").verifyMessage(['ble0'])
         self.command(2, "ifconfig up")

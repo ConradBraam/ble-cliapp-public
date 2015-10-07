@@ -4,11 +4,12 @@ class Testcase(Bench):
     def __init__(self):
         Bench.__init__(self,
                        name="test_connparam",
-                       title = "",
-                       status = "development",
-                       purpose = "",
+                       title = "Set up connection parameters tuple and revert to original connection settings",
+                       status = "released",
+                       purpose = "Verify that connection parameters can be changed",
                        component=['ble'],
-                       type="smoke", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
+                       feature=['connection_parameters'],
+                       type="regression", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
                                '*': { #requirements for all nodes
@@ -25,8 +26,7 @@ class Testcase(Bench):
 
     def case(self):
 
-        # Connection parameters
-
+        # Connection parameters tuple (min conn, max conn, latency, timeout)
         connParams = [
             [50, 500, 0, 500],
             [40, 400, 0, 400],

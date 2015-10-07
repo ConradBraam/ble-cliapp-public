@@ -4,12 +4,12 @@ class Testcase(Bench):
     def __init__(self):
         Bench.__init__(self,
                        name="test_connect",
-                       title = "Smoke test for command line interface",
-                       status = "development",
-                       purpose = "Verify Command Line Interface",
+                       title = "Simple BLE connect / disconnect functionality check",
+                       status = "broken",
+                       purpose = "Verify connection between two nodes by passing MAC address between devices",
                        component=['ble'],
                        feature=['connect'],
-                       type="smoke", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
+                       type="regression", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
                                '*': { #requirements for all nodes

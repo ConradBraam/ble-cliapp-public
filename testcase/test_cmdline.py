@@ -5,7 +5,7 @@ class Testcase(Bench):
         Bench.__init__(self,
                        name="test_cmdline",
                        title = "Smoke test for command line interface",
-                       status = "development",
+                       status = "released",
                        purpose = "Verify Command Line Interface",
                        component=['ble'],
                        feature=['ifconfig'],
