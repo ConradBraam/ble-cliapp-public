@@ -39,7 +39,7 @@ static BLE *ble_ptr;
 static Gap::Address_t address;
 
 static int init_HRM_test();
-static int connectTest();
+static int connectTest(Gap::Address_t address);
 static int disconnectTest();
 static int readTest();
 static int writeTest();
@@ -56,10 +56,25 @@ static Gap::Handle_t deviceAHandle;
 int cmd_test_HRM_node2(int argc, char* argv[], BLE *ble)
 {
     ble_ptr = ble;
+    char *val;
     init_HRM_test();
+
     if( cmd_parameter_index(argc, argv, "connect") > 0 )
     {
-        return connectTest();
+        if( cmd_parameter_val(argc, argv, "connect", &val) ) {
+            Gap::Address_t address;
+            char *ptr = val;
+            Gap::ConnectionParams_t params =  {0, 0, 0, 0};
+            for(int i=0;i<6; i++) {
+                if( *ptr && ptr[1] != 0 ) {
+                    if (*ptr == ',' || *ptr == ':') {
+                        ++ptr;
+                    }
+                    address[i] = strtoul(ptr, &ptr, 16);
+                }
+            }
+            return connectTest(address);
+        }
     } else if( cmd_parameter_index(argc, argv, "disconnect") > 0 )
     {
         return disconnectTest();
@@ -149,7 +164,7 @@ static void readCharacteristic(const GattReadCallbackParams *response)
 /*
  * Tests connecting devices. Devices must be disconnected for this test
  */
-static int connectTest()
+static int connectTest(Gap::Address_t address)
 {
     if (!(ble_ptr->gap().getState().connected)) {
         ASSERT_NO_FAILURE(ble_ptr->gap().connect(address, Gap::ADDR_TYPE_RANDOM_STATIC, NULL, NULL));
@@ -221,7 +236,7 @@ static int notificationTest()
                                    sizeof(uint16_t),                        /* HACK Alert! size should be made into a BLE_API constant. */
                                    reinterpret_cast<const uint8_t *>(&value)));
     } else {
-        cmd_printf("Characteristic not found\r\r");
+        cmd_printf("Characteristic not found\r\n");
     }
     return 0;
 }
@@ -248,11 +263,13 @@ static void hvxCallback(const GattHVXCallbackParams *params) {
 
 static int init_HRM_test()
 {
+    /*
     unsigned x;
     for (unsigned i = 0; i < Gap::ADDR_LEN; i++) {
         scanf("%d", &x);
         address[i] = (uint8_t)x;
     }
+    */
     ASSERT_NO_FAILURE(ble_ptr->init());
     ASSERT_NO_FAILURE(ble_ptr->gap().setScanParams(500 /* scan interval */, 200 /* scan window */));
 

@@ -8,11 +8,12 @@ class Testcase(Bench):
                        status = "development",
                        purpose = "Verify Command Line Interface",
                        component=['ble'],
+                       feature=['ifconfig'],
                        type="smoke", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
                                '*': { #requirements for all nodes
-                                    "count":2,
+                                    "count":1,
                                     "type": "hardware",
                                     "application":{ "name":"generalTestApplication", "version": "1.0"},
                                }
@@ -29,11 +30,9 @@ class Testcase(Bench):
 
         # just print all existing commands..
         self.command(1, "help")
-
         resp = self.command(1, "ifconfig")
         resp.verifyMessage(['ble0'])
-        
-        self.command('*', "ifconfig up")
+        self.command(1, "ifconfig up")
 
     def rampDown(self):
         # nothing for now

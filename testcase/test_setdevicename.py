@@ -12,7 +12,7 @@ class Testcase(Bench):
                        requirements={
                            "duts": {
                                '*': { #requirements for all nodes
-                                    "count":2,
+                                    "count":1,
                                     "type": "hardware",
                                     "application":{ "name":"generalTestApplication", "version": "1.0"},
                                }
@@ -29,9 +29,6 @@ class Testcase(Bench):
         
         self.command(1, "test HRM 1 setDeviceName Rohit-Device-1")
         self.command(1, "ifconfig").verifyMessage(['Rohit-Device-1'])
-        
-        self.command(2, "test HRM 1 setDeviceName Rohit-Device-2")
-        self.command(2, "ifconfig").verifyMessage(['Rohit-Device-2'])
 
     def rampDown(self):
         # nothing for now

@@ -3,16 +3,17 @@ from lib.bench import Bench
 class Testcase(Bench):
     def __init__(self):
         Bench.__init__(self,
-                       name="test_appearance",
-                       title = "",
+                       name="test_connect",
+                       title = "Smoke test for command line interface",
                        status = "development",
-                       purpose = "",
+                       purpose = "Verify Command Line Interface",
                        component=['ble'],
+                       feature=['connect'],
                        type="smoke", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
                                '*': { #requirements for all nodes
-                                    "count":1,
+                                    "count":2,
                                     "type": "hardware",
                                     "application":{ "name":"generalTestApplication", "version": "1.0"},
                                }
@@ -25,13 +26,26 @@ class Testcase(Bench):
 
     def case(self):
 
-        # Appearance related test cases
+        # Connection
+
+        # Set up Node '1'
         resp = self.command(1, "ifconfig")
         resp.verifyMessage(['ble0'])
         self.command(1, "ifconfig up")
-        self.command(1, "test HRM 1 appearance 64")
-        resp = self.command(1, "ifconfig")
-        resp.verifyMessage(['Generic Phone'])
+
+        # Set up Node '2'
+        resp = self.command(2, "ifconfig")
+        resp.verifyMessage(['ble0'])
+        self.command(2, "ifconfig up")
+
+        # Get MAC address of Node 1 and make Node 2 connect to node 1
+        dut1_public_address = self.get_ble0_address(1, type='random-static')
+
+        # Connection...
+        self.command(2, "test HRM 2 connect %s"% dut1_public_address)
+
+        # Disconenction....
+        self.command(2, "test HRM 2 disconnect")
 
     def rampDown(self):
         # nothing for now
