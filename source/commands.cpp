@@ -286,9 +286,9 @@ int cmd_ifconfig_print(int argc, char* argv[])
     }
     //...
 
-
     return CMDLINE_RETCODE_SUCCESS;
 }
+
 void cmd_ifconfig_ble_reset(void)
 {
     ble.gap().stopAdvertising();
@@ -300,6 +300,7 @@ void cmd_ifconfig_ble_reset(void)
     const static uint8_t trivialAdvPayload[] = {0, 0, 0, 0, 0};
     ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::SERVICE_DATA, trivialAdvPayload, sizeof(trivialAdvPayload));
 }
+
 int cmd_ifconfig_ble(int argc, char* argv[])
 {
     tr_debug("called cmd_ifconfig_ble()");

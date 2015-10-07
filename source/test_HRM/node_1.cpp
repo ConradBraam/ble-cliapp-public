@@ -246,7 +246,6 @@ static int verifyBasicAssumptions()
 
 static int init_HRM_test(void)
 {
-
     int errorCode = ble_ptr->init();
     if (errorCode == 0) {
         uint8_t                   hrmCounter = 100; // init HRM to 100bps

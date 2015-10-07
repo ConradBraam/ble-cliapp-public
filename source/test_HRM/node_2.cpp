@@ -137,7 +137,7 @@ static void characteristicDiscoveryCallback(const DiscoveredCharacteristic *char
  */
 static void connectionCallback(const Gap::ConnectionCallbackParams_t *params)
 {
-    cmd_printf("Connected to: %d:%d:%d:%d:%d:%d\n",
+    cmd_printf("Connected to: %2X:%2X:%2X:%2X:%2X:%2X\r\n",
            params->peerAddr[0], params->peerAddr[1], params->peerAddr[2], params->peerAddr[3], params->peerAddr[4], params->peerAddr[5]);
     if (params->role == Gap::CENTRAL) {
         deviceAHandle = params->handle; /* Handle for device A so it is it possible to disconnect*/
@@ -259,7 +259,7 @@ static void hvxCallback(const GattHVXCallbackParams *params) {
         cmd_printf("%02x", params->data[index]);
     }
     cmd_printf("\r\n");
-}   
+}
 
 static int init_HRM_test()
 {
