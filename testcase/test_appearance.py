@@ -3,13 +3,13 @@ from lib.bench import Bench
 class Testcase(Bench):
     def __init__(self):
         Bench.__init__(self,
-                       name="test_cmdline",
-                       title = "Smoke test for command line interface",
+                       name="test_appearance",
+                       title = "Change BLE device appearance",
                        status = "released",
-                       purpose = "Verify Command Line Interface",
+                       purpose = "Check if we can change BLE appearance to BLE_APPEARANCE_GENERIC_PHONE",
                        component=['ble'],
-                       feature=['ifconfig'],
-                       type="smoke", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
+                       feature=['ble_appearance'],
+                       type="regression", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
                                '*': { #requirements for all nodes
@@ -26,13 +26,15 @@ class Testcase(Bench):
 
     def case(self):
 
-        #just demonstration purpose, probably not working...
+        BLE_APPEARANCE_GENERIC_PHONE = 64
 
-        # just print all existing commands..
-        self.command(1, "help")
+        # Appearance related test cases
         resp = self.command(1, "ifconfig")
         resp.verifyMessage(['ble0'])
         self.command(1, "ifconfig up")
+        self.command(1, "test HRM 1 appearance %d"% BLE_APPEARANCE_GENERIC_PHONE)
+        resp = self.command(1, "ifconfig")
+        resp.verifyMessage(['Generic Phone'])
 
     def rampDown(self):
         # nothing for now

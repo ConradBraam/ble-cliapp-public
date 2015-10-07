@@ -41,9 +41,9 @@ static BLE *ble_ptr;
 static ButtonService *btnServicePtr;
 
 static int init_HRM_test(void);
-static int setDeviceNameTest();
-static int appearanceTest();
-static int connParamTest();
+static int setDeviceNameTest(char *device_name);
+static int appearanceTest(const int ble_appearance);
+static int connParamTest(Gap::ConnectionParams_t params);
 static int notificationTest();
 
 static const char     DEVICE_NAME[] = "HRMTEST";
@@ -56,27 +56,52 @@ static const uint16_t uuid16_list[] = {GattService::UUID_HEART_RATE_SERVICE,
 int cmd_test_HRM_node1(int argc, char* argv[], BLE *ble)
 {
     ble_ptr = ble;
-    
+
     //ASSERT_NO_FAILURE(  );
     init_HRM_test();
-    
+
+    char *val;
+
     if( cmd_parameter_index(argc, argv, "setDeviceName") > 0 )
     {
-        return setDeviceNameTest();
+        if( cmd_parameter_val(argc, argv, "setDeviceName", &val) ) {
+            return setDeviceNameTest(val);
+        }
     } else if( cmd_parameter_index(argc, argv, "appearance") > 0 )
     {
-        return appearanceTest();
+        if( cmd_parameter_val(argc, argv, "appearance", &val) ) {
+            return appearanceTest(atoi(val));
+        }
     }  else if( cmd_parameter_index(argc, argv, "connParam") > 0 )
     {
-        return connParamTest();
+        if( cmd_parameter_val(argc, argv, "connParam", &val) ) {
+            char *ptr = val;
+            Gap::ConnectionParams_t params =  {0, 0, 0, 0};
+            for(int i=0;i<4; i++) {
+                if( *ptr && ptr[1] != 0 ) {
+                    if (*ptr == ',') {
+                        ++ptr;
+                    }
+                    unsigned value = strtoul(ptr, &ptr, 10);
+                    switch(i) {
+                        case(0): params.minConnectionInterval = value; break;
+                        case(1): params.maxConnectionInterval = value; break;
+                        case(2): params.slaveLatency = value; break;
+                        case(3): params.connectionSupervisionTimeout = value; break;
+                        default: break;
+                    }
+                }
+            }
+            return connParamTest(params);
+        }
     } else if( cmd_parameter_index(argc, argv, "notification") > 0 )
     {
         return notificationTest();
     }
     return CMDLINE_RETCODE_INVALID_PARAMETERS;
 }
-                                       
-                                       
+
+
 /**
  * Restarts advertising
  */
@@ -97,19 +122,18 @@ static void connectionCallback(const Gap::ConnectionCallbackParams_t *params){
 /**
  * Tests the set and get Device Name functions
  */
-static int setDeviceNameTest()
+static int setDeviceNameTest(char *device_name)
 {
     if (ble_ptr->gap().getState().connected) {
         cmd_printf("Device must be disconnected\n");
         return 100;
     }
 
-    uint8_t deviceNameIn[] = "Josh-test";
+    uint8_t *deviceNameIn = (uint8_t*)device_name;
     ASSERT_NO_FAILURE(ble_ptr->gap().setDeviceName(deviceNameIn));
-    wait(0.5);  /* TODO: remove this. */
 
     static const size_t MAX_DEVICE_NAME_LEN = 50;
-    uint8_t  deviceName[MAX_DEVICE_NAME_LEN];
+    uint8_t deviceName[MAX_DEVICE_NAME_LEN];
     unsigned length = MAX_DEVICE_NAME_LEN;
     ASSERT_NO_FAILURE(ble_ptr->gap().getDeviceName(deviceName, &length));
 
@@ -129,15 +153,18 @@ static int setDeviceNameTest()
 /**
  * Tests the set and get Apeparance functions
  */
-static int appearanceTest()
+static int appearanceTest(const int ble_appearance)
 {
+    GapAdvertisingData::Appearance appearance = (GapAdvertisingData::Appearance)ble_appearance;
+
     if ((ble_ptr->gap().getState().connected)) {
         cmd_printf("Device must be disconnected\n");
         return 100;
     }
 
-    ASSERT_NO_FAILURE(ble_ptr->gap().setAppearance(GapAdvertisingData::GENERIC_PHONE));
-    GapAdvertisingData::Appearance appearance;
+    ASSERT_NO_FAILURE(ble_ptr->gap().setAppearance(appearance));
+
+    appearance = GapAdvertisingData::UNKNOWN;
     ASSERT_NO_FAILURE(ble_ptr->gap().getAppearance(&appearance));
     cmd_printf("ASSERTIONS DONE\r\n");
 
@@ -148,7 +175,7 @@ static int appearanceTest()
 /**
  * Tests the get and set Preferred Connection Params functions
  */
-static int connParamTest()
+static int connParamTest(Gap::ConnectionParams_t params)
 {
     if ((ble_ptr->gap().getState().connected)) {
         cmd_printf("Device must be disconnected\n");
@@ -158,20 +185,19 @@ static int connParamTest()
     Gap::ConnectionParams_t originalParams;
     ASSERT_NO_FAILURE(ble_ptr->gap().getPreferredConnectionParams(&originalParams));
 
-    Gap::ConnectionParams_t params;
-    Gap::ConnectionParams_t paramsOut = {50, 500, 0, 500};
-    ASSERT_NO_FAILURE(ble_ptr->gap().setPreferredConnectionParams(&paramsOut));
+    ASSERT_NO_FAILURE(ble_ptr->gap().setPreferredConnectionParams(&params));
+
+    Gap::ConnectionParams_t paramsOut = {0, 0, 0, 0};
+    ASSERT_NO_FAILURE(ble_ptr->gap().getPreferredConnectionParams(&paramsOut));
 
     cmd_printf("ASSERTIONS DONE\r\n");
 
-    ble_ptr->gap().getPreferredConnectionParams(&params);
+    cmd_printf("minConnectionInterval: %d\r\n", paramsOut.minConnectionInterval);
+    cmd_printf("maxConnectionInterval: %d\r\n", paramsOut.maxConnectionInterval);
+    cmd_printf("slaveLatency: %d\r\n", paramsOut.slaveLatency);
+    cmd_printf("connectionSupervisionTimeout: %d\r\n", paramsOut.connectionSupervisionTimeout);
 
-    cmd_printf("%d\n", params.minConnectionInterval);
-    cmd_printf("%d\n", params.maxConnectionInterval);
-    cmd_printf("%d\n", params.slaveLatency);
-    cmd_printf("%d\n", params.connectionSupervisionTimeout);
-
-    ble_ptr->gap().setPreferredConnectionParams(&originalParams);
+    ASSERT_NO_FAILURE(ble_ptr->gap().setPreferredConnectionParams(&originalParams));
     return 0;
 }
 
@@ -220,7 +246,6 @@ static int verifyBasicAssumptions()
 
 static int init_HRM_test(void)
 {
-
     int errorCode = ble_ptr->init();
     if (errorCode == 0) {
         uint8_t                   hrmCounter = 100; // init HRM to 100bps

@@ -6,6 +6,8 @@
 // libraries
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-cli/ns_types.h"
+
+#define YOTTA_CFG_MBED_CLIENT_TRACE
 #include "mbed-client-trace/mbed_client_trace.h"
 
 #define TRACE_GROUP "appl"
@@ -65,8 +67,8 @@ char* cmd_print_address(Gap::Address_t addr);
                     "                       <d>: Connection Supervision Timeout in 10 ms units"\
                     "\r\n"\
                     "                       Without [options] just print current config\r\n"
-                    
-                    
+
+
 #define MAN_TEST    "test <id> <node> ([options]) Execute individual test\r\n"\
                     "<id>                   TC ID. Allowed values:  'A', 'HRM', 'BlockTransfer' ..\r\n"\
                     "<node>                 Node ID. Allowed values:  '1','2'\r\n"\
@@ -77,7 +79,7 @@ char* cmd_print_address(Gap::Address_t addr);
                     "                       changeIntervalTest\r\n"\
                     "                       setAddrTest\r\n"\
                     "                       setupIBeaconTest\r\n"
-                    
+
 void initialize_app_commands(void)
 {
     cmd_add("ifconfig", cmd_ifconfig, "Configure Network", MAN_IFCONFIG);
@@ -89,67 +91,68 @@ int cmd_test(int argc, char* argv[])
     if( cmd_parameter_index(argc, argv, "A") == 1 ) {
         if( cmd_parameter_index(argc, argv, "1") == 2 ) {
             return cmd_test_A_node1(argc, argv, &ble);
-        } else 
+        } else
         if( cmd_parameter_index(argc, argv, "2") == 2 ) {
             return cmd_test_A_node2(argc, argv, &ble);
-        } else { 
-            return CMDLINE_RETCODE_INVALID_PARAMETERS; 
+        } else {
+            return CMDLINE_RETCODE_INVALID_PARAMETERS;
         }
     } else if( cmd_parameter_index(argc, argv, "HRM") == 1 ) {
         if( cmd_parameter_index(argc, argv, "1") == 2 ) {
             return cmd_test_HRM_node1(argc, argv, &ble);
-        } else 
+        } else
         if( cmd_parameter_index(argc, argv, "2") == 2 ) {
             return cmd_test_HRM_node2(argc, argv, &ble);
-        } else { 
-            return CMDLINE_RETCODE_INVALID_PARAMETERS; 
+        } else {
+            return CMDLINE_RETCODE_INVALID_PARAMETERS;
         }
     }
     return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 }
 
-char address_tmp[16];
 char* cmd_print_address(Gap::Address_t addr)
 {
-    if(snprintf(address_tmp, 16, "%d:%d:%d:%d:%d:%d", 
-       addr[0], addr[1], addr[2], addr[3], addr[4], addr[5])>0) {
+    static char address_tmp[20];
+    if( snprintf(address_tmp, sizeof(address_tmp) / sizeof(char), "%2X:%2X:%2X:%2X:%2X:%2X",
+        addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]) > 0 ) {
         return address_tmp;
     }
     return "";
 }
+
 char* ble_error_to_text(ble_error_t erno)
 {
     switch(erno) {
-        case(BLE_ERROR_NONE): 
+        case(BLE_ERROR_NONE):
             return "No error";
-        case(BLE_ERROR_BUFFER_OVERFLOW): 
+        case(BLE_ERROR_BUFFER_OVERFLOW):
             return "The requested action would cause a buffer overflow and has been aborted";
         case(BLE_ERROR_NOT_IMPLEMENTED):
             return "Requested a feature that isn't yet implement or isn't supported by the target HW";
-        case(BLE_ERROR_PARAM_OUT_OF_RANGE): 
+        case(BLE_ERROR_PARAM_OUT_OF_RANGE):
             return "One of the supplied parameters is outside the valid range";
-        case(BLE_ERROR_INVALID_PARAM): 
+        case(BLE_ERROR_INVALID_PARAM):
             return "One of the supplied parameters is invalid";
-        case(BLE_STACK_BUSY): 
+        case(BLE_STACK_BUSY):
             return "The stack is busy";
-        case(BLE_ERROR_INVALID_STATE): 
+        case(BLE_ERROR_INVALID_STATE):
             return "Invalid state";
-        case(BLE_ERROR_NO_MEM): 
+        case(BLE_ERROR_NO_MEM):
             return "Out of Memory";
-        case(BLE_ERROR_OPERATION_NOT_PERMITTED ): 
+        case(BLE_ERROR_OPERATION_NOT_PERMITTED ):
             return "Operation not permitted";
-        case(BLE_ERROR_UNSPECIFIED): 
+        case(BLE_ERROR_UNSPECIFIED):
             return "Unspecified";
         default:
             tr_debug("Unknown ble_error_t: %d", erno);
             return "Unknown ble_error_t error number";
-            
+
     }
 }
 char* ble_appearance_to_text(GapAdvertisingData::Appearance appearance)
 {
     /// @todo separate table, which can be use like this, but also
-    ///       to convert text to GapAdvertisingData::Appearance 
+    ///       to convert text to GapAdvertisingData::Appearance
     ///       for cmd: "ifconfig --set-appearance <appearance>"
     switch(appearance) {
         case(GapAdvertisingData::UNKNOWN):
@@ -213,17 +216,18 @@ char* ble_appearance_to_text(GapAdvertisingData::Appearance appearance)
             return "Location And Navigarion POD";
         default:
             tr_warn("Unknown appearance: %d", appearance);
-            return "";
+            return "Unknown appearance";
     }
 }
+
 int cmd_ifconfig_print(int argc, char* argv[])
 {
     ble_error_t erno;
     tr_debug("called cmd_ifconfig_print()");
     // print all current interface configurations
-    
+
     cmd_printf("Interface ble0\r\n");
-    
+
     static const size_t MAX_DEVICE_NAME_LEN = 50;
     uint8_t  deviceName[MAX_DEVICE_NAME_LEN];
     unsigned length = MAX_DEVICE_NAME_LEN;
@@ -232,21 +236,22 @@ int cmd_ifconfig_print(int argc, char* argv[])
     } else {
         cmd_printf("  Device Name:  Unknown\r\n");
     }
-    
+
     GapAdvertisingData::Appearance appearance;
     if( ble.gap().getAppearance(&appearance) == 0 ) {
-        cmd_printf("  Appearance: %s\r\n", ble_appearance_to_text(appearance) );
+        cmd_printf("  Appearance: %s", ble_appearance_to_text(appearance) );
+        cmd_printf(" (%d)\r\n", appearance );
     } else {
         cmd_printf("  Appearance: UNKNOWN\r\n");
     }
-    
+
     Gap::GapState_t state = ble.gap().getState();
     cmd_printf("  Connected:   %s\r\n", state.connected?"true":"false");
     cmd_printf("  Advertising: %s\r\n", state.advertising?"true":"false");
     uint16_t interval = ble.gap().getAdvertisingParams().getInterval();
     cmd_printf("  -interval: %d\r\n", interval);
-    
-    
+
+
     Gap::ConnectionParams_t params;
     if( (erno=ble.gap().getPreferredConnectionParams(&params)) == 0 ) {
         cmd_printf("  Preferred Connection Parameters:\r\n");
@@ -255,7 +260,7 @@ int cmd_ifconfig_print(int argc, char* argv[])
         cmd_printf("  -slaveLatency:                 %d\r\n", params.slaveLatency);
         cmd_printf("  -connectionSupervisionTimeout: %d\r\n", params.connectionSupervisionTimeout);
     }
-    
+
     /* Read in the MAC address of this peripheral. The corresponding central will be
      * commanded to co-ordinate with this address. */
     cmd_printf("  Radio if address\r\n");
@@ -280,10 +285,10 @@ int cmd_ifconfig_print(int argc, char* argv[])
             break;
     }
     //...
-    
-       
+
     return CMDLINE_RETCODE_SUCCESS;
 }
+
 void cmd_ifconfig_ble_reset(void)
 {
     ble.gap().stopAdvertising();
@@ -295,13 +300,14 @@ void cmd_ifconfig_ble_reset(void)
     const static uint8_t trivialAdvPayload[] = {0, 0, 0, 0, 0};
     ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::SERVICE_DATA, trivialAdvPayload, sizeof(trivialAdvPayload));
 }
+
 int cmd_ifconfig_ble(int argc, char* argv[])
 {
     tr_debug("called cmd_ifconfig_ble()");
     int32_t ival;
     char *val;
     int ret = -1;
-    
+
     if( argc == 1 ) {
         return cmd_ifconfig_print(argc, argv);
     }
@@ -316,7 +322,7 @@ int cmd_ifconfig_ble(int argc, char* argv[])
         ble.gap().setDeviceName((uint8_t*)val);
         ret = 0;
     } else if( cmd_parameter_val(argc, argv, "--addr", &val) ){
-        Gap::Address_t address; 
+        Gap::Address_t address;
         // @todo convert string to address..
         // ...
         ret = ble.gap().setAddress(Gap::ADDR_TYPE_PUBLIC, address);
@@ -339,7 +345,7 @@ int cmd_ifconfig_ble(int argc, char* argv[])
         uint8_t mask = 0;
         if( strstr(val, "LE_GENERAL_DISCOVERABLE")>0) {
             mask |= GapAdvertisingData::LE_GENERAL_DISCOVERABLE;
-        } 
+        }
         if( strstr(val, "BREDR_NOT_SUPPORTED") > 0) {
             mask |= GapAdvertisingData::BREDR_NOT_SUPPORTED;
         }
@@ -359,7 +365,7 @@ int cmd_ifconfig_ble(int argc, char* argv[])
         int scan_window = 200;
         bool active_scan = true;
         int timeout = 0;
-        
+
         int scan_interval = strtol(ptr, &ptr, 10);
         if( scan_interval == 0 ) scan_interval = 500;
         if( ptr && *ptr && ptr[1] != 0 ) {
@@ -385,10 +391,13 @@ int cmd_ifconfig_ble(int argc, char* argv[])
         Gap::ConnectionParams_t params =  {50, 500, 0, 500};
         for(int i=0;i<4; i++) {
             if( *ptr && ptr[1] != 0 ) {
-                uint16_t value = strtoul((ptr+1), &ptr, 10);
+                if (*ptr == ',') {
+                    ++ptr;
+                }
+                unsigned value = strtoul(ptr, &ptr, 10);
                 switch(i) {
-                    case(0): params.maxConnectionInterval = value; break;
-                    case(1): params.minConnectionInterval = value; break;
+                    case(0): params.minConnectionInterval = value; break;
+                    case(1): params.maxConnectionInterval = value; break;
                     case(2): params.slaveLatency = value; break;
                     case(3): params.connectionSupervisionTimeout = value; break;
                     default: break;
