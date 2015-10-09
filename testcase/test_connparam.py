@@ -8,7 +8,7 @@ class Testcase(Bench):
                        status = "released",
                        purpose = "Verify that connection parameters can be changed",
                        component=['ble'],
-                       feature=['connection_parameters'],
+                       feature=['ifconfig'],
                        type="regression", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
