@@ -8,7 +8,7 @@ class Testcase(Bench):
                        status = "released",
                        purpose = "Verify BLE device name set/get functionality",
                        component=['ble'],
-                       feature=['set_device_name'],
+                       feature=['iconfig'],
                        type="regression", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {

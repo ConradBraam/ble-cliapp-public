@@ -8,7 +8,7 @@ class Testcase(Bench):
                        status = "broken",
                        purpose = "Verify HRM characteristic reading",
                        component=['ble'],
-                       feature=['HRM read'],
+                       feature=['HRM'],
                        type="regression", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {

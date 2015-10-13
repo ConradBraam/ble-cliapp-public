@@ -8,7 +8,7 @@ class Testcase(Bench):
                        status = "released",
                        purpose = "Check if we can change BLE appearance to BLE_APPEARANCE_GENERIC_PHONE",
                        component=['ble'],
-                       feature=['ble_appearance'],
+                       feature=['appearance'],
                        type="regression", # allowed values: installation, compatibility, smoke, regression, acceptance, alpha, beta, destructive, performance
                        requirements={
                            "duts": {
