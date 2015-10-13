@@ -80,12 +80,12 @@ const char* ble_error_to_text(ble_error_t erno)
     }
 }
 typedef struct appearance_map_t {
-    int id;
+    GapAdvertisingData::Appearance id;
     const char* key;
     const char* text;
 } apperance_map_s;
 
-appearance_map_t APPEARANCES[] = {
+const appearance_map_t APPEARANCES[] = {
     {  .id = GapAdvertisingData::UNKNOWN,
        .key = "UNKNOWN",
        .text = "Unknown of unspecified appearance type"
@@ -252,7 +252,7 @@ GapAdvertisingData::Appearance get_appearance_id( char* appearance )
     while( ptr->text ) {
         if( strcmp(ptr->text, appearance ) == 0 ||
             strcmp(ptr->key, appearance ) == 0 ) {
-            return (GapAdvertisingData::Appearance)ptr->id;
+            return ptr->id;
         }
         ptr++;
     }
