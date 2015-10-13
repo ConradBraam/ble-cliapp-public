@@ -3,6 +3,10 @@
 # folder structure
 * source
  device side application source files
+** cmds
+   Commands
+** tests
+   device side tests, which started by some command
 * testcase
  clitest -based example test case, which (should) work with device application
 

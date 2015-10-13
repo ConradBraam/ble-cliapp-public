@@ -32,7 +32,7 @@
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-trace/mbed_client_trace.h"
 
-#include "../commands.h"
+#include "macros.h"
 
 /**
  * Global static objects.

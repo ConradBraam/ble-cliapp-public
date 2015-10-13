@@ -2,9 +2,10 @@
 #include "ble/BLE.h"
 #include "ble/services/iBeacon.h"
 #include "mbed-client-cli/ns_cmdline.h"
+#define YOTTA_CFG_MBED_CLIENT_TRACE
 #include "mbed-client-trace/mbed_client_trace.h"
 
-#include "commands.h"
+#include "cmds/connect.h"
 
 // Prototypes
 void cmd_ready_cb(int retcode);
@@ -47,7 +48,7 @@ void app_start(int, char*[])
     // initialize trace libary
     mbed_client_trace_init();
     mbed_client_trace_print_function_set( trace_printer );
-    mbed_client_trace_cmdprint_function_set( cmd_printer );
+    mbed_client_trace_cmdprint_function_set( trace_printer );
     mbed_client_trace_config_set(TRACE_MODE_COLOR|TRACE_ACTIVE_LEVEL_DEBUG|TRACE_CARRIAGE_RETURN);
 
     cmd_init( &custom_cmd_response_out );

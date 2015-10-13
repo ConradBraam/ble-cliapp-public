@@ -1,7 +1,5 @@
-#ifndef _COMMANDS_H
-#define _COMMANDS_H
-
-
+#ifndef _BLE_MACROS_H
+#define _BLE_MACROS_H
 /**
  * Assertion and check macros
  */
@@ -38,8 +36,7 @@
                             (X) == (Y) ? \
                             cmd_printf("{{success}}\r\n") : \
                             cmd_printf("{{failure}}\r\n"));
-
-void initialize_app_commands(void);
+                            
 char* cmd_print_address(Gap::Address_t addr);
-
+                            
 #endif
