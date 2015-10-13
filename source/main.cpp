@@ -13,22 +13,21 @@ Serial pc(USBTX, USBRX);
 
 void trace_printer(const char* str)
 {
-	pc.printf("%s\r\n", str);
-	cmd_output();
+    pc.printf("%s\r\n", str);
+    cmd_output();
 }
 
 void custom_cmd_response_out(const char* fmt, va_list ap)
 {
-    char buffer[200]= {0};
-    vsnprintf(buffer,200,fmt, ap);
-    pc.printf("%s",buffer);
+    vprintf(fmt, ap);
+    fflush(stdout);
 }
 
 // serial RX interrupt function
 // there should be buffer to improve performance..
-void cmd_cb(void) 
+void cmd_cb(void)
 {
-	cmd_char_input(pc.getc());
+    cmd_char_input(pc.getc());
 }
 
 // this function should be inside some "event scheduler", because
@@ -42,15 +41,15 @@ void cmd_ready_cb(int retcode)
 void app_start(int, char*[])
 {
     //configure serial port
-    pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
+    pc.baud(115200);    // This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
     pc.attach(&cmd_cb);
-    
+
     // initialize trace libary
     mbed_client_trace_init();
     mbed_client_trace_print_function_set( trace_printer );
     mbed_client_trace_cmdprint_function_set( cmd_printer );
     mbed_client_trace_config_set(TRACE_MODE_COLOR|TRACE_ACTIVE_LEVEL_DEBUG|TRACE_CARRIAGE_RETURN);
-    
+
     cmd_init( &custom_cmd_response_out );
     cmd_set_ready_cb( cmd_ready_cb );
     initialize_app_commands();
@@ -62,7 +61,7 @@ void app_start(int, char*[])
 int main(void)
 {
     app_start(0, NULL);
-    
+
     return 0;
 }
 #endif

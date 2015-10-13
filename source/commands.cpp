@@ -61,10 +61,10 @@ char* cmd_print_address(Gap::Address_t addr);
                     "                       set scan-parameters\r\n"\
                     "--set-preferred-conn-params <a>,<b>,<c>,<d>\r\n"\
                     "                       Set Preferred Connection Parameters\r\n"\
-                    "                       <a>: Minimum Connection Interval in 1.25 ms units"\
-                    "                       <b>: Maximum Connection Interval in 1.25 ms units"\
-                    "                       <c>: Slave Latency in number of connection events"\
-                    "                       <d>: Connection Supervision Timeout in 10 ms units"\
+                    "                       <a>: Minimum Connection Interval in 1.25 ms units\r\n"\
+                    "                       <b>: Maximum Connection Interval in 1.25 ms units\r\n"\
+                    "                       <c>: Slave Latency in number of connection events\r\n"\
+                    "                       <d>: Connection Supervision Timeout in 10 ms units\r\n"\
                     "\r\n"\
                     "                       Without [options] just print current config\r\n"
 
