@@ -145,18 +145,77 @@ public:
 		const CommandArgs args(argc, argv);
 		const char* commandName = args[1];
 		const ConstArray<Command_t> commands = SuiteDescription::commands();
+		const CommandArgs commandArgs(args.drop(2));
 
 		CommandResult result;
 
 		for(size_t i = 0; i < commands.count(); ++i) {
 			if(strcmp(commands[i].name, commandName) == 0) {
-				result = commands[i].handler(args.drop(2));
+				result = commands[i].handler(commandArgs);
 				break;
 			}
 		}
 
+		printCommandResult(SuiteDescription::name(), commandName, commandArgs, result);
 		return result.statusCode;
 	}
+
+
+	/**
+	 * @brief Format and print the command result through the command line
+	 * @details The result printed is a JSON describing the command and its results. 
+	 * The JSON format is as follow : 
+	 * {
+	 *     "command_name": "name of the command", 
+	 *     "arguments": [
+	 *         "arg0",
+	 *         "arg1",
+	 *         ...
+	 *     ],
+	 *     "status": 0, // The status of the command as described in mbed-client-cli/ns_cmdline.h. 
+	 *     "result": <some json value>, // this field is only present if the status is equal to zero
+	 *     "error": <some json value>  // this field is only present if the status is NOT equal to zero
+	 * }
+	 * 
+	 * @param commandGroup The group name of the command executed 
+	 * @param commandName The name of the command executed 
+	 * @param args Arguments of the command
+	 * @param result The result of the command execution
+	 */
+	static void printCommandResult(const char* commandGroup, const char* commandName, const CommandArgs& args, const CommandResult& result) {
+		namespace pj = picojson;
+
+		pj::value message(pj::object_type, true);
+
+		pj::object& msgObject = message.get<pj::object>();
+
+		// build the name 
+		msgObject["name"] = pj::value(std::string(commandGroup) + " " + commandName);
+
+		// build the arguments 
+		pj::value arguments(pj::array_type, true);
+		for(size_t i = 0; i < args.count(); ++i) {
+			arguments.get<pj::array>().push_back(pj::value(args[i]));
+		}
+		msgObject["arguments"] = pj::value(arguments);
+
+		// set the command status
+		msgObject["status"] = pj::value((int64_t) result.statusCode);
+
+		// add additional informations if there is any
+		if(result.info.is<pj::null>() == false) {
+			// in case of a status code equal to 0, it is the result of the command
+			if(result.statusCode == 0) {
+				msgObject["result"] = result.info;
+			} else {
+				// otherwise it is the error reason
+				msgObject["error"] = result.info;
+			}
+		}
+
+		cmd_printf("%s\r\n", message.serialize(true).c_str());
+	}
+
 };
 
 
