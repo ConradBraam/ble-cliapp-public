@@ -5,6 +5,7 @@
 #include "mbed-client-trace/mbed_client_trace.h"
 
 #include "commands.h"
+#include "CLICommandSuite.h"
 
 // Prototypes
 void cmd_ready_cb(int retcode);
@@ -19,8 +20,8 @@ void trace_printer(const char* str)
 
 void custom_cmd_response_out(const char* fmt, va_list ap)
 {
-    char buffer[200]= {0};
-    vsnprintf(buffer,200,fmt, ap);
+    char buffer[400]= {0};
+    vsnprintf(buffer,sizeof(buffer),fmt, ap);
     pc.printf("%s",buffer);
 }
 

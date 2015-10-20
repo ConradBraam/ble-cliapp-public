@@ -1,5 +1,5 @@
 {
   "build": {
-    "target": "nrf51dk-armcc,*"
+    "target": "nrf51dk-gcc,*"
   }
 }

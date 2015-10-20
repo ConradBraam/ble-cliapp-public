@@ -14,14 +14,13 @@
 
 // application
 #include "commands.h"
-#include "test_A/node_1.h"
-#include "test_A/node_2.h"
 
-#include "test_HRM/node_1.h"
-#include "test_HRM/node_2.h"
+#include "CliCommandSuite.h"
+#include "BLECommands.h"
+#include "GapCommands.h"
 
 // BLE object
-BLE ble;
+//BLE ble;
 
 // prototypes
 int cmd_test(int argc, char* argv[]);
@@ -80,11 +79,18 @@ char* cmd_print_address(Gap::Address_t addr);
                     "                       setAddrTest\r\n"\
                     "                       setupIBeaconTest\r\n"
 
-void initialize_app_commands(void)
-{
-    cmd_add("ifconfig", cmd_ifconfig, "Configure Network", MAN_IFCONFIG);
-    cmd_add("test", cmd_test, "Do device-side tests", MAN_TEST);
+// TODO : clean this file anyway
+
+
+void initialize_app_commands(void) {
+    registerCommandSuite<BLECommandSuiteDescription>();
+    registerCommandSuite<GapCommandSuiteDescription>();
 }
+
+
+
+#if 0
+
 
 int cmd_test(int argc, char* argv[])
 {
@@ -420,3 +426,5 @@ int cmd_ifconfig(int argc, char* argv[])
     return cmd_ifconfig_ble(argc, argv);
 }
 
+
+#endif
