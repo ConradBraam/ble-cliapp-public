@@ -446,6 +446,7 @@ namespace picojson {
   }
 
   template <typename Iter> void value::_indent(Iter oi, int indent) {
+    *oi++ = '\r';
     *oi++ = '\n';
     for (int i = 0; i < indent * INDENT_WIDTH; ++i) {
       *oi++ = ' ';
