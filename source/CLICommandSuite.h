@@ -33,6 +33,46 @@ struct CommandResult {
 		statusCode(sc), info() {
 	}
 
+	CommandResult(int sc, const picojson::value& inf) : 
+		statusCode(sc), info(inf) {
+	}
+
+	static CommandResult faillure() {
+		return CommandResult(CMDLINE_RETCODE_FAIL);
+	}
+
+	static CommandResult faillure(const char* reason) {
+		return CommandResult(
+			CMDLINE_RETCODE_FAIL, 
+			picojson::value(reason)
+		);
+	}
+
+	static CommandResult faillure(const picojson::value& reason) {
+		return CommandResult(
+			CMDLINE_RETCODE_FAIL, 
+			reason
+		);
+	}
+
+	static CommandResult success() {
+		return CommandResult(CMDLINE_RETCODE_SUCCESS);
+	}
+
+	static CommandResult success(const char* reason) {
+		return CommandResult(
+			CMDLINE_RETCODE_SUCCESS, 
+			picojson::value(reason)
+		);
+	}
+
+	static CommandResult success(const picojson::value& reason) {
+		return CommandResult(
+			CMDLINE_RETCODE_SUCCESS, 
+			reason
+		);
+	}
+
 	// TODO : add other helper functions 
 
 	int statusCode;                        /// command status code as described in mbed-client-cli/ns_cmdline.h.  
