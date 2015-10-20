@@ -54,6 +54,12 @@ private:
 };
 
 
+template<typename T, size_t Elementscount>
+ConstArray<T> makeConstArray(const T (&elements)[Elementscount]) {
+	return ConstArray<T>(elements);
+}
+
+
 
 
 
