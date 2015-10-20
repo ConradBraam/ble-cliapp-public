@@ -75,42 +75,42 @@ public:
 private:
 
 
-	static int setAddress(const Args&) {
+	static CommandResult setAddress(const CommandArgs&) {
 		//ble_error_t setAddress(AddressType_t type, const Address_t address)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int getAddress(const Args&) {
+	static CommandResult getAddress(const CommandArgs&) {
 		//ble_error_t getAddress(AddressType_t *typeP, Address_t address)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int getMinAdvertisingInterval(const Args&) {
+	static CommandResult getMinAdvertisingInterval(const CommandArgs&) {
 		//uint16_t getMinAdvertisingInterval(void) const
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int getMinNonConnectableAdvertisingInterval(const Args&) {
+	static CommandResult getMinNonConnectableAdvertisingInterval(const CommandArgs&) {
 		//uint16_t getMinNonConnectableAdvertisingInterval(void) const
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
 	}
 
-	static int getMaxAdvertisingInterval(const Args&) {
+	static CommandResult getMaxAdvertisingInterval(const CommandArgs&) {
 		//uint16_t getMaxAdvertisingInterval(void) const
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
 	}
 
-	static int stopAdvertising(const Args&) {
+	static CommandResult stopAdvertising(const CommandArgs&) {
 		// ble_error_t stopAdvertising(void)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
 	}
 
-	static int stopScan(const Args&) {
+	static CommandResult stopScan(const CommandArgs&) {
 		// ble_error_t stopScan(void)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
 	}
 
-	static int connect(const Args&) {
+	static CommandResult connect(const CommandArgs&) {
 		/*  ble_error_t connect(const Address_t           peerAddr,
                                 Gap::AddressType_t        peerAddrType,
                                 const ConnectionParams_t *connectionParams,
@@ -119,87 +119,87 @@ private:
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
 	}
 
-	static int disconnect(const Args&) { 
+	static CommandResult disconnect(const CommandArgs&) { 
 		//ble_error_t disconnect(Handle_t connectionHandle, DisconnectionReason_t reason)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
 	}
 
-	static int getPreferredConnectionParams(const Args&) { 
+	static CommandResult getPreferredConnectionParams(const CommandArgs&) { 
 		//ble_error_t getPreferredConnectionParams(ConnectionParams_t *params)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;		
 	}
 
-	static int setPreferredConnectionParams(const Args&) { 
+	static CommandResult setPreferredConnectionParams(const CommandArgs&) { 
 		//ble_error_t setPreferredConnectionParams(const ConnectionParams_t *params)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;		
 	}
 
-	static int updateConnectionParams(const Args&) { 
+	static CommandResult updateConnectionParams(const CommandArgs&) { 
 		//ble_error_t updateConnectionParams(Handle_t handle, const ConnectionParams_t *params)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setDeviceName(const Args&) { 
+	static CommandResult setDeviceName(const CommandArgs&) { 
 		//ble_error_t setDeviceName(const uint8_t *deviceName)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int getDeviceName(const Args&) { 
+	static CommandResult getDeviceName(const CommandArgs&) { 
 		//ble_error_t getDeviceName(uint8_t *deviceName, unsigned *lengthP)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setAppearance(const Args&) { 
+	static CommandResult setAppearance(const CommandArgs&) { 
 		//ble_error_t setAppearance(GapAdvertisingData::Appearance appearance)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int getAppearance(const Args&) { 
+	static CommandResult getAppearance(const CommandArgs&) { 
 		//ble_error_t getAppearance(GapAdvertisingData::Appearance* appearance)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setTxPower(const Args&) { 
+	static CommandResult setTxPower(const CommandArgs&) { 
 		//ble_error_t setTxPower(int8_t txPower)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int getPermittedTxPowerValues(const Args&) { 
+	static CommandResult getPermittedTxPowerValues(const CommandArgs&) { 
 		// void getPermittedTxPowerValues(const int8_t **valueArrayPP, size_t *countP)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int getState(const Args&) { 
+	static CommandResult getState(const CommandArgs&) { 
 		// GapState_t getState(void) const
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setAdvertisingType(const Args&) { 
+	static CommandResult setAdvertisingType(const CommandArgs&) { 
 		//void setAdvertisingType(GapAdvertisingParams::AdvertisingType_t advType)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setAdvertisingInterval(const Args&) { 
+	static CommandResult setAdvertisingInterval(const CommandArgs&) { 
 		//	void setAdvertisingInterval(uint16_t interval)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setAdvertisingTimeout(const Args&) { 
+	static CommandResult setAdvertisingTimeout(const CommandArgs&) { 
 		//	void setAdvertisingTimeout(uint16_t timeout)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int startAdvertising(const Args&) { 
+	static CommandResult startAdvertising(const CommandArgs&) { 
 		//ble_error_t startAdvertising(void)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int clearAdvertisingPayload(const Args&) { 
+	static CommandResult clearAdvertisingPayload(const CommandArgs&) { 
 		//void clearAdvertisingPayload(void)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int accumulateAdvertisingPayload(const Args&) { 
+	static CommandResult accumulateAdvertisingPayload(const CommandArgs&) { 
 		//ble_error_t accumulateAdvertisingPayload(uint8_t flags)
 		//ble_error_t accumulateAdvertisingPayload(GapAdvertisingData::Appearance app)
 		//ble_error_t accumulateAdvertisingPayloadTxPower(int8_t power)
@@ -207,32 +207,32 @@ private:
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int updateAdvertisingPayload(const Args&) { 
+	static CommandResult updateAdvertisingPayload(const CommandArgs&) { 
 		//ble_error_t updateAdvertisingPayload(GapAdvertisingData::DataType type, const uint8_t *data, uint8_t len)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setAdvertisingPayload(const Args&) { 
+	static CommandResult setAdvertisingPayload(const CommandArgs&) { 
 		//ble_error_t setAdvertisingPayload(const GapAdvertisingData &payload)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int getAdvertisingPayload(const Args&) { 
+	static CommandResult getAdvertisingPayload(const CommandArgs&) { 
 		//const GapAdvertisingData &getAdvertisingPayload(void) const
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int accumulateScanResponse(const Args&) { 
+	static CommandResult accumulateScanResponse(const CommandArgs&) { 
 		//ble_error_t accumulateScanResponse(GapAdvertisingData::DataType type, const uint8_t *data, uint8_t len) {
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int clearScanResponse(const Args&) { 
+	static CommandResult clearScanResponse(const CommandArgs&) { 
 		//void clearScanResponse(void)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setScanParams(const Args&) { 
+	static CommandResult setScanParams(const CommandArgs&) { 
 		/*
 		    ble_error_t setScanParams(uint16_t interval       = GapScanningParams::SCAN_INTERVAL_MAX,
 		                              uint16_t window         = GapScanningParams::SCAN_WINDOW_MAX,
@@ -242,45 +242,45 @@ private:
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setScanInterval(const Args&) { 
+	static CommandResult setScanInterval(const CommandArgs&) { 
 		/*
 			ble_error_t setScanInterval(uint16_t interval)
 		*/
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setScanWindow(const Args&) { 
+	static CommandResult setScanWindow(const CommandArgs&) { 
 		//ble_error_t setScanWindow(uint16_t window)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setScanTimeout(const Args&) { 
+	static CommandResult setScanTimeout(const CommandArgs&) { 
 		//ble_error_t setScanTimeout(uint16_t timeout)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setActiveScanning(const Args&) { 
+	static CommandResult setActiveScanning(const CommandArgs&) { 
 		//ble_error_t setActiveScanning(bool activeScanning)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int startScan(const Args&) { 
+	static CommandResult startScan(const CommandArgs&) { 
 		//ble_error_t startScan(void (*callback)(const AdvertisementCallbackParams_t *params))
 		//ble_error_t startScan(T *object, void (T::*callbackMember)(const AdvertisementCallbackParams_t *params))		
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int initRadioNotification(const Args&) { 
+	static CommandResult initRadioNotification(const CommandArgs&) { 
 		//ble_error_t initRadioNotification(void)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int getAdvertisingParams(const Args&) { 
+	static CommandResult getAdvertisingParams(const CommandArgs&) { 
 		//GapAdvertisingParams &getAdvertisingParams(void)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static int setAdvertisingParams(const Args&) { 
+	static CommandResult setAdvertisingParams(const CommandArgs&) { 
 		//void setAdvertisingParams(const GapAdvertisingParams &newParams)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}

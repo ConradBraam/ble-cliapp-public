@@ -28,12 +28,13 @@
 #ifndef picojson_h
 #define picojson_h
 
+#include "mbed_error.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cstddef>
-#include <iostream>
 #include <iterator>
 #include <limits>
 #include <map>
@@ -65,7 +66,7 @@ extern "C" {
 
 // to disable the use of localeconv(3), set PICOJSON_USE_LOCALE to 0
 #ifndef PICOJSON_USE_LOCALE
-# define PICOJSON_USE_LOCALE 1
+# define PICOJSON_USE_LOCALE 0
 #endif
 #if PICOJSON_USE_LOCALE
 extern "C" {
@@ -74,7 +75,7 @@ extern "C" {
 #endif
 
 #ifndef PICOJSON_ASSERT
-# define PICOJSON_ASSERT(e) do { if (! (e)) throw std::runtime_error(#e); } while (0)
+# define PICOJSON_ASSERT(e) do { if (! (e)) error(#e); } while (0)
 #endif
 
 #ifdef _MSC_VER
@@ -203,7 +204,7 @@ namespace picojson {
         isnan(n) || isinf(n)
 #endif
         ) {
-      throw std::overflow_error("");
+      error("picojson: double overflow error\r\n");
     }
     u_.number_ = n;
   }
@@ -992,6 +993,7 @@ namespace std {
     }
 }
 
+#if 0
 inline std::istream& operator>>(std::istream& is, picojson::value& x)
 {
   picojson::set_last_error(std::string());
@@ -1008,6 +1010,8 @@ inline std::ostream& operator<<(std::ostream& os, const picojson::value& x)
   x.serialize(std::ostream_iterator<char>(os));
   return os;
 }
+#endif
+
 #ifdef _MSC_VER
     #pragma warning(pop)
 #endif

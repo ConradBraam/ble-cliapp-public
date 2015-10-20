@@ -37,19 +37,19 @@ public:
 
 
 private:
-	static int bleShutdown(const Args&) {
+	static CommandResult bleShutdown(const CommandArgs&) {
 		ble_error_t err = ble().shutdown();
 		cmd_printf("%s\r\n", to_string(err));
 		return err ? CMDLINE_RETCODE_FAIL : CMDLINE_RETCODE_SUCCESS;
 	} 
 
-	static int bleInit(const Args&) {
+	static CommandResult bleInit(const CommandArgs&) {
 		ble_error_t err = ble().init();
 		cmd_printf("%s\r\n", to_string(err));
 		return err ? CMDLINE_RETCODE_FAIL : CMDLINE_RETCODE_SUCCESS;
 	} 
 
-	static int bleReset(const Args&) {
+	static CommandResult bleReset(const CommandArgs&) {
 		ble_error_t err = ble().shutdown();
 		if(err) {
 			cmd_printf("bleReset error, failled to shutdown the ble instance : %s\r\n", to_string(err));
@@ -68,7 +68,7 @@ private:
 		return CMDLINE_RETCODE_SUCCESS;		
 	} 
 
-	static int bleGetVersion(const Args&) {
+	static CommandResult bleGetVersion(const CommandArgs&) {
 		const char* version = ble().getVersion();
 
 		if(version) {
