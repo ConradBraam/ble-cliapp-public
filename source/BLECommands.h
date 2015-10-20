@@ -29,7 +29,7 @@ public:
 			{ "shutdown", bleShutdown }, 
 			{ "init", bleInit }, 
 			{ "reset", bleReset }, 
-			{ "get_version", bleGetVersion }
+			{ "getVersion", bleGetVersion }
 		};
 
 		return ConstArray<Command_t>(commandHandlers);		
@@ -37,54 +37,75 @@ public:
 
 
 private:
+
+	/**
+	 * @brief  Shutdown the current BLE instance, calling ble related function after this 
+	 * call may lead to faillure
+	 * 
+	 * @param  no args 
+	 * @return just the status code indicating a success or an error 
+	 */
 	static CommandResult bleShutdown(const CommandArgs&) {
 		ble_error_t err = ble().shutdown();
-		cmd_printf("%s\r\n", to_string(err));
-		return err ? CMDLINE_RETCODE_FAIL : CMDLINE_RETCODE_SUCCESS;
+		return err ? CommandResult::faillure() : CommandResult::success();
 	} 
 
+	/**
+	 * @brief Initialize the ble API and underlying BLE stack
+	 * @detail Be sure to call this function before any other ble API function
+	 * 
+	 * @param  NONE
+	 * @return status code indicating a success or an error 
+	 */
 	static CommandResult bleInit(const CommandArgs&) {
 		ble_error_t err = ble().init();
-		cmd_printf("%s\r\n", to_string(err));
-		return err ? CMDLINE_RETCODE_FAIL : CMDLINE_RETCODE_SUCCESS;
+		return err ? CommandResult::faillure() : CommandResult::success();
 	} 
 
+
+	/**
+	 * @brief  reset the ble API and ble stack 
+	 * @details This function internaly does a reset and an init. 
+	 * 
+	 * @param  NONE
+	 * @return the status code and in case of faillure a message indicating 
+	 * what operation has failled
+	 */
 	static CommandResult bleReset(const CommandArgs&) {
 		ble_error_t err = ble().shutdown();
 		if(err) {
-			cmd_printf("bleReset error, failled to shutdown the ble instance : %s\r\n", to_string(err));
-			return CMDLINE_RETCODE_FAIL;
+			return CommandResult::faillure("Failled to shutdown the ble instance");
 		}
 
 		err = ble().init();
 
 		if(err) {
-			cmd_printf("bleReset error, failled to init the ble instance : %s\r\n", to_string(err));
-			return CMDLINE_RETCODE_FAIL;
+			return CommandResult::faillure("Failled to init the ble instance");
 		}
 
-		cmd_printf("ble has been correctly reset\r\n");
-
-		return CMDLINE_RETCODE_SUCCESS;		
+		return CommandResult::success();
 	} 
 
+	/**
+	 * @brief  Return the version of the BLE API 
+	 * 
+	 * @param  NONE
+	 * @return The status code and the version in case of success.
+	 */
 	static CommandResult bleGetVersion(const CommandArgs&) {
 		const char* version = ble().getVersion();
 
 		if(version) {
-			cmd_printf("ble version is : %s\r\n", version);
-			return CMDLINE_RETCODE_SUCCESS;
+			return CommandResult::success(version);
 		}
 
-		cmd_printf("ble version is not available\r\n");
-		return CMDLINE_RETCODE_FAIL;
+		return CommandResult::faillure("ble version is not available");
 	}
 
 
 	static BLE& ble() {
 		return BLE::Instance();
 	}
-
 };
 
 
