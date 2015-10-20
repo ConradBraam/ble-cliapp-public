@@ -58,6 +58,7 @@ extern "C" {
 #endif
 
 // experimental support for int64_t (see README.mkdn for detail)
+#define PICOJSON_USE_INT64 1
 #ifdef PICOJSON_USE_INT64
 # define __STDC_FORMAT_MACROS
 # include <errno.h>
@@ -373,14 +374,17 @@ namespace picojson {
 #ifdef PICOJSON_USE_INT64
     case int64_type: {
       char buf[sizeof("-9223372036854775808")];
-      SNPRINTF(buf, sizeof(buf), "%" PRId64, u_.int64_);
+      SNPRINTF(buf, sizeof(buf), "%ld", (int32_t)u_.int64_);
+      //SNPRINTF(buf, sizeof(buf), "%ld", (int32_t)u_.int64_);
       return buf;
     }
 #endif
     case number_type:    {
+      printf("converting number type\r\n");
       char buf[256];
-      double tmp;
-      SNPRINTF(buf, sizeof(buf), fabs(u_.number_) < (1ULL << 53) && modf(u_.number_, &tmp) == 0 ? "%.f" : "%.17g", u_.number_);
+      //double tmp;
+      //SNPRINTF(buf, sizeof(buf), fabs(u_.number_) < (1ULL << 53) && modf(u_.number_, &tmp) == 0 ? "%.f" : "%.17g", u_.number_);
+      SNPRINTF(buf, sizeof(buf), "%f" , u_.number_);
 #if PICOJSON_USE_LOCALE
       char *decimal_point = localeconv()->decimal_point;
       if (strcmp(decimal_point, ".") != 0) {
