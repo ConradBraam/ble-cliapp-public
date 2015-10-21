@@ -41,13 +41,6 @@ struct CommandResult {
 		return CommandResult(CMDLINE_RETCODE_FAIL);
 	}
 
-	static CommandResult faillure(const char* reason) {
-		return CommandResult(
-			CMDLINE_RETCODE_FAIL, 
-			picojson::value(reason)
-		);
-	}
-
 	static CommandResult faillure(const picojson::value& reason) {
 		return CommandResult(
 			CMDLINE_RETCODE_FAIL, 
@@ -55,15 +48,13 @@ struct CommandResult {
 		);
 	}
 
-	static CommandResult success() {
-		return CommandResult(CMDLINE_RETCODE_SUCCESS);
+	static CommandResult faillure(const char* reason) {
+		return faillure(picojson::value(reason));
 	}
 
-	static CommandResult success(const char* reason) {
-		return CommandResult(
-			CMDLINE_RETCODE_SUCCESS, 
-			picojson::value(reason)
-		);
+
+	static CommandResult success() {
+		return CommandResult(CMDLINE_RETCODE_SUCCESS);
 	}
 
 	static CommandResult success(const picojson::value& reason) {
@@ -71,6 +62,22 @@ struct CommandResult {
 			CMDLINE_RETCODE_SUCCESS, 
 			reason
 		);
+	}
+
+	static CommandResult success(const char* reason) {
+		return success(picojson::value(reason));
+	}
+
+
+	static CommandResult invalidParameters(const picojson::value& reason) { 
+		return CommandResult(
+			CMDLINE_RETCODE_INVALID_PARAMETERS, 
+			reason
+		);
+	}
+
+	static CommandResult invalidParameters(const char* reason) { 
+		return invalidParameters(picojson::value(reason));
 	}
 
 	// TODO : add other helper functions 
