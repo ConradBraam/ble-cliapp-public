@@ -91,6 +91,30 @@ static inline picojson::value connectionParamsToJSON(const Gap::ConnectionParams
 }
 
 
+// TODO better than that, this has to be generic !!!!
+static inline picojson::value txPermittedValuesToJSON(const int8_t* permittedTxPowerValues, size_t permittedTxPowerValuesCount) {
+	picojson::value result(picojson::array_type, true);
+	for(size_t i = 0; i < permittedTxPowerValuesCount; ++i) {
+		result.get<picojson::array>().push_back(picojson::value((int64_t) permittedTxPowerValues[i]));
+	}
+
+	return result;
+}
+
+
+
+
+
+
+static inline picojson::value gapStateToJSON(Gap::GapState_t state) {
+	picojson::value result(picojson::object_type, true);
+	result.get<picojson::object>()["advertising"] = picojson::value(state.advertising ? true : false);
+	result.get<picojson::object>()["connected"] = picojson::value(state.connected ? true : false);	
+	return result;
+}
+
+
+
 
 
 

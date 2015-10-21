@@ -3,7 +3,7 @@
 
 #include "Serializer.h"
 #include "ble/GapAdvertisingData.h"
-
+#include "picojson.h"
 
 template<>
 struct SerializerDescription<GapAdvertisingData::Appearance_t> {
@@ -68,6 +68,19 @@ struct SerializerDescription<GapAdvertisingData::Appearance_t> {
 		return "unknown GapAdvertisingData::Appearance_t";
 	}
 };
+
+
+// TODO : data to string as hex ...
+static inline picojson::value gapAdvertisingDataToJSON(const GapAdvertisingData& advertisingData) {
+	char rawData[(GAP_ADVERTISING_DATA_MAX_PAYLOAD * 2) + 1] = { 0 };
+
+	for(size_t i = 0; i < advertisingData.getPayloadLen(); ++i) {
+		snprintf(rawData + (i * 2), 3, "%02X", advertisingData.getPayload()[i]);
+	}
+
+	return picojson::value(rawData);
+}
+
 
 
 #endif //BLE_CLIAPP_GAP_ADVERTISING_DATA_SERIALIZER_H_
