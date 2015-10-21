@@ -6,6 +6,10 @@
 #include "ble/BLE.h"
 #include "ble/Gap.h"
 #include "Stringify.h"
+#include "GapSerializer.h"
+#include "GapAdvertisingDataSerializer.h"
+#include "BleCommonSerializer.h"
+
 
 class GapCommandSuiteDescription {
 
@@ -74,43 +78,129 @@ public:
 
 private:
 
+	/**
+	 * @brief  set the address of this device 
+	 * 
+	 * @param args Two args should be provided to this command: 
+	 *     - The address type which is a string representation of Gap::AddressType_t
+	 *     - The address itself which is a string representation like "XX:XX:XX:XX:XX:XX"
+	 * @return [description]
+	 */
+	static CommandResult setAddress(const CommandArgs& args) {
+		// check args count
+		if(args.count() != 2) {
+			return CommandResult::invalidParameters("two arguments expected: <Gap::AddressType_t> <XX:XX:XX:XX:XX:XX>");
+		}
 
-	static CommandResult setAddress(const CommandArgs&) {
-		//ble_error_t setAddress(AddressType_t type, const Address_t address)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+		// extract first args 
+		Gap::AddressType_t addressType;
+		if(!fromString(args[0], addressType)) {
+			return CommandResult::invalidParameters("first argument should match Gap::AddressType_t");
+		}
+
+		Gap::Address_t address;
+		if(!macAddressFromString(args[1], address)) { 
+			return CommandResult::invalidParameters("second argument should is a mac address which should match XX:XX:XX:XX:XX:XX format");
+		}
+
+		ble_error_t err = gap().setAddress(addressType, address);
+
+		if(err) {
+			return CommandResult::faillure(to_string(err));
+		}
+
+
+		return CommandResult::success();
 	}
 
-	static CommandResult getAddress(const CommandArgs&) {
-		//ble_error_t getAddress(AddressType_t *typeP, Address_t address)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult getAddress(const CommandArgs& args) {
+		namespace pj = picojson;
+
+		// check args count
+		if(args.count() != 0) {
+			return CommandResult::invalidParameters("no arguments expected");
+		}
+
+		Gap::AddressType_t addressType;
+		Gap::Address_t address;
+
+		ble_error_t err = gap().getAddress(&addressType, address);
+
+		if(err) { 
+			return CommandResult::faillure(to_string(err));
+		}
+
+		// building the result object 
+		pj::value res(pj::object_type, true);
+		res.get<pj::object>()["address_type"] = pj::value(toString(addressType));
+		res.get<pj::object>()["address"] = pj::value(macAddressToString(address).str);
+
+		return CommandResult::success(res);
 	}
 
-	static CommandResult getMinAdvertisingInterval(const CommandArgs&) {
-		//uint16_t getMinAdvertisingInterval(void) const
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult getMinAdvertisingInterval(const CommandArgs& args) {
+		// check args count
+		if(args.count() != 0) {
+			return CommandResult::invalidParameters("no arguments expected");
+		}
+
+		uint16_t minAdvertisingInterval = gap().getMinAdvertisingInterval();
+
+		return CommandResult::success(picojson::value((int64_t) minAdvertisingInterval));
 	}
 
-	static CommandResult getMinNonConnectableAdvertisingInterval(const CommandArgs&) {
-		//uint16_t getMinNonConnectableAdvertisingInterval(void) const
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
+	static CommandResult getMinNonConnectableAdvertisingInterval(const CommandArgs& args) {
+		// check args count
+		if(args.count() != 0) {
+			return CommandResult::invalidParameters("no arguments expected");
+		}
+
+		uint16_t minNonConnectableAdvertisingInterval = gap().getMinNonConnectableAdvertisingInterval();
+
+		return CommandResult::success(picojson::value((int64_t) minNonConnectableAdvertisingInterval));
 	}
 
-	static CommandResult getMaxAdvertisingInterval(const CommandArgs&) {
-		//uint16_t getMaxAdvertisingInterval(void) const
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
+	static CommandResult getMaxAdvertisingInterval(const CommandArgs& args) {
+		// check args count
+		if(args.count() != 0) {
+			return CommandResult::invalidParameters("no arguments expected");
+		}
+
+		uint16_t maxAdvertisingInterval = gap().getMaxAdvertisingInterval();
+
+		return CommandResult::success(picojson::value((int64_t) maxAdvertisingInterval));
 	}
 
-	static CommandResult stopAdvertising(const CommandArgs&) {
-		// ble_error_t stopAdvertising(void)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
+	static CommandResult stopAdvertising(const CommandArgs& args) {
+		if(args.count() != 0) {
+			return CommandResult::invalidParameters("no arguments expected");
+		}
+
+		ble_error_t err = gap().stopAdvertising();
+
+		if(err) { 
+			return CommandResult::faillure(to_string(err));
+		}
+
+		return CommandResult::success();
 	}
 
-	static CommandResult stopScan(const CommandArgs&) {
-		// ble_error_t stopScan(void)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
+	static CommandResult stopScan(const CommandArgs& args) {
+		if(args.count() != 0) {
+			return CommandResult::invalidParameters("no arguments expected");
+		}
+
+		ble_error_t err = gap().stopScan();
+
+		if(err) { 
+			return CommandResult::faillure(to_string(err));
+		}
+
+		return CommandResult::success();
 	}
 
 	static CommandResult connect(const CommandArgs&) {
+		// TODO 
 		/*  ble_error_t connect(const Address_t           peerAddr,
                                 Gap::AddressType_t        peerAddrType,
                                 const ConnectionParams_t *connectionParams,
@@ -120,43 +210,129 @@ private:
 	}
 
 	static CommandResult disconnect(const CommandArgs&) { 
+		// TODO 
 		//ble_error_t disconnect(Handle_t connectionHandle, DisconnectionReason_t reason)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;	
 	}
 
-	static CommandResult getPreferredConnectionParams(const CommandArgs&) { 
-		//ble_error_t getPreferredConnectionParams(ConnectionParams_t *params)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;		
+	static CommandResult getPreferredConnectionParams(const CommandArgs& args) { 
+		if(args.count() != 0) {
+			return CommandResult::invalidParameters("no arguments expected");
+		}
+
+		Gap::ConnectionParams_t connectionParameters;
+
+		ble_error_t err = gap().getPreferredConnectionParams(&connectionParameters);
+
+		if(err) { 
+			return CommandResult::faillure(to_string(err));
+		}
+
+		return CommandResult::success(connectionParamsToJSON(connectionParameters));
 	}
 
-	static CommandResult setPreferredConnectionParams(const CommandArgs&) { 
-		//ble_error_t setPreferredConnectionParams(const ConnectionParams_t *params)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;		
+	static CommandResult setPreferredConnectionParams(const CommandArgs& args) { 
+		if(args.count() != 1) {
+			return CommandResult::invalidParameters("expected connection parameters in the form"\
+				"<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>");
+		}
+
+		Gap::ConnectionParams_t connectionParameters;
+		if(!connectionParamsFromCLI(args[0], connectionParameters)) {
+			return CommandResult::invalidParameters("malformed connection parameters, should be like"\
+				"<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>");
+		}
+
+		ble_error_t err =  gap().setPreferredConnectionParams(&connectionParameters);
+
+		if(err) {
+			return CommandResult::faillure(to_string(err));	
+		}
+
+		return CommandResult::success();		
 	}
 
-	static CommandResult updateConnectionParams(const CommandArgs&) { 
+	static CommandResult updateConnectionParams(const CommandArgs&) {
+		// TODO  
 		//ble_error_t updateConnectionParams(Handle_t handle, const ConnectionParams_t *params)
 		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
 	}
 
-	static CommandResult setDeviceName(const CommandArgs&) { 
-		//ble_error_t setDeviceName(const uint8_t *deviceName)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult setDeviceName(const CommandArgs& args) { 
+		if(args.count() != 1) {
+			return CommandResult::invalidParameters("please the name of the device without spaces");
+		}
+
+		ble_error_t err = gap().setDeviceName((const uint8_t*) args[0]);
+
+		if(err) {
+			return CommandResult::faillure(to_string(err));	
+		}
+
+		return CommandResult::success();		
 	}
 
-	static CommandResult getDeviceName(const CommandArgs&) { 
-		//ble_error_t getDeviceName(uint8_t *deviceName, unsigned *lengthP)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult getDeviceName(const CommandArgs& args) { 
+		if(args.count() != 0) {
+			return CommandResult::invalidParameters("no arguments expected");
+		}
+
+		// first : collect the size of the name 
+		unsigned deviceNameLength;
+		ble_error_t err = gap().getDeviceName(NULL, &deviceNameLength);
+
+		if(err) { 
+			return CommandResult::faillure("impossible to get the lenght of the name");
+		}
+
+		// acquire the name
+		++deviceNameLength;  // add null terminator to the length
+		uint8_t* deviceName = static_cast<uint8_t*>(malloc(deviceNameLength));
+		memset(deviceName, 0, deviceNameLength);
+		err = gap().getDeviceName(deviceName, &deviceNameLength);
+
+		if(err) {
+			free(deviceName);
+			return CommandResult::faillure(to_string(err));	
+		}
+
+		CommandResult res = CommandResult::success((const char*) deviceName);
+		free(deviceName);
+		return res;
 	}
 
-	static CommandResult setAppearance(const CommandArgs&) { 
-		//ble_error_t setAppearance(GapAdvertisingData::Appearance appearance)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult setAppearance(const CommandArgs& args) { 
+		if(args.count() != 1) {
+			return CommandResult::invalidParameters("this command need the appearance to set (see GapAdvertisingData::Appearance_t)");
+		}
+
+		GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
+		if(!fromString(args[0], appearance)) {
+			return CommandResult::invalidParameters("the appearance to set is illformed (see GapAdvertisingData::Appearance_t)");
+		}
+
+		ble_error_t err = gap().setAppearance(appearance);
+		
+		if(err) {
+			return CommandResult::faillure(to_string(err));	
+		}
+
+		return CommandResult::success();
 	}
 
-	static CommandResult getAppearance(const CommandArgs&) { 
-		//ble_error_t getAppearance(GapAdvertisingData::Appearance* appearance)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult getAppearance(const CommandArgs& args) { 
+		if(args.count() != 0) {
+			return CommandResult::invalidParameters("no arguments expected");
+		}
+
+		GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
+		ble_error_t err = gap().getAppearance(&appearance);
+
+		if(err) {
+			return CommandResult::faillure(to_string(err));				
+		}
+
+		return CommandResult::success(toString(appearance));
 	}
 
 	static CommandResult setTxPower(const CommandArgs&) { 
