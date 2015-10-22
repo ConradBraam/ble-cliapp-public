@@ -448,19 +448,38 @@ private:
 		return CommandResult::success();
 	}
 
-	static CommandResult accumulateAdvertisingPayload(const CommandArgs&) { 
-		// TODO 
-		//ble_error_t accumulateAdvertisingPayload(uint8_t flags)
-		//ble_error_t accumulateAdvertisingPayload(GapAdvertisingData::Appearance app)
-		//ble_error_t accumulateAdvertisingPayloadTxPower(int8_t power)
-		//ble_error_t accumulateAdvertisingPayload(GapAdvertisingData::DataType type, const uint8_t *data, uint8_t len)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult accumulateAdvertisingPayload(const CommandArgs& args) { 
+		AdvertisingPayloadField_t payloadField;
+		const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
+
+		if(parsingError) {
+			return CommandResult::invalidParameters(parsingError);
+		}
+
+		ble_error_t err = gap().accumulateAdvertisingPayload(payloadField.dataType, payloadField.data, payloadField.dataLenght);
+
+		if(err) { 
+			return CommandResult::faillure(toString(err));
+		}
+
+		return CommandResult::success();
 	}
 
-	static CommandResult updateAdvertisingPayload(const CommandArgs&) { 
-		//TODO 
-		//ble_error_t updateAdvertisingPayload(GapAdvertisingData::DataType type, const uint8_t *data, uint8_t len)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult updateAdvertisingPayload(const CommandArgs& args) { 
+		AdvertisingPayloadField_t payloadField;
+		const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
+
+		if(parsingError) {
+			return CommandResult::invalidParameters(parsingError);
+		}
+
+		ble_error_t err = gap().updateAdvertisingPayload(payloadField.dataType, payloadField.data, payloadField.dataLenght);
+
+		if(err) { 
+			return CommandResult::faillure(toString(err));
+		}
+
+		return CommandResult::success();
 	}
 
 	static CommandResult setAdvertisingPayload(const CommandArgs&) { 
@@ -478,10 +497,21 @@ private:
 		return CommandResult::success(gapAdvertisingDataToJSON(advertisingData));
 	}
 
-	static CommandResult accumulateScanResponse(const CommandArgs&) { 
-		// TODO 
-		//ble_error_t accumulateScanResponse(GapAdvertisingData::DataType type, const uint8_t *data, uint8_t len) {
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult accumulateScanResponse(const CommandArgs& args) { 
+		AdvertisingPayloadField_t payloadField;
+		const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
+
+		if(parsingError) {
+			return CommandResult::invalidParameters(parsingError);
+		}
+
+		ble_error_t err = gap().accumulateScanResponse(payloadField.dataType, payloadField.data, payloadField.dataLenght);
+
+		if(err) { 
+			return CommandResult::faillure(toString(err));
+		}
+
+		return CommandResult::success();
 	}
 
 	static CommandResult clearScanResponse(const CommandArgs& args) { 

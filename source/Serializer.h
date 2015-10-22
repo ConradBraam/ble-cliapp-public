@@ -129,6 +129,19 @@ static bool fromString(const char* str, uint16_t& val) {
 
 
 // Serialization functions from builtin types goes here
+static bool fromString(const char* str, uint32_t& val) {
+	char* end;
+	unsigned long tmp = strtoul(str, &end, 0);
+	if(str == end) {
+		return false;
+	}
+
+	val = (uint32_t) tmp;
+	return true;
+}
+
+
+// Serialization functions from builtin types goes here
 static bool fromString(const char* str, bool& val) {
 	if(strcmp(str, "true") == 0) {
 		val = true;
