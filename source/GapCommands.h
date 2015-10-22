@@ -493,15 +493,38 @@ private:
 		return CommandResult::success();		
 	}
 
-	static CommandResult setScanParams(const CommandArgs&) {
-		// TODO  
-		/*
-		    ble_error_t setScanParams(uint16_t interval       = GapScanningParams::SCAN_INTERVAL_MAX,
-		                              uint16_t window         = GapScanningParams::SCAN_WINDOW_MAX,
-		                              uint16_t timeout        = 0,
-		                              bool     activeScanning = false)
-		*/
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult setScanParams(const CommandArgs& args) {
+		if(args.count() != 4) {
+			return CommandResult::invalidParameters("arguments expected : <interval> <window> <timeout> <activeScanning>");		
+		}
+
+		uint16_t interval = 0xFFFF;
+		if(!fromString(args[0], interval)) {
+			return CommandResult::invalidParameters("invalid interval, it should be a number between 3 and 10240ms");			 
+		}
+
+		uint16_t window = 0xFFFF;
+		if(!fromString(args[1], window)) {	
+			return CommandResult::invalidParameters("invalid window, it should be a number between 3 and 10240ms");
+		}
+
+		uint16_t timeout = 0;
+		if(!fromString(args[2], timeout)) {	
+			return CommandResult::invalidParameters("invalid timeout, it should be a number between 0 and 65534");
+		}
+
+		uint16_t activeScanning = 0;
+		if(!fromString(args[3], activeScanning)) {	
+			return CommandResult::invalidParameters("invalid activeScaning, it should be a number boolean value");
+		}
+
+		ble_error_t err = gap().setScanParams(interval, window, timeout, activeScanning);
+
+		if(err) {
+			return CommandResult::faillure(toString(err));
+		}
+
+		return CommandResult::success();
 	}
 
 	static CommandResult setScanInterval(const CommandArgs& args) { 
@@ -603,9 +626,28 @@ private:
 		return CommandResult::success(advertisingParamsToJSON(advertisingParams));
 	}
 
-	static CommandResult setAdvertisingParams(const CommandArgs&) { 
-		//void setAdvertisingParams(const GapAdvertisingParams &newParams)
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult setAdvertisingParams(const CommandArgs& args) { 
+		if(args.count() != 3) {
+			return CommandResult::invalidParameters("three parameters required <AdvertisingType_t> <interval> <timeout>");
+		} 
+
+		GapAdvertisingParams::AdvertisingType_t advertisingType;
+		if(!fromString(args[0], advertisingType)) {
+			return CommandResult::invalidParameters("Advertising type is malformed, please refer to GapAdvertisingParams::AdvertisingType_t");
+		}
+
+		uint16_t interval;
+		if(!fromString(args[1], interval)) {
+			return CommandResult::invalidParameters("Advertising interval is malformed, should be a number between 0 and 65534");
+		}
+
+		uint16_t timeout;		
+		if(!fromString(args[2], timeout)) {
+			return CommandResult::invalidParameters("Advertising timeout is malformed, should be a number between 0 and 65534");
+		}
+
+		gap().setAdvertisingParams(GapAdvertisingParams(advertisingType, interval, timeout));
+		return CommandResult::success();
 	}
 
 
