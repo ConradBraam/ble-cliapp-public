@@ -6,34 +6,12 @@
 #include "ConstArray.h"
 #include "CommandArgs.h"
 #include "CommandResult.h"
-
+#include "Command.h"
 
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-cli/ns_types.h"
 #include "Stringify.h"
 #include "picojson.h"
-
-
-/**
- * A command handler is a function which handle commands from the command 
- * line. It receive args in input and return a code indicating the state 
- * of the command. The result of the command can be stored in the value 
- * provided in parameters:
- * \param args : array of arguments of the function. It does not contain the 
- * command name at first argument.
- * \return a command result which contains the status code and additional infos
- */
-typedef CommandResult (*CommandHandler_t)(const CommandArgs& args);
-
-
-/**
- * @brief Simple POD describing a command
- */
-struct Command_t {
-	const char* name;                                      /// name of this command
-	const CommandHandler_t handler;                        /// the command handler associated 
-};
-
 
 /**
  * @brief Allow to easily group and add a suite of commands into the cli system.
