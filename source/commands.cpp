@@ -16,8 +16,8 @@
 #include "commands.h"
 
 #include "CLICommand/CliCommandSuite.h"
-#include "BLECommands.h"
-#include "GapCommands.h"
+#include "Commands/BLECommands.h"
+#include "Commands/GapCommands.h"
 
 
 void initialize_app_commands(void) {
