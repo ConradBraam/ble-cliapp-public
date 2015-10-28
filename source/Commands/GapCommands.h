@@ -1,7 +1,7 @@
 #ifndef BLE_CLIAPP_GAP_COMMANDS_H_
 #define BLE_CLIAPP_GAP_COMMANDS_H_
 
-#include "CLICommand/CLICommandSuite.h"
+#include "CLICommand/CommandSuite.h"
 
 #include "ble/BLE.h"
 #include "ble/Gap.h"

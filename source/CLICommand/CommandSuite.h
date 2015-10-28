@@ -72,7 +72,7 @@
  * 
  */
 template<typename SuiteDescription>
-class CLICommandSuite {
+class CommandSuite {
 
 public:
 	static void registerSuite() {
@@ -177,7 +177,7 @@ public:
  */
 template<typename CommandSuiteDescription>
 void registerCommandSuite() {
-	CLICommandSuite<CommandSuiteDescription>::registerSuite();
+	CommandSuite<CommandSuiteDescription>::registerSuite();
 }
 
 
