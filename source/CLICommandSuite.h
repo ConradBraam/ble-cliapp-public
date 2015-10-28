@@ -4,16 +4,14 @@
 #include <stdint.h>
 
 #include "ConstArray.h"
+#include "CommandArgs.h"
+
 
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-cli/ns_types.h"
 #include "Stringify.h"
 #include "picojson.h"
 
-/**
- * typedef for Arguments which are just a constant array of strings
- */
-typedef ConstArray<const char*> CommandArgs; 
 
 /**
  * @brief  Simple POD which encapsultate the result of a command.
