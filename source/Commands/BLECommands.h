@@ -3,7 +3,6 @@
 
 #include "CLICommand/CLICommandSuite.h"
 #include "ble/BLE.h"
-#include "Stringify.h"
 
 class BLECommandSuiteDescription {
 

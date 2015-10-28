@@ -10,7 +10,6 @@
 
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-cli/ns_types.h"
-#include "Stringify.h"
 #include "util/picojson.h"
 
 /**

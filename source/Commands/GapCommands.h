@@ -5,11 +5,10 @@
 
 #include "ble/BLE.h"
 #include "ble/Gap.h"
-#include "Stringify.h"
-#include "GapSerializer.h"
-#include "GapAdvertisingDataSerializer.h"
-#include "GapAdvertisingParamsSerializer.h"
-#include "BleCommonSerializer.h"
+#include "Serialization/GapSerializer.h"
+#include "Serialization/GapAdvertisingDataSerializer.h"
+#include "Serialization/GapAdvertisingParamsSerializer.h"
+#include "Serialization/BleCommonSerializer.h"
 
 
 class GapCommandSuiteDescription {
