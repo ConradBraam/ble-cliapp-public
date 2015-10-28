@@ -20,8 +20,13 @@ typedef CommandResult (*CommandHandler_t)(const CommandArgs& args);
  * @brief Simple POD describing a command
  */
 struct Command_t {
+	Command_t(const char* _name, const CommandHandler_t _handler) : 
+		name(_name), help(NULL), handler(_handler), argsCount(-1) { }
+
 	const char* name;                                      /// name of this command
+	const char* help;
 	const CommandHandler_t handler;                        /// the command handler associated 
+	const int argsCount;
 };
 
 #endif //BLE_CLIAPP_COMMAND_H_
