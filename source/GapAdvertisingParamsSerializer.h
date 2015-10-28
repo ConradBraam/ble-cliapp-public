@@ -27,7 +27,7 @@ struct SerializerDescription<GapAdvertisingParams::AdvertisingType_t> {
 };
 
 
-picojson::value advertisingParamsToJSON(const GapAdvertisingParams& advertisingParams) { 
+static inline picojson::value advertisingParamsToJSON(const GapAdvertisingParams& advertisingParams) { 
 	picojson::value result(picojson::object_type, true);
 	result.get<picojson::object>()["interval"] = picojson::value((int64_t) advertisingParams.getInterval());
 	result.get<picojson::object>()["timeout"] = picojson::value((int64_t) advertisingParams.getTimeout());
