@@ -3,6 +3,7 @@
 
 #include "CommandResult.h"
 #include "CommandArgs.h"
+#include "CommandArgDescription.h"
 
 /**
  * A command handler is a function which handle commands from the command 
@@ -19,18 +20,21 @@ typedef CommandResult (*CommandHandler_t)(const CommandArgs& args);
 /**
  * @brief Simple POD describing a command
  */
-struct Command_t {
-	constexpr Command_t(const char* _name, const CommandHandler_t _handler) : 
-		name(_name), help(NULL), handler(_handler), argsCount(-1) { }
+struct Command {
+	constexpr Command(const char* _name, const CommandHandler_t _handler) : 
+		name(_name), help(NULL), argsDescription(), handler(_handler) { }
 
-	constexpr Command_t(const char* _name, const char* _help, const CommandHandler_t _handler, int _argsCount) : 
-		name(_name), help(_help), handler(_handler), argsCount(_argsCount) { }
+	constexpr Command(const char* _name, const char* _help, const CommandHandler_t _handler) : 
+		name(_name), help(_help), argsDescription(), handler(_handler) { }
 
+	constexpr Command(const char* _name, const char* _help, ConstArray<CommandArgDescription> _argsDescription, const CommandHandler_t _handler) : 
+		name(_name), help(_help), argsDescription(_argsDescription), handler(_handler) { }
 
-	const char* name;                                      /// name of this command
-	const char* help;
-	const CommandHandler_t handler;                        /// the command handler associated 
-	const int argsCount;
+	const char* name;                                            /// name of this command
+	const char* help;                                            /// help of this command
+	const ConstArray<CommandArgDescription> argsDescription;     /// description of each args of the command      
+	const CommandHandler_t handler;                              /// the command handler associated 
+
 };
 
 #endif //BLE_CLIAPP_COMMAND_H_

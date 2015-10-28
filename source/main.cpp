@@ -1,11 +1,14 @@
-#include "mbed.h"
+#include "mbed-drivers/mbed.h"
 #include "ble/BLE.h"
 #include "ble/services/iBeacon.h"
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-trace/mbed_client_trace.h"
 
-#include "commands.h"
+
 #include "CLICommand/CommandSuite.h"
+#include "Commands/BLECommands.h"
+#include "Commands/GapCommands.h"
+
 
 // Prototypes
 void cmd_ready_cb(int retcode);
@@ -38,6 +41,11 @@ void cmd_cb(void)
 void cmd_ready_cb(int retcode)
 {
     cmd_next( retcode );
+}
+
+void initialize_app_commands(void) {
+    registerCommandSuite<BLECommandSuiteDescription>();
+    registerCommandSuite<GapCommandSuiteDescription>();
 }
 
 void app_start(int, char*[])

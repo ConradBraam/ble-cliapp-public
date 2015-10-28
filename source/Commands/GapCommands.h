@@ -27,8 +27,8 @@ public:
 		       "	* gap shutdown : shutdown the ble instance of this device\r\n";
 	} 
 
-	static ConstArray<Command_t> commands() {
-		static const Command_t commandHandlers[] = {
+	static ConstArray<Command> commands() {
+		static const Command commandHandlers[] = {
 			{ "setAddress", setAddress },
 			{ "getAddress", getAddress },
 			{ "getMinAdvertisingInterval", getMinAdvertisingInterval },
@@ -71,7 +71,7 @@ public:
 		};
 
 
-		return ConstArray<Command_t>(commandHandlers);		
+		return ConstArray<Command>(commandHandlers);		
 	}
 
 

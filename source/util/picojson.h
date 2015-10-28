@@ -28,7 +28,7 @@
 #ifndef picojson_h
 #define picojson_h
 
-#include "mbed_error.h"
+#include "mbed-drivers/mbed_error.h"
 
 #include <algorithm>
 #include <cstdio>

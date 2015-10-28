@@ -23,15 +23,15 @@ public:
 		       "	* ble get_version : return the current version of the BLE stack\r\n";	
 	} 
 
-	static ConstArray<Command_t> commands() {
-		static const Command_t commandHandlers[] = {
+	static ConstArray<Command> commands() {
+		static const Command commandHandlers[] = {
 			{ "shutdown", bleShutdown }, 
 			{ "init", bleInit }, 
 			{ "reset", bleReset }, 
 			{ "getVersion", bleGetVersion }
 		};
 
-		return ConstArray<Command_t>(commandHandlers);		
+		return ConstArray<Command>(commandHandlers);		
 	}
 
 

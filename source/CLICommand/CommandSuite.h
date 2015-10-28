@@ -22,7 +22,7 @@
  *    will be available through this entry point.
  *    - static const char* info() : Informations about this command suite 
  *    - static const char* man() : The manual of this command suite 
- *    - static ConstArray<Command_t> commands() : The array of commands presents in the suite
+ *    - static ConstArray<Command> commands() : The array of commands presents in the suite
  *    
  * \code
  * 
@@ -44,13 +44,13 @@
  *            "    * dummy bar : print bar\r\n";
  * }
  * 
- * static ConstArray<Command_t> commands() {
- *    static const Command_t commandHandlers[] = {
+ * static ConstArray<Command> commands() {
+ *    static const Command commandHandlers[] = {
  *        { "foo", doFoo }, 
  *        { "bar", doBar }
  *    }
  *    
- *    return ConstArray<Command_t>(commandHandlers);
+ *    return ConstArray<Command>(commandHandlers);
  * }
  * 
  * 
@@ -95,7 +95,7 @@ public:
 	static int commandHandler(int argc, char** argv) {
 		const CommandArgs args(argc, argv);
 		const char* commandName = args[1];
-		const ConstArray<Command_t> commands = SuiteDescription::commands();
+		const ConstArray<Command> commands = SuiteDescription::commands();
 		const CommandArgs commandArgs(args.drop(2));
 
 		CommandResult result;

@@ -7,17 +7,21 @@
 template<typename T>
 struct ConstArray {
 
-public: 
+public:
+	constexpr ConstArray() :
+		_count(0), _elements(NULL) {
+	}
+
 	/**
 	 * Construct a new array of elements from a size and pointer to an array
 	 */
-	ConstArray(int count, const T* elements) :
+	constexpr ConstArray(int count, const T* elements) :
 		_count(count), _elements(elements) {
 	}
 
 
 	template<size_t Elementscount>
-	ConstArray(const T (&elements)[Elementscount]) :
+	constexpr ConstArray(const T (&elements)[Elementscount]) :
 		_count(Elementscount), _elements(elements) {
 	}	
 
