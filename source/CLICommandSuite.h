@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "ConstArray.h"
+#include "util/ConstArray.h"
 #include "CommandArgs.h"
 #include "CommandResult.h"
 #include "Command.h"
@@ -11,7 +11,7 @@
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-cli/ns_types.h"
 #include "Stringify.h"
-#include "picojson.h"
+#include "util/picojson.h"
 
 /**
  * @brief Allow to easily group and add a suite of commands into the cli system.

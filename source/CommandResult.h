@@ -3,7 +3,7 @@
 
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-cli/ns_types.h"
-#include "picojson.h"
+#include "util/picojson.h"
 
 /**
  * @brief  Simple POD which encapsultate the result of a command.

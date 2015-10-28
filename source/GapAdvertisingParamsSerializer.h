@@ -2,7 +2,7 @@
 #define BLE_CLIAPP_GAP_ADVERTISING_PARAMS_SERIALIZER_H_
 
 #include "Serializer.h"
-#include "picojson.h"
+#include "util/picojson.h"
 #include "ble/GapAdvertisingParams.h"
 
 

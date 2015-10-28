@@ -5,7 +5,7 @@
 #include "Serializer.h"
 #include "ble/GapAdvertisingData.h"
 #include "ble/UUID.h"
-#include "picojson.h"
+#include "util/picojson.h"
 #include <algorithm>
 
 template<>

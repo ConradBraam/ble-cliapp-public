@@ -3,7 +3,7 @@
 
 #include "Serializer.h"
 #include "ble/Gap.h"
-#include "picojson.h"
+#include "util/picojson.h"
 
 
 template<>

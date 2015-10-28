@@ -1,7 +1,7 @@
 #ifndef BLE_CLIAPP_COMMAND_ARGS_H_
 #define BLE_CLIAPP_COMMAND_ARGS_H_
 
-#include "ConstArray.h"
+#include "util/ConstArray.h"
 
 /**
  * typedef for Arguments which are just a constant array of strings

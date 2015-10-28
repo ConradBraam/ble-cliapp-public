@@ -1,7 +1,7 @@
 #ifndef BLE_CLIAPP_SERIALIZER_H_
 #define BLE_CLIAPP_SERIALIZER_H_
 
-#include "ConstArray.h"
+#include "util/ConstArray.h"
 
 #include <string.h>
 
