@@ -1,7 +1,7 @@
 #ifndef BLE_CLIAPP_BLE_COMMANDS_H_
 #define BLE_CLIAPP_BLE_COMMANDS_H_
 
-#include "CLICommandSuite.h"
+#include "CLICommand/CLICommandSuite.h"
 #include "ble/BLE.h"
 #include "Stringify.h"
 

@@ -15,7 +15,7 @@
 // application
 #include "commands.h"
 
-#include "CliCommandSuite.h"
+#include "CLICommand/CliCommandSuite.h"
 #include "BLECommands.h"
 #include "GapCommands.h"
 

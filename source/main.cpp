@@ -5,7 +5,7 @@
 #include "mbed-client-trace/mbed_client_trace.h"
 
 #include "commands.h"
-#include "CLICommandSuite.h"
+#include "CLICommand/CLICommandSuite.h"
 
 // Prototypes
 void cmd_ready_cb(int retcode);
