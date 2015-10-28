@@ -37,7 +37,6 @@ public:
 			{ "getMaxAdvertisingInterval", getMaxAdvertisingInterval },
 			{ "stopAdvertising", stopAdvertising },
 			{ "stopScan", stopScan },
-			{ "stopScan", stopScan },
 			{ "connect", connect },
 			{ "disconnect", disconnect },
 			{ "getPreferredConnectionParams", getPreferredConnectionParams },
@@ -77,7 +76,7 @@ public:
 	}
 
 
-private:
+//private:
 
 	/**
 	 * @brief  set the address of this device 
@@ -633,11 +632,32 @@ private:
 		return CommandResult::success();
 	}
 
-	static CommandResult startScan(const CommandArgs&) { 
-		// TODO
-		//ble_error_t startScan(void (*callback)(const AdvertisementCallbackParams_t *params))
-		//ble_error_t startScan(T *object, void (T::*callbackMember)(const AdvertisementCallbackParams_t *params))		
-		return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	static CommandResult startScan(const CommandArgs& args) { 
+		if(args.count() != 0) {
+			return CommandResult::invalidParameters("no arguments expected");
+		} 
+
+		ble_error_t err = gap().startScan(scanCallback);
+
+		if(err) {
+			return CommandResult::faillure(toString(err));
+		}
+
+		return CommandResult::success();
+	}
+
+	static void scanCallback(const Gap::AdvertisementCallbackParams_t* scanResult) {
+		//gap().stopScan();
+		{
+			picojson::value result(picojson::object_type, true);
+			result.get<picojson::object>()["peerAddr"] = picojson::value(macAddressToString(scanResult->peerAddr).str);
+			result.get<picojson::object>()["rssi"] = picojson::value((int64_t) scanResult->rssi);
+			result.get<picojson::object>()["isScanResponse"] = picojson::value(scanResult->isScanResponse);
+			result.get<picojson::object>()["type"] = picojson::value(toString(scanResult->type));
+			result.get<picojson::object>()["data"] = gapAdvertisingDataToJSON(scanResult->advertisingData, scanResult->advertisingDataLen);
+
+			//CLICommandSuite<GapCommandSuiteDescription>::commandReady("startScan", CommandArgs(0, 0), CommandResult::success(result));
+		}
 	}
 
 	static CommandResult initRadioNotification(const CommandArgs&) { 

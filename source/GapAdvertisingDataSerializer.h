@@ -128,15 +128,142 @@ struct SerializerDescription<GapAdvertisingData::Flags_t> {
 };
 
 
-// TODO : data to string as hex ...
-static inline picojson::value gapAdvertisingDataToJSON(const GapAdvertisingData& advertisingData) {
-	char rawData[(GAP_ADVERTISING_DATA_MAX_PAYLOAD * 2) + 1] = { 0 };
+static inline picojson::value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size) {
+	picojson::value result = picojson::value(picojson::object_type, true);
 
-	for(size_t i = 0; i < advertisingData.getPayloadLen(); ++i) {
-		snprintf(rawData + (i * 2), 3, "%02X", advertisingData.getPayload()[i]);
+	for(size_t i = 0; i < size; i = (i + data[i] + 1)) {
+		if(data[i] == 0) {
+			continue;
+		}
+
+		// Setup field access
+		GapAdvertisingData::DataType_t dataType = (GapAdvertisingData::DataType_t) data[i + 1];
+		const uint8_t* fieldData = (data[i] == 1) ? NULL : data + i + 2;
+		uint8_t dataLenght = data[i] - 1;
+
+		picojson::value fieldValue = picojson::value("conversion not handled");;
+
+		// serialization 
+		switch(dataType) { 
+			case GapAdvertisingData::FLAGS: {
+				// if the flags are malformed, we signal the error 
+				if(dataLenght != 1) {
+					// TODO : add the true value of the field 
+					fieldValue = picojson::value("malformed");
+					break;
+				}
+
+				// construct an array of the flags 
+				fieldValue = picojson::value(picojson::array_type, true);
+
+				const ConstArray<ValueToStringMapping<GapAdvertisingData::Flags_t> > mapping = SerializerDescription<GapAdvertisingData::Flags_t>::mapping();
+				GapAdvertisingData::Flags_t flags = (GapAdvertisingData::Flags_t) fieldData[0];
+
+				for(size_t j = 0; j < mapping.count(); ++j) {
+					if(flags & mapping[j].value) {
+						fieldValue.get<picojson::array>().push_back(picojson::value(mapping[j].str));
+					}
+				}
+
+				break;
+			}
+
+
+			case GapAdvertisingData::INCOMPLETE_LIST_16BIT_SERVICE_IDS:
+			case GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS:
+				// if the flags are malformed, we signal the error 
+				if(dataLenght % sizeof(uint16_t)) {
+					// TODO : add the true value of the field 
+					fieldValue = picojson::value("malformed");
+					break;
+				}
+
+				// construct an array of the service ids 
+				fieldValue = picojson::value(picojson::array_type, true);				
+				for(size_t j = 0; j < dataLenght; j += sizeof(uint16_t)) {
+					uint16_t uuid = 0;
+					memcpy(&uuid, fieldData + j, sizeof(uuid));
+					char uuidStr[2 + sizeof(uint16_t) * 2 + 1] = { 0 };
+					snprintf(uuidStr, sizeof(uuidStr), "0x%04X", uuid);
+					fieldValue.get<picojson::array>().push_back(picojson::value(uuidStr));
+				}
+				break;
+
+			case GapAdvertisingData::INCOMPLETE_LIST_32BIT_SERVICE_IDS:
+			case GapAdvertisingData::COMPLETE_LIST_32BIT_SERVICE_IDS:
+				// if the flags are malformed, we signal the error 
+				if(dataLenght % sizeof(uint32_t)) {
+					// TODO : add the true value of the field 
+					fieldValue = picojson::value("malformed");
+					break;
+				}
+
+				// construct an array of the service ids 
+				fieldValue = picojson::value(picojson::array_type, true);				
+				for(size_t j = 0; j < dataLenght; j += sizeof(uint32_t)) {
+					uint32_t uuid = 0;
+					memcpy(&uuid, fieldData + j, sizeof(uuid));
+					char uuidStr[2 + sizeof(uint32_t) * 2 + 1] = { 0 };
+					snprintf(uuidStr, sizeof(uuidStr), "0x%08lX", uuid);
+					fieldValue.get<picojson::array>().push_back(picojson::value(uuidStr));
+				}
+				break;
+
+			case GapAdvertisingData::INCOMPLETE_LIST_128BIT_SERVICE_IDS:
+			case GapAdvertisingData::COMPLETE_LIST_128BIT_SERVICE_IDS:
+				break;
+
+			case GapAdvertisingData::SHORTENED_LOCAL_NAME:
+			case GapAdvertisingData::COMPLETE_LOCAL_NAME:
+				if(dataLenght == 0) {
+					// TODO : add the true value of the field 
+					fieldValue = picojson::value("");
+					break;
+				}
+
+				fieldValue = picojson::value(std::string((const char*) fieldData, dataLenght));
+				break;
+
+			case GapAdvertisingData::TX_POWER_LEVEL:
+				break;
+
+			case GapAdvertisingData::DEVICE_ID:
+				break;
+
+			case GapAdvertisingData::SLAVE_CONNECTION_INTERVAL_RANGE:
+				break;
+
+			case GapAdvertisingData::SERVICE_DATA:
+				break;
+
+			case GapAdvertisingData::APPEARANCE:
+				break;
+
+			case GapAdvertisingData::ADVERTISING_INTERVAL:
+				break;
+
+			case GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA:
+				break;
+		}
+
+		result.get<picojson::object>()[toString(dataType)] = fieldValue;
 	}
 
-	return picojson::value(rawData);
+	char rawData[(GAP_ADVERTISING_DATA_MAX_PAYLOAD * 2) + 1] = { 0 };
+
+	for(size_t i = 0; i < size; ++i) {
+		snprintf(rawData + (i * 2), 3, "%02X", data[i]);
+	}
+
+	result.get<picojson::object>()["raw"] = picojson::value(rawData);
+
+	return result;
+}
+
+
+// TODO : data to string as hex ...
+static inline picojson::value gapAdvertisingDataToJSON(const GapAdvertisingData& advertisingData) {
+	return gapAdvertisingDataToJSON(advertisingData.getPayload(), advertisingData.getPayloadLen());
 }
 
 
