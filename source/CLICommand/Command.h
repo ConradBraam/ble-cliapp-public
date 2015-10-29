@@ -22,17 +22,22 @@ typedef CommandResult (*CommandHandler_t)(const CommandArgs& args);
  */
 struct Command {
 	constexpr Command(const char* _name, const CommandHandler_t _handler) : 
-		name(_name), help(NULL), argsDescription(), handler(_handler) { }
+		name(_name), help(NULL), argsDescription(), maximumArgsRequired(0xFF), handler(_handler) { }
 
 	constexpr Command(const char* _name, const char* _help, const CommandHandler_t _handler) : 
-		name(_name), help(_help), argsDescription(), handler(_handler) { }
+		name(_name), help(_help), argsDescription(), maximumArgsRequired(0xFF), handler(_handler) { }
 
 	constexpr Command(const char* _name, const char* _help, ConstArray<CommandArgDescription> _argsDescription, const CommandHandler_t _handler) : 
-		name(_name), help(_help), argsDescription(_argsDescription), handler(_handler) { }
+		name(_name), help(_help), argsDescription(_argsDescription), maximumArgsRequired(_argsDescription.count()), handler(_handler) { }
+
+	constexpr Command(const char* _name, const char* _help, ConstArray<CommandArgDescription> _argsDescription, uint8_t _maximumArgsRequired, const CommandHandler_t _handler) : 
+		name(_name), help(_help), argsDescription(_argsDescription), maximumArgsRequired(_maximumArgsRequired), handler(_handler) { }
+
 
 	const char* name;                                            /// name of this command
 	const char* help;                                            /// help of this command
-	const ConstArray<CommandArgDescription> argsDescription;     /// description of each args of the command      
+	const ConstArray<CommandArgDescription> argsDescription;     /// description of each args of the command
+	const uint8_t maximumArgsRequired;                           /// The maximum args count required 
 	const CommandHandler_t handler;                              /// the command handler associated 
 
 };
