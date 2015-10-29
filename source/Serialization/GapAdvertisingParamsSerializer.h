@@ -5,7 +5,6 @@
 #include "util/picojson.h"
 #include "ble/GapAdvertisingParams.h"
 
-
 template<>
 struct SerializerDescription<GapAdvertisingParams::AdvertisingType_t> {
 	typedef GapAdvertisingParams::AdvertisingType_t type;
@@ -26,7 +25,6 @@ struct SerializerDescription<GapAdvertisingParams::AdvertisingType_t> {
 	}
 };
 
-
 static inline picojson::value advertisingParamsToJSON(const GapAdvertisingParams& advertisingParams) { 
 	picojson::value result(picojson::object_type, true);
 	result.get<picojson::object>()["interval"] = picojson::value((int64_t) advertisingParams.getInterval());
@@ -34,7 +32,5 @@ static inline picojson::value advertisingParamsToJSON(const GapAdvertisingParams
 	result.get<picojson::object>()["type"] = picojson::value(toString(advertisingParams.getAdvertisingType()));
 	return result;
 }
-
-
 
 #endif //BLE_CLIAPP_GAP_ADVERTISING_PARAMS_SERIALIZER_H_

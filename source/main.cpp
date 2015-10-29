@@ -4,11 +4,9 @@
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-trace/mbed_client_trace.h"
 
-
 #include "CLICommand/CommandSuite.h"
 #include "Commands/BLECommands.h"
 #include "Commands/GapCommands.h"
-
 
 // Prototypes
 void cmd_ready_cb(int retcode);

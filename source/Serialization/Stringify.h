@@ -4,7 +4,6 @@
 #include "ble/blecommon.h"
 #include "mbed-client-cli/ns_cmdline.h"
 
-
 static inline const char* to_string(ble_error_t err) {
     switch(err) {
         case BLE_ERROR_NONE: 
@@ -32,7 +31,6 @@ static inline const char* to_string(ble_error_t err) {
     }
 };
 
-
 static inline const char* cmdline_retcode_to_string(int code) {
     switch(code) {
         case CMDLINE_RETCODE_COMMAND_BUSY:
@@ -55,10 +53,5 @@ static inline const char* cmdline_retcode_to_string(int code) {
             return "CMDLINE_RETCODE_UNKNOWN";
     }    
 }
-
-
-
-
-
 
 #endif //BLE_CLIAPP_BLE_STRINGIFY_H_

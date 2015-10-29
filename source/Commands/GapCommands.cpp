@@ -304,7 +304,7 @@ static constexpr const Command getPermittedTxPowerValues {
 	}
 };
 
-static constexpr const Command getState{ 
+static constexpr const Command getState { 
 	"getState",
 	"return the state of the device as defined in Gap::GapState_t",
 	STATIC_LAMBDA(const CommandArgs&) { 
@@ -397,7 +397,6 @@ static constexpr const Command clearAdvertisingPayload {
 		return CommandResult::success();
 	}
 };
-
 
 static constexpr const Command accumulateAdvertisingPayload {
 	"accumulateAdvertisingPayload",

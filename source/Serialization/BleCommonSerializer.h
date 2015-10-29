@@ -4,7 +4,6 @@
 #include "Serializer.h"
 #include "ble/blecommon.h"
 
-
 template<>
 struct SerializerDescription<ble_error_t> {
 	typedef ble_error_t type;
@@ -30,7 +29,6 @@ struct SerializerDescription<ble_error_t> {
 		return "unknown ble_error_t";
 	}
 };
-
 
 static inline const char* to_string(ble_error_t err) {
     switch(err) {
@@ -58,8 +56,5 @@ static inline const char* to_string(ble_error_t err) {
             return "Unknown ble_error_t";
     }
 };
-
-
-
 
 #endif //BLE_CLIAPP_BLE_COMMON_SERIALIZER_H_

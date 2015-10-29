@@ -17,7 +17,6 @@ struct ValueToStringMapping {
 	const char* str;
 };
 
-
 /**
  * @brief Base class for Serializer description, all Serializer description should specialize
  * this type.
@@ -26,8 +25,6 @@ struct ValueToStringMapping {
  */
 template<typename T>
 struct SerializerDescription;
-
-
 
 /**
  * @brief simple serializer logic.
@@ -75,7 +72,6 @@ private:
 	}
 };
 
-
 /**
  * @brief convert a value to a string 
  */
@@ -91,8 +87,6 @@ template<typename T>
 static bool fromString(const char* str, T& value) {
 	return Serializer<T>::fromString(str, value);
 }
-
-
 
 // Serialization functions from builtin types goes here
 static bool fromString(const char* str, int8_t& val) {
@@ -110,7 +104,6 @@ static bool fromString(const char* str, int8_t& val) {
 	return true;
 }
 
-
 // Serialization functions from builtin types goes here
 static bool fromString(const char* str, uint16_t& val) {
 	char* end;
@@ -127,7 +120,6 @@ static bool fromString(const char* str, uint16_t& val) {
 	return true;
 }
 
-
 // Serialization functions from builtin types goes here
 static bool fromString(const char* str, uint32_t& val) {
 	char* end;
@@ -139,7 +131,6 @@ static bool fromString(const char* str, uint32_t& val) {
 	val = (uint32_t) tmp;
 	return true;
 }
-
 
 // Serialization functions from builtin types goes here
 static bool fromString(const char* str, bool& val) {
@@ -155,11 +146,5 @@ static bool fromString(const char* str, bool& val) {
 
 	return false;
 }
-
-
-
-
-
-
 
 #endif //BLE_CLIAPP_SERIALIZER_H_

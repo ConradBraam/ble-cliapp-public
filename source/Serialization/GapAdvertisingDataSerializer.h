@@ -1,7 +1,6 @@
 #ifndef BLE_CLIAPP_GAP_ADVERTISING_DATA_SERIALIZER_H_
 #define BLE_CLIAPP_GAP_ADVERTISING_DATA_SERIALIZER_H_
 
-
 #include "Serializer.h"
 #include "ble/GapAdvertisingData.h"
 #include "ble/UUID.h"
@@ -72,8 +71,6 @@ struct SerializerDescription<GapAdvertisingData::Appearance_t> {
 	}
 };
 
-
-
 template<>
 struct SerializerDescription<GapAdvertisingData::DataType_t> {
 	typedef GapAdvertisingData::DataType_t type;
@@ -127,7 +124,6 @@ struct SerializerDescription<GapAdvertisingData::Flags_t> {
 	}
 };
 
-
 static inline picojson::value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size) {
 	picojson::value result = picojson::value(picojson::object_type, true);
 
@@ -167,7 +163,6 @@ static inline picojson::value gapAdvertisingDataToJSON(const uint8_t* data, uint
 
 				break;
 			}
-
 
 			case GapAdvertisingData::INCOMPLETE_LIST_16BIT_SERVICE_IDS:
 			case GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS:
@@ -266,7 +261,6 @@ static inline picojson::value gapAdvertisingDataToJSON(const GapAdvertisingData&
 	return gapAdvertisingDataToJSON(advertisingData.getPayload(), advertisingData.getPayloadLen());
 }
 
-
 // todo : better than this
 static inline bool hexToChar(char msb, char lsb, uint8_t& result) {
 	char hexStr[] = { msb, lsb, 0 };
@@ -280,7 +274,6 @@ static inline bool hexToChar(char msb, char lsb, uint8_t& result) {
 	result = (uint8_t) conversionResult;
 	return true;
 }
-
 
 static inline bool UUIDfromString(const char* str, UUID::LongUUIDBytes_t& uuid) {
 	static const char refUUID[] = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
@@ -314,13 +307,11 @@ static inline bool UUIDfromString(const char* str, UUID::LongUUIDBytes_t& uuid) 
 	return true;
 }
 
-
 struct AdvertisingPayloadField_t {
 	GapAdvertisingData::DataType_t dataType;
 	uint8_t data[GAP_ADVERTISING_DATA_MAX_PAYLOAD];
 	uint8_t dataLenght;
 };
-
 
 /** 
  * return NULL in case of success or the reason of the error 
@@ -375,7 +366,6 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
 			break;
 		}
 
-
 		case GapAdvertisingData::INCOMPLETE_LIST_32BIT_SERVICE_IDS:
 		case GapAdvertisingData::COMPLETE_LIST_32BIT_SERVICE_IDS:{
 			uint32_t services[(GAP_ADVERTISING_DATA_MAX_PAYLOAD - 2) / sizeof(uint32_t)];
@@ -414,8 +404,6 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
 			break;
 		}
 
-
-
 		case GapAdvertisingData::SHORTENED_LOCAL_NAME:
 		case GapAdvertisingData::COMPLETE_LOCAL_NAME:
 			if(args.count() != 2) {
@@ -429,7 +417,6 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
 			dataLenght = strlen(args[1]);
 			memcpy(data, args[1], dataLenght);
 			break;
-
 
 		case GapAdvertisingData::TX_POWER_LEVEL: {
 			if(args.count() != 2) {
@@ -445,7 +432,6 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
 			dataLenght = sizeof(txPower);
 			break; 
 		} 
-
 
 		case GapAdvertisingData::DEVICE_ID:
 			return "Not yet implemented for this kind of data types";
@@ -521,8 +507,5 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
 
 	return NULL;
 }
-
-
-
 
 #endif //BLE_CLIAPP_GAP_ADVERTISING_DATA_SERIALIZER_H_
