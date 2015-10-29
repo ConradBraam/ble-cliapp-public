@@ -204,11 +204,7 @@ static const Command setDeviceName {
 	}
 }; 
 
-static CommandResult getDeviceName(const CommandArgs& args) { 
-	if(args.count() != 0) {
-		return CommandResult::invalidParameters("no arguments expected");
-	}
-
+static CommandResult getDeviceName(const CommandArgs&) { 
 	// first : collect the size of the name 
 	unsigned deviceNameLength;
 	ble_error_t err = gap().getDeviceName(NULL, &deviceNameLength);
@@ -244,19 +240,10 @@ static CommandResult setAppearance(const CommandArgs& args) {
 	}
 
 	ble_error_t err = gap().setAppearance(appearance);
-	
-	if(err) {
-		return CommandResult::faillure(to_string(err));	
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
-static CommandResult getAppearance(const CommandArgs& args) { 
-	if(args.count() != 0) {
-		return CommandResult::invalidParameters("no arguments expected");
-	}
-
+static CommandResult getAppearance(const CommandArgs&) { 
 	GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
 	ble_error_t err = gap().getAppearance(&appearance);
 
@@ -278,19 +265,10 @@ static CommandResult setTxPower(const CommandArgs& args) {
 	}
 
 	ble_error_t err = gap().setTxPower(txPower);
-
-	if(err) {
-		return CommandResult::faillure(to_string(err));				
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
-static CommandResult getPermittedTxPowerValues(const CommandArgs& args) { 
-	if(args.count() != 0) {
-		return CommandResult::invalidParameters("no arguments expected");
-	}
-
+static CommandResult getPermittedTxPowerValues(const CommandArgs&) { 
 	const int8_t* permittedTxPowerValues = NULL;
 	size_t permittedTxPowerValuesCount = 0;
 
@@ -299,13 +277,8 @@ static CommandResult getPermittedTxPowerValues(const CommandArgs& args) {
 	return CommandResult::success(txPermittedValuesToJSON(permittedTxPowerValues, permittedTxPowerValuesCount));
 }
 
-static CommandResult getState(const CommandArgs& args) { 
-	if(args.count() != 0) {
-		return CommandResult::invalidParameters("no arguments expected");
-	}
-
+static CommandResult getState(const CommandArgs&) { 
 	Gap::GapState_t state = gap().getState();
-	
 	return CommandResult::success(gapStateToJSON(state));	
 }
 
@@ -355,27 +328,13 @@ static CommandResult setAdvertisingTimeout(const CommandArgs& args) {
 	return CommandResult::success();
 }
 
-static CommandResult startAdvertising(const CommandArgs& args) { 
-	if(args.count() != 0) {
-		return CommandResult::invalidParameters("no arguments expected");
-	}
-
+static CommandResult startAdvertising(const CommandArgs&) { 
 	ble_error_t err = gap().startAdvertising();
-
-	if(err) {
-		return CommandResult::faillure(toString(err));
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
-static CommandResult clearAdvertisingPayload(const CommandArgs& args) { 
-	if(args.count() != 0) {
-		return CommandResult::invalidParameters("no arguments expected");
-	}
-
+static CommandResult clearAdvertisingPayload(const CommandArgs&) { 
 	gap().clearAdvertisingPayload();
-
 	return CommandResult::success();
 }
 
@@ -388,12 +347,7 @@ static CommandResult accumulateAdvertisingPayload(const CommandArgs& args) {
 	}
 
 	ble_error_t err = gap().accumulateAdvertisingPayload(payloadField.dataType, payloadField.data, payloadField.dataLenght);
-
-	if(err) { 
-		return CommandResult::faillure(toString(err));
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
 static CommandResult updateAdvertisingPayload(const CommandArgs& args) { 
@@ -405,25 +359,16 @@ static CommandResult updateAdvertisingPayload(const CommandArgs& args) {
 	}
 
 	ble_error_t err = gap().updateAdvertisingPayload(payloadField.dataType, payloadField.data, payloadField.dataLenght);
-
-	if(err) { 
-		return CommandResult::faillure(toString(err));
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
 static CommandResult setAdvertisingPayload(const CommandArgs&) { 
 	// TODO 
 	//ble_error_t setAdvertisingPayload(const GapAdvertisingData &payload)
-	return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
 }
 
-static CommandResult getAdvertisingPayload(const CommandArgs& args) { 
-	if(args.count() != 0) {
-		return CommandResult::invalidParameters("no arguments expected");
-	}
-
+static CommandResult getAdvertisingPayload(const CommandArgs&) { 
 	const GapAdvertisingData& advertisingData = gap().getAdvertisingPayload();
 	return CommandResult::success(gapAdvertisingDataToJSON(advertisingData));
 }
@@ -437,19 +382,10 @@ static CommandResult accumulateScanResponse(const CommandArgs& args) {
 	}
 
 	ble_error_t err = gap().accumulateScanResponse(payloadField.dataType, payloadField.data, payloadField.dataLenght);
-
-	if(err) { 
-		return CommandResult::faillure(toString(err));
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
-static CommandResult clearScanResponse(const CommandArgs& args) { 
-	if(args.count() != 0) {
-		return CommandResult::invalidParameters("no arguments expected");
-	}
-
+static CommandResult clearScanResponse(const CommandArgs&) { 
 	gap().clearScanResponse();
 	return CommandResult::success();		
 }
@@ -480,12 +416,7 @@ static CommandResult setScanParams(const CommandArgs& args) {
 	}
 
 	ble_error_t err = gap().setScanParams(interval, window, timeout, activeScanning);
-
-	if(err) {
-		return CommandResult::faillure(toString(err));
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
 static CommandResult setScanInterval(const CommandArgs& args) { 
@@ -499,12 +430,7 @@ static CommandResult setScanInterval(const CommandArgs& args) {
 	}
 
 	ble_error_t err = gap().setScanInterval(interval);
-
-	if(err) {
-		return CommandResult::faillure(toString(err));
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
 static CommandResult setScanWindow(const CommandArgs& args) {
@@ -518,12 +444,7 @@ static CommandResult setScanWindow(const CommandArgs& args) {
 	}
 
 	ble_error_t err = gap().setScanWindow(window);
-
-	if(err) {
-		return CommandResult::faillure(toString(err));
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
 static CommandResult setScanTimeout(const CommandArgs& args) { 
@@ -537,12 +458,7 @@ static CommandResult setScanTimeout(const CommandArgs& args) {
 	}
 
 	ble_error_t err = gap().setScanTimeout(timeout);
-
-	if(err) {
-		return CommandResult::faillure(toString(err));
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
 static CommandResult setActiveScanning(const CommandArgs& args) { 
@@ -556,19 +472,10 @@ static CommandResult setActiveScanning(const CommandArgs& args) {
 	}
 
 	ble_error_t err = gap().setActiveScanning(activeScanning);
-
-	if(err) {
-		return CommandResult::faillure(toString(err));
-	}
-
-	return CommandResult::success();
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
-static CommandResult startScan(const CommandArgs& args) { 
-	if(args.count() != 0) {
-		return CommandResult::invalidParameters("no arguments expected");
-	} 
-
+static CommandResult startScan(const CommandArgs&) { 
 	ble_error_t err = gap().startScan([] (const Gap::AdvertisementCallbackParams_t* scanResult) {
 		//gap().stopScan();
 		{
@@ -583,27 +490,19 @@ static CommandResult startScan(const CommandArgs& args) {
 		}
 	});
 
-	if(err) {
-		return CommandResult::faillure(toString(err));
-	}
-
-	return CommandResult::success();
+	// TODO : use CONTINUE STATEMENT !!!!
+	return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 }
 
 
 static CommandResult initRadioNotification(const CommandArgs&) { 
 	// TODO (maybe)
 	//ble_error_t initRadioNotification(void)
-	return CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED;
+	return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
 }
 
-static CommandResult getAdvertisingParams(const CommandArgs& args) {
-	if(args.count() != 0) {
-		return CommandResult::invalidParameters("no arguments expected");
-	} 
-
+static CommandResult getAdvertisingParams(const CommandArgs&) {
 	GapAdvertisingParams& advertisingParams = gap().getAdvertisingParams();
-
 	return CommandResult::success(advertisingParamsToJSON(advertisingParams));
 }
 
