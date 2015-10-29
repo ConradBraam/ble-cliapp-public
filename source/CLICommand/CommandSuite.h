@@ -84,7 +84,6 @@ public:
 		);
 	} 
 
-
 	/**
 	 * @brief  Entry point for the command handler of the suite.
 	 * @details This function demultiplex command and args from CLI and execute the right comamnd.
@@ -110,7 +109,6 @@ public:
 		printCommandResult(SuiteDescription::name(), commandName, commandArgs, result);
 		return result.statusCode;
 	}
-
 
 	/**
 	 * @brief Format and print the command result through the command line
@@ -166,7 +164,6 @@ public:
 
 		cmd_printf("%s\r\n", message.serialize(true).c_str());
 	}
-
 };
 
 
@@ -179,9 +176,5 @@ template<typename CommandSuiteDescription>
 void registerCommandSuite() {
 	CommandSuite<CommandSuiteDescription>::registerSuite();
 }
-
-
-
-
 
 #endif //BLE_CLIAPP_COMMAND_SUITE_H_

@@ -1,6 +1,7 @@
 #ifndef BLE_CLIAPP_CONST_ARRAY_H_
 #define BLE_CLIAPP_CONST_ARRAY_H_
 
+#include <cstddef>
 #include <stdint.h>
 
 

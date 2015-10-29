@@ -76,6 +76,4 @@ struct CommandResult {
 	picojson::value info;                  /// additional informations
 };
 
-
-
 #endif //BLE_CLIAPP_COMMAND_RESULT_H_
