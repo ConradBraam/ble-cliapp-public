@@ -30,24 +30,21 @@ public:
 	/**
 	 * return the count of arguments available
 	 */ 
-	size_t count() const {
+	constexpr size_t count() const {
 		return _count;
 	} 
 
 	/**
 	 * return the element at the given index
 	 */
-	const T& operator[](size_t index) const {
+	constexpr const T& operator[](size_t index) const {
 		return _elements[index];
 	}
 
 
 
-	ConstArray drop(size_t countTodrop) const {
-		if(countTodrop < _count) {
-			return ConstArray(_count - countTodrop, _elements + countTodrop);
-		} 
-		return ConstArray(0, NULL);
+	constexpr ConstArray drop(size_t countTodrop) const {
+		return (countTodrop < _count) ? ConstArray(_count - countTodrop, _elements + countTodrop) : ConstArray();
 	}
 
 
@@ -60,7 +57,7 @@ private:
 
 
 template<typename T, size_t Elementscount>
-ConstArray<T> makeConstArray(const T (&elements)[Elementscount]) {
+constexpr ConstArray<T> makeConstArray(const T (&elements)[Elementscount]) {
 	return ConstArray<T>(elements);
 }
 
