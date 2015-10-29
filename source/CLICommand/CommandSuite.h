@@ -77,6 +77,9 @@ class CommandSuite {
 
 public:
 
+	/**
+	 * @brief Register this command suite into the cli system
+	 */
 	static void registerSuite() {
 		cmd_add(
 			SuiteDescription::name(), 
@@ -98,17 +101,29 @@ public:
 		const char* commandName = args[1];
 		const CommandArgs commandArgs(args.drop(2));
 
-		CommandResult result;
-
-		const Command* command = CommandSuite::getCommand(commandName);
-		if(command) {
-			result = command->handler(commandArgs);
-		} else {
-			result = CommandResult::faillure("invalid command name, you can get all the command name for this module by using the command list");
-		}
-
+		CommandResult result = executeCommandHandler(commandName, commandArgs);
 		printCommandResult(SuiteDescription::name(), commandName, commandArgs, result);
 		return result.statusCode;
+	}
+
+	/**
+	 * execute a command handler
+	 */
+	static CommandResult executeCommandHandler(const char* commandName, const CommandArgs commandArgs) {
+		const Command* command = CommandSuite::getCommand(commandName);
+		if(command) {
+			// check arguments 
+			if(commandArgs.count() < command->argsDescription.count()) {
+				return CommandResult::invalidParameters("not enough arguments"); 
+			}
+
+			if(commandArgs.count() > command->maximumArgsRequired) {
+				return CommandResult::invalidParameters("too many arguments"); 
+			}
+			return command->handler(commandArgs);
+		} else {
+			return CommandResult::faillure("invalid command name, you can get all the command name for this module by using the command 'list'");
+		}
 	}
 
 	/**
@@ -262,8 +277,6 @@ const Command CommandSuite<SuiteDescription>::args {
 		return CommandResult::success(res);
 	}
 };
-
-
 
 /**
  * @brief Register a command suite into the system
