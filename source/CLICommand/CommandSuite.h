@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "util/ConstArray.h"
+#include "util/StaticLambda.h"
 #include "CommandArgs.h"
 #include "CommandResult.h"
 #include "Command.h"
@@ -75,6 +76,7 @@ template<typename SuiteDescription>
 class CommandSuite {
 
 public:
+
 	static void registerSuite() {
 		cmd_add(
 			SuiteDescription::name(), 
@@ -94,16 +96,15 @@ public:
 	static int commandHandler(int argc, char** argv) {
 		const CommandArgs args(argc, argv);
 		const char* commandName = args[1];
-		const ConstArray<Command> commands = SuiteDescription::commands();
 		const CommandArgs commandArgs(args.drop(2));
 
 		CommandResult result;
 
-		for(size_t i = 0; i < commands.count(); ++i) {
-			if(strcmp(commands[i].name, commandName) == 0) {
-				result = commands[i].handler(commandArgs);
-				break;
-			}
+		const Command* command = CommandSuite::getCommand(commandName);
+		if(command) {
+			result = command->handler(commandArgs);
+		} else {
+			result = CommandResult::faillure("invalid command name, you can get all the command name for this module by using the command list");
 		}
 
 		printCommandResult(SuiteDescription::name(), commandName, commandArgs, result);
@@ -164,7 +165,104 @@ public:
 
 		cmd_printf("%s\r\n", message.serialize(true).c_str());
 	}
+
+	// builtin commands
+	static const Command* builtinCommands[3];
+	static const Command help;
+	static const Command list;
+	static const Command args;
+
+	static const Command* getCommand(const char* name) {
+		// builtin commands
+		for(size_t i = 0; i < sizeof(CommandSuite::builtinCommands) / sizeof(CommandSuite::builtinCommands[0]); ++i) {
+			if(strcmp(name, CommandSuite::builtinCommands[i]->name) == 0) {
+				return CommandSuite::builtinCommands[i];
+			}
+		}
+
+		const ConstArray<Command> commands = SuiteDescription::commands();
+		for(size_t i = 0; i < commands.count(); ++i) {
+			if(strcmp(name, commands[i].name) == 0) {
+				return &commands[i];
+			}
+		}
+
+		return nullptr;
+	}
 };
+
+
+template<typename SuiteDescription>
+const Command* CommandSuite<SuiteDescription>::builtinCommands[3] = {
+	&CommandSuite::help,
+	&CommandSuite::list,
+	&CommandSuite::args
+};
+
+template<typename SuiteDescription>
+const Command CommandSuite<SuiteDescription>::help {
+	"help",
+	"Print help about a command, you can list the command by using the command 'list'",
+	(const CommandArgDescription[]) {
+		{ "<commandName>", "the name of a command you want help for, use the command 'list' to have a list of available commands" }
+	},
+	STATIC_LAMBDA(const CommandArgs& args) {
+		const Command* command = CommandSuite::getCommand(args[0]);
+		if(!command) {
+			return CommandResult::invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
+		}
+
+		return CommandResult::success(command->help);
+	}
+};
+
+template<typename SuiteDescription>
+const Command CommandSuite<SuiteDescription>::list {
+	"list",
+	"list all the command in a module",
+	STATIC_LAMBDA(const CommandArgs&) {
+		picojson::value res(picojson::array_type, true);
+
+		// builtin commands
+		for(size_t i = 0; i < sizeof(CommandSuite::builtinCommands) / sizeof(CommandSuite::builtinCommands[0]); ++i) {
+			res.get<picojson::array>().push_back(picojson::value(CommandSuite::builtinCommands[i]->name));
+		}
+
+		const ConstArray<Command> commands = SuiteDescription::commands();
+		for(size_t i = 0; i < commands.count(); ++i) {
+			res.get<picojson::array>().push_back(picojson::value(commands[i].name));
+		}
+
+		return CommandResult::success(res);
+	}
+};
+
+template<typename SuiteDescription>
+const Command CommandSuite<SuiteDescription>::args {
+	"args",
+	"print the args of a command",
+	(const CommandArgDescription[]) {
+		{ "commandName", "The name of the the command you want the args" }
+	},
+	STATIC_LAMBDA(const CommandArgs& args) {
+		const Command* command = CommandSuite::getCommand(args[0]);
+		if(!command) {
+			return CommandResult::invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
+		}
+
+		picojson::value res(picojson::array_type, true);
+		for(size_t i = 0; i < command->argsDescription.count(); ++i) {
+			printf("argname = %s\r\n", command->argsDescription[i].name);
+
+			picojson::value arg(picojson::object_type, true);
+			arg.get<picojson::object>()[command->argsDescription[i].name] = picojson::value(command->argsDescription[i].desc);
+			res.get<picojson::array>().push_back(arg);	
+		}
+
+		return CommandResult::success(res);
+	}
+};
+
 
 
 /**

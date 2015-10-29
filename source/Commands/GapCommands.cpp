@@ -6,6 +6,7 @@
 #include "Serialization/GapAdvertisingDataSerializer.h"
 #include "Serialization/GapAdvertisingParamsSerializer.h"
 #include "Serialization/BleCommonSerializer.h"
+#include "util/StaticLambda.h"
 
 // isolation ...
 namespace {
@@ -24,14 +25,14 @@ static Gap& gap() {
 	return ble().gap();
 }
 
-static const Command setAddress { 
+static constexpr const Command setAddress { 
 	"setAddress",
 	"set the address of this device",
-	{{
+	(const CommandArgDescription[]) {
 		{ "<addressType>", "The address type to set. It is a string representation of Gap::AddressType_t" },
 		{ "<address>"    , "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" },		
-	}},
-	[] (const CommandArgs& args) {
+	},
+	STATIC_LAMBDA(const CommandArgs& args) {
 		// extract first args 
 		Gap::AddressType_t addressType;
 		if(!fromString(args[0], addressType)) {
@@ -49,13 +50,13 @@ static const Command setAddress {
 	}
 };
 
-static const Command getAddress {
+static constexpr const Command getAddress {
 	"getAddress",
 	"Get the address and the type of address of this device.\r\n"
 	"The result will be a json object containing:\r\n"
 	"	* 'address_type': <type of the address. It is a string representation of Gap::AddressType_t>\r\n"
 	"	* 'address'     : <the address which is a string representation like 'XX:XX:XX:XX:XX:XX'>\r\n",
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		namespace pj = picojson;
 
 		Gap::AddressType_t addressType;
@@ -76,55 +77,55 @@ static const Command getAddress {
 	}
 };
 
-static const Command getMinAdvertisingInterval {
+static constexpr const Command getMinAdvertisingInterval {
 	"getMinAdvertisingInterval",
 	"Return the minimum advertising interval",
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		uint16_t minAdvertisingInterval = gap().getMinAdvertisingInterval();
 		return CommandResult::success(picojson::value((int64_t) minAdvertisingInterval));
 	}
 };
 
-static const Command getMinNonConnectableAdvertisingInterval {
+static constexpr const Command getMinNonConnectableAdvertisingInterval {
 	"getMinNonConnectableAdvertisingInterval",
 	// TODO DOC
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		uint16_t minNonConnectableAdvertisingInterval = gap().getMinNonConnectableAdvertisingInterval();
 		return CommandResult::success(picojson::value((int64_t) minNonConnectableAdvertisingInterval));
 	}
 };
 
-static const Command getMaxAdvertisingInterval {
+static constexpr const Command getMaxAdvertisingInterval {
 	"getMaxAdvertisingInterval",
 	//TODO DOC
-	[] (const CommandArgs&) {	
+	STATIC_LAMBDA(const CommandArgs&) {	
 		uint16_t maxAdvertisingInterval = gap().getMaxAdvertisingInterval();
 		return CommandResult::success(picojson::value((int64_t) maxAdvertisingInterval));
 	}
 };
 
-static const Command stopAdvertising {
+static constexpr const Command stopAdvertising {
 	"stopAdvertising",
 	//TODO DOC 
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		ble_error_t err = gap().stopAdvertising();
 		return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();
 	}
 };
 
-static const Command stopScan { 
+static constexpr const Command stopScan { 
 	"stopScan",
 	//TODO DOC
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		ble_error_t err = gap().stopScan();
 		return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();
 	}
 };
 
-static const Command connect {
+static constexpr const Command connect {
 	"connect",
 	// TODO DOC
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		// TODO 
 		/*  ble_error_t connect(const Address_t           peerAddr,
 	                            Gap::AddressType_t        peerAddrType,
@@ -135,20 +136,20 @@ static const Command connect {
 	}
 };
 
-static const Command disconnect {
+static constexpr const Command disconnect {
 	"disconnect",
 	//TODO DOC
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		// TODO 
 		//ble_error_t disconnect(Handle_t connectionHandle, DisconnectionReason_t reason)
 		return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);	
 	}
 }; 
 
-static const Command getPreferredConnectionParams { 
+static constexpr const Command getPreferredConnectionParams { 
 	"getPreferredConnectionParams",
 	// TODO DOC
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		Gap::ConnectionParams_t connectionParameters;
 		ble_error_t err = gap().getPreferredConnectionParams(&connectionParameters);
 
@@ -159,14 +160,14 @@ static const Command getPreferredConnectionParams {
 	}
 };
 
-static const Command setPreferredConnectionParams {
+static constexpr const Command setPreferredConnectionParams {
 	"setPreferredConnectionParams", 
 	"set the prefered connection parameters",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>", "all the parameters, coma separated" }
-	}},
+	},
 	//TODO: betrer args 
-	[] (const CommandArgs& args) { 
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		Gap::ConnectionParams_t connectionParameters;
 		if(!connectionParamsFromCLI(args[0], connectionParameters)) {
 			return CommandResult::invalidParameters("malformed connection parameters, should be like"\
@@ -178,23 +179,23 @@ static const Command setPreferredConnectionParams {
 	}	
 };
 
-static const Command updateConnectionParams {
+static constexpr const Command updateConnectionParams {
 	"updateConnectionParams",
 	// TODO DOC 
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		// TODO  
 		//ble_error_t updateConnectionParams(Handle_t handle, const ConnectionParams_t *params)
 		return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
 	}
 };
 
-static const Command setDeviceName {
+static constexpr const Command setDeviceName {
 	"setDeviceName",
 	"set the devce name",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<name>", "the name of the device, it should not have space" }
-	}},
-	[] (const CommandArgs& args) { 
+	},
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		if(args.count() != 1) {
 			return CommandResult::invalidParameters("please the name of the device without spaces");
 		}
@@ -204,10 +205,10 @@ static const Command setDeviceName {
 	}
 }; 
 
-static const Command getDeviceName { 
+static constexpr const Command getDeviceName { 
 	"getDeviceName",
 	"return the device name as a string",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		// first : collect the size of the name 
 		unsigned deviceNameLength;
 		ble_error_t err = gap().getDeviceName(NULL, &deviceNameLength);
@@ -233,13 +234,13 @@ static const Command getDeviceName {
 	}
 };
 
-static const  Command setAppearance {
+static constexpr const  Command setAppearance {
 	"setAppearance",
 	"set the appearance flag of the device",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<appearance>", "the appearance to set (see GapAdvertisingData::Appearance_t)" }
-	}},
-	[] (const CommandArgs& args) { 
+	},
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		if(args.count() != 1) {
 			return CommandResult::invalidParameters("this command need the appearance to set (see GapAdvertisingData::Appearance_t)");
 		}
@@ -254,10 +255,10 @@ static const  Command setAppearance {
 	}
 };
 
-static const Command getAppearance { 
+static constexpr const Command getAppearance { 
 	"getAppearance",
 	"get the appearance of the device",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
 		ble_error_t err = gap().getAppearance(&appearance);
 
@@ -269,13 +270,13 @@ static const Command getAppearance {
 	}
 };
 
-static const Command setTxPower {
+static constexpr const Command setTxPower {
 	"setTxPower",
 	"set the transmission power of the device",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<TxPower>", "The transmission power, it is an integer between [-128:127]"}
-	}},
-	[] (const CommandArgs& args) { 
+	},
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		if(args.count() != 1) {
 			return CommandResult::invalidParameters("this command need the TX power to be set [-127:128]");
 		}
@@ -290,10 +291,10 @@ static const Command setTxPower {
 	}
 };
 
-static const Command getPermittedTxPowerValues { 
+static constexpr const Command getPermittedTxPowerValues { 
 	"getPermittedTxPowerValues",
 	"return an array of the authorized Tx power values",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		const int8_t* permittedTxPowerValues = NULL;
 		size_t permittedTxPowerValuesCount = 0;
 
@@ -303,22 +304,22 @@ static const Command getPermittedTxPowerValues {
 	}
 };
 
-static const Command getState{ 
+static constexpr const Command getState{ 
 	"getState",
 	"return the state of the device as defined in Gap::GapState_t",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		Gap::GapState_t state = gap().getState();
 		return CommandResult::success(gapStateToJSON(state));	
 	}
 };
 
-static const Command setAdvertisingType { 
+static constexpr const Command setAdvertisingType { 
 	"setAdvertisingType",
 	"set the advertising type",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<advertisingType>", "The advertising type as defined in GapAdvertisingParams::AdvertisingType_t" }
-	}},
-	[] (const CommandArgs& args) { 
+	},
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		if(args.count() != 1) {
 			return CommandResult::invalidParameters("the advertising type should be provided (see GapAdvertisingParams::AdvertisingType_t)");
 		}
@@ -335,13 +336,13 @@ static const Command setAdvertisingType {
 	}
 };
 
-static const Command setAdvertisingInterval {
+static constexpr const Command setAdvertisingInterval {
 	"setAdvertisingInterval",
 	"set the advertising interval",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<interval>", "The interval in ms, if 0, the advertising is disabled" }
-	}},
-	[] (const CommandArgs& args) { 
+	},
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		if(args.count() != 1) {
 			return CommandResult::invalidParameters("the advertising interval should be provided");
 		}
@@ -357,13 +358,13 @@ static const Command setAdvertisingInterval {
 	}
 };
 
-static const Command setAdvertisingTimeout {
+static constexpr const Command setAdvertisingTimeout {
 	"setAdvertisingTimeout",
 	"set the advertising timeout, in seconds",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<timeout>", "An integer wich represent the advertising timeout in seconds [0x1 : 0x3FFF]. 0 disable the timeout" }
-	}},
-	[] (const CommandArgs& args) { 
+	},
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		if(args.count() != 1) {
 			return CommandResult::invalidParameters("the advertising timeout should be provided");
 		}	
@@ -379,34 +380,34 @@ static const Command setAdvertisingTimeout {
 	}
 };
 
-static const Command startAdvertising {
+static constexpr const Command startAdvertising {
 	"startAdvertising",
 	"start the advertising",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		ble_error_t err = gap().startAdvertising();
 		return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 	}
 };
 
-static const Command clearAdvertisingPayload {
+static constexpr const Command clearAdvertisingPayload {
 	"clearAdvertisingPayload",
 	"clear the advertising payload",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		gap().clearAdvertisingPayload();
 		return CommandResult::success();
 	}
 };
 
 
-static const Command accumulateAdvertisingPayload {
+static constexpr const Command accumulateAdvertisingPayload {
 	"accumulateAdvertisingPayload",
 	"add a new field into the advertising payload",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<fieldType>", "the field type of the data following (see GapAdvertisingData::DataType_t)" },
 		{ "<data>", "the value of the field, please see GapAdvertisingData" }
-	}},
+	},
 	/* maximum args counts is undefined */ 0xFF,
-	[] (const CommandArgs& args) { 
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		AdvertisingPayloadField_t payloadField;
 		const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -419,16 +420,16 @@ static const Command accumulateAdvertisingPayload {
 	}
 };
 
-static const Command updateAdvertisingPayload {
+static constexpr const Command updateAdvertisingPayload {
 	"updateAdvertisingPayload",
 	"update a field int the advertising payload.\r\n"
 	"Take care, at the moment, this will only succeed if the new value has the same size as the old one",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<fieldType>", "the field type to update (see GapAdvertisingData::DataType_t)" },
 		{ "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData" }
-	}},
+	},
 	/* maximum args counts is undefined */ 0xFF,
-	[] (const CommandArgs& args) { 
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		AdvertisingPayloadField_t payloadField;
 		const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -441,34 +442,34 @@ static const Command updateAdvertisingPayload {
 	}
 };
 
-static const Command setAdvertisingPayload {
+static constexpr const Command setAdvertisingPayload {
 	"setAdvertisingPayload",
 	"set the advertising payload",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		// TODO 
 		//ble_error_t setAdvertisingPayload(const GapAdvertisingData &payload)
 		return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
 	}
 };
 
-static const Command getAdvertisingPayload {
+static constexpr const Command getAdvertisingPayload {
 	"getAdvertisingPayload",
 	"get the current advertising payload",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		const GapAdvertisingData& advertisingData = gap().getAdvertisingPayload();
 		return CommandResult::success(gapAdvertisingDataToJSON(advertisingData));
 	}
 };
 
-static const Command accumulateScanResponse {
+static constexpr const Command accumulateScanResponse {
 	"accumulateScanResponse",
 	"add a field into the scan response payload",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<fieldType>", "the field type to update (see GapAdvertisingData::DataType_t)" },
 		{ "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData" }
-	}},
+	},
 	/* maximum args counts is undefined */ 0xFF,
-	[] (const CommandArgs& args) { 
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		AdvertisingPayloadField_t payloadField;
 		const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -481,25 +482,25 @@ static const Command accumulateScanResponse {
 	}
 };
 
-static const Command clearScanResponse {
+static constexpr const Command clearScanResponse {
 	"clearScanResponse",
 	"clear the scan response",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		gap().clearScanResponse();
 		return CommandResult::success();
 	}
 };
 
-static const Command setScanParams {
+static constexpr const Command setScanParams {
 	"setScanParams",
 	"Set the scan parameters",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<interval>", "The scan interval, it should be a number between 3 and 10420ms" },
 		{ "<window>", "The scan window, it should be a number between 3 and 10420ms" },
 		{ "<timeout>", "The scan timeout, it should be a number between 0 and 65534 " },
 		{ "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not" }
-	}},
-	[] (const CommandArgs& args) {
+	},
+	STATIC_LAMBDA(const CommandArgs& args) {
 		uint16_t interval = 0xFFFF;
 		if(!fromString(args[0], interval)) {
 			return CommandResult::invalidParameters("invalid interval, it should be a number between 3 and 10240ms");			 
@@ -525,13 +526,13 @@ static const Command setScanParams {
 	}
 };
 
-static const Command setScanInterval {
+static constexpr const Command setScanInterval {
 	"setScanInterval",
 	"set the scan interval",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<interval>", "The interval between each scan, it should be a number between 3 and 10240ms" }
-	}},
-	[] (const CommandArgs& args) { 
+	},
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		uint16_t interval = 0;
 		if(!fromString(args[0], interval)) {
 			return CommandResult::invalidParameters("the interval is ill formed");	
@@ -542,13 +543,13 @@ static const Command setScanInterval {
 	}
 };
 
-static const Command setScanWindow {
+static constexpr const Command setScanWindow {
 	"setScanWindow",
 	"set the scan windows",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<window>", "The interval between each scan, it should be a number between 3 and 10240ms" }
-	}},
-	[] (const CommandArgs& args) {
+	},
+	STATIC_LAMBDA(const CommandArgs& args) {
 		uint16_t window = 0;
 		if(!fromString(args[0], window)) {
 			return CommandResult::invalidParameters("the window is ill formed");	
@@ -559,13 +560,13 @@ static const Command setScanWindow {
 	}
 };
 
-static const Command setScanTimeout {
+static constexpr const Command setScanTimeout {
 	"setScanTimeout",
 	"The scan timeout",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<timeout>", "The scan timeout, it should be a number between 0 and 65534 " }
-	}},
-	[] (const CommandArgs& args) { 
+	},
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		uint16_t timeout = 0;
 		if(!fromString(args[0], timeout)) {
 			return CommandResult::invalidParameters("the timeout is ill formed");	
@@ -576,13 +577,13 @@ static const Command setScanTimeout {
 	}
 };
 
-static const Command setActiveScanning {
+static constexpr const Command setActiveScanning {
 	"setActiveScanning",
 	"Enable or disable active scanning",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not" }
-	}},
-	[] (const CommandArgs& args) { 
+	},
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		bool activeScanning = 0;
 		if(!fromString(args[0], activeScanning)) {
 			return CommandResult::invalidParameters("the active scanning state is ill formed");	
@@ -593,10 +594,10 @@ static const Command setActiveScanning {
 	}
 };
 
-static const Command startScan {
+static constexpr const Command startScan {
 	"startScan",
 	"start the scan process",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		ble_error_t err = gap().startScan([] (const Gap::AdvertisementCallbackParams_t* scanResult) {
 			//gap().stopScan();
 			{
@@ -616,34 +617,34 @@ static const Command startScan {
 	}
 };
 
-static const Command initRadioNotification {
+static constexpr const Command initRadioNotification {
 	"initRadioNotification",
 	"initialize radio notifications",
-	[] (const CommandArgs&) { 
+	STATIC_LAMBDA(const CommandArgs&) { 
 		// TODO (maybe)
 		//ble_error_t initRadioNotification(void)
 		return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
 	}
 };
 
-static const Command getAdvertisingParams {
+static constexpr const Command getAdvertisingParams {
 	"getAdvertisingParams",
 	"return the current advertising params",
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		GapAdvertisingParams& advertisingParams = gap().getAdvertisingParams();
 		return CommandResult::success(advertisingParamsToJSON(advertisingParams));
 	}
 };
 
-static const Command setAdvertisingParams {
+static constexpr const Command setAdvertisingParams {
 	"setAdvertisingParams",
 	"set the advertising parameters",
-	{{
+	(const CommandArgDescription[]) { 
 		{ "<advertisingType>", "The Advertising type, please refer to GapAdvertisingParams::AdvertisingType_t" },
 		{ "<interval>", "The advertising interval, it should be a number between 0 and 65534" },
 		{ "<timeout>", "The timeout, it should be a number between 0 and 65534" },
-	}},
-	[] (const CommandArgs& args) { 
+	},
+	STATIC_LAMBDA(const CommandArgs& args) { 
 		GapAdvertisingParams::AdvertisingType_t advertisingType;
 		if(!fromString(args[0], advertisingType)) {
 			return CommandResult::invalidParameters("Advertising type is malformed, please refer to GapAdvertisingParams::AdvertisingType_t");
@@ -667,7 +668,7 @@ static const Command setAdvertisingParams {
 } // end of annonymous namespace
 
 ConstArray<Command> GapCommandSuiteDescription::commands() {
-	static const Command commandHandlers[] = {
+	static constexpr const Command commandHandlers[] = {
 		setAddress,
 		getAddress,
 		getMinAdvertisingInterval,
@@ -706,7 +707,7 @@ ConstArray<Command> GapCommandSuiteDescription::commands() {
 		startScan,
 		initRadioNotification,
 		getAdvertisingParams,
-		setAdvertisingParams	
+		setAdvertisingParams
 	};
 
 	return ConstArray<Command>(commandHandlers);		

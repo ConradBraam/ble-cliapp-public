@@ -1,4 +1,5 @@
 #include "BLECommands.h"
+#include "util/StaticLambda.h"
 
 // isolation
 namespace {
@@ -7,31 +8,32 @@ static BLE& ble() {
 	return BLE::Instance();
 }
 
-static const Command shutdown { 
+static constexpr const Command shutdown { 
 	"shutdown",
 	"Shutdown the current BLE instance, calling ble related function after this"  
 	"call may lead to faillure.",
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		ble_error_t err = ble().shutdown();
 		return err ? CommandResult::faillure() : CommandResult::success();
 	} 
 };
 
-static const Command init {
+static constexpr const Command init {
 	"init",
 	"Initialize the ble API and underlying BLE stack.\r\n"
 	"Be sure to call this function before any other ble API function",
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		ble_error_t err = ble().init();
 		return err ? CommandResult::faillure() : CommandResult::success();
 	}
 };
 
-static const Command reset {
+
+static constexpr const Command reset = {
 	"reset",
 	"Reset the ble API and ble stack.\r\n"
 	"This function internaly does a reset and an init",
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		ble_error_t err = ble().shutdown();
 		if(err) {
 			return CommandResult::faillure("Failled to shutdown the ble instance");
@@ -47,10 +49,10 @@ static const Command reset {
 	} 
 };
 
-static const Command getVersion {
+static constexpr const Command getVersion {
 	"getVersion",
 	"Return the version of the BLE API.\r\n",
-	[] (const CommandArgs&) {
+	STATIC_LAMBDA(const CommandArgs&) {
 		const char* version = ble().getVersion();
 
 		if(version) {
@@ -64,7 +66,7 @@ static const Command getVersion {
 } // end of annonymous namespace
 
 ConstArray<Command> BLECommandSuiteDescription::commands() {
-	static const Command commandHandlers[] = {
+	static constexpr const Command commandHandlers[] = {
 		shutdown, 
 		init, 
 		reset, 
