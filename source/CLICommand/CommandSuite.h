@@ -12,6 +12,7 @@
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-cli/ns_types.h"
 #include "util/picojson.h"
+#include "mbed-client-cli/ns_cmdline.h"
 
 /**
  * @brief Allow to easily group and add a suite of commands into the cli system.
@@ -102,7 +103,9 @@ public:
 		const CommandArgs commandArgs(args.drop(2));
 
 		CommandResult result = executeCommandHandler(commandName, commandArgs);
-		printCommandResult(SuiteDescription::name(), commandName, commandArgs, result);
+		if(result.statusCode != CMDLINE_RETCODE_EXCUTING_CONTINUE) {
+			printCommandResult(SuiteDescription::name(), commandName, commandArgs, result);			
+		}
 		return result.statusCode;
 	}
 
@@ -178,7 +181,12 @@ public:
 			}
 		}
 
-		cmd_printf("%s\r\n", message.serialize(true).c_str());
+		cmd_printf("%s\r\n", message.serialize(false).c_str());
+	}
+
+	static void commandReady(const char* commandName, const CommandArgs& args, const CommandResult& result) {
+		printCommandResult(SuiteDescription::name(), commandName, args, result);
+		cmd_ready(result.statusCode);
 	}
 
 	// builtin commands

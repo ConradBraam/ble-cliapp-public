@@ -7,6 +7,8 @@
 #include "Serialization/GapAdvertisingParamsSerializer.h"
 #include "Serialization/BleCommonSerializer.h"
 #include "util/StaticLambda.h"
+#include "minar/minar.h"
+#include "CLICommand/CommandSuite.h"
 
 // isolation ...
 namespace {
@@ -596,23 +598,75 @@ static constexpr const Command setActiveScanning {
 static constexpr const Command startScan {
 	"startScan",
 	"start the scan process",
-	STATIC_LAMBDA(const CommandArgs&) { 
-		ble_error_t err = gap().startScan([] (const Gap::AdvertisementCallbackParams_t* scanResult) {
-			//gap().stopScan();
-			{
+	(const CommandArgDescription[]) { 
+		{ "<duration>", "The duration of the scan" },
+		{ "<address>", "The address to scan for" }
+	},
+	STATIC_LAMBDA(const CommandArgs& args) {
+		static bool callAttached = false;
+		static picojson::value results;
+		static bool scanning = false;
+		static Gap::Address_t address;
+		static uint32_t referenceTime;
+
+		if(scanning == true) { 
+			return CommandResult::faillure("a scan is already running");
+		}
+
+		uint16_t duration = 0;
+		if(!fromString(args[0], duration)) {
+			return CommandResult::invalidParameters("first argument should be the duration of the scan in milliseconds");			
+		}
+
+		if(!macAddressFromString(args[1], address)) { 
+			return CommandResult::invalidParameters("second argument should be a mac address which should match XX:XX:XX:XX:XX:XX format");
+		}
+
+		// clear the previous results 
+		results = picojson::value(picojson::array_type, true); 
+
+		ble_error_t err;
+		if(/* callAttached == false */ true) {
+			err = gap().startScan([] (const Gap::AdvertisementCallbackParams_t* scanResult) {
+				if(scanning == false || memcmp(scanResult->peerAddr, address, sizeof(address))) {
+					return;
+				}
+
+				// setup reference time if there is no previous record 
+				if(results.get<picojson::array>().size() == 0) { 
+					referenceTime = minar::ticks(minar::getTime());
+				}
+
 				picojson::value result(picojson::object_type, true);
 				result.get<picojson::object>()["peerAddr"] = picojson::value(macAddressToString(scanResult->peerAddr).str);
 				result.get<picojson::object>()["rssi"] = picojson::value((int64_t) scanResult->rssi);
 				result.get<picojson::object>()["isScanResponse"] = picojson::value(scanResult->isScanResponse);
 				result.get<picojson::object>()["type"] = picojson::value(toString(scanResult->type));
 				result.get<picojson::object>()["data"] = gapAdvertisingDataToJSON(scanResult->advertisingData, scanResult->advertisingDataLen);
+				result.get<picojson::object>()["time"] = picojson::value((int64_t) minar::ticks(minar::getTime()) - referenceTime);
 
-				//CLICommandSuite<GapCommandSuiteDescription>::commandReady("startScan", CommandArgs(0, 0), CommandResult::success(result));
-			}
-		});
+				results.get<picojson::array>().push_back(result);
+			});
+			callAttached = true;
+		} else {
+			err = gap().startScan(NULL);
+		}
 
-		// TODO : use CONTINUE STATEMENT !!!!
-		return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
+		if(err) {
+			return CommandResult::faillure(to_string(err));
+		}
+
+		scanning = true;
+		
+		// stop the scan after the timeout  
+		minar::Scheduler::postCallback([]() {
+			// check for error 
+			gap().stopScan();
+			scanning = false;
+			CommandSuite<GapCommandSuiteDescription>::commandReady(startScan.name, CommandArgs(0, 0), CommandResult::success(results));
+		}).delay(minar::milliseconds(duration));
+
+		return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);		
 	}
 };
 

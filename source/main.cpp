@@ -21,7 +21,7 @@ void trace_printer(const char* str)
 
 void custom_cmd_response_out(const char* fmt, va_list ap)
 {
-    char buffer[400]= {0};
+    static char buffer[2048]= {0};
     vsnprintf(buffer,sizeof(buffer),fmt, ap);
     pc.printf("%s",buffer);
 }
@@ -30,7 +30,7 @@ void custom_cmd_response_out(const char* fmt, va_list ap)
 // there should be buffer to improve performance..
 void cmd_cb(void) 
 {
-	cmd_char_input(pc.getc());
+    cmd_char_input(pc.getc());        
 }
 
 // this function should be inside some "event scheduler", because
@@ -49,7 +49,7 @@ void initialize_app_commands(void) {
 void app_start(int, char*[])
 {
     //configure serial port
-    pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
+    pc.baud(230400);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
     pc.attach(&cmd_cb);
     
     // initialize trace libary
