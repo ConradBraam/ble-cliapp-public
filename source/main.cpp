@@ -21,9 +21,8 @@ void trace_printer(const char* str)
 
 void custom_cmd_response_out(const char* fmt, va_list ap)
 {
-    static char buffer[2048]= {0};
-    vsnprintf(buffer,sizeof(buffer),fmt, ap);
-    pc.printf("%s",buffer);
+    vprintf(fmt, ap);
+    fflush(stdout);
 }
 
 // serial RX interrupt function
