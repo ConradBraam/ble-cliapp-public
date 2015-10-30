@@ -49,7 +49,7 @@ void initialize_app_commands(void) {
 void app_start(int, char*[])
 {
     //configure serial port
-    pc.baud(230400);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
+    pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
     pc.attach(&cmd_cb);
     
     // initialize trace libary
