@@ -198,10 +198,6 @@ static constexpr const Command setDeviceName {
 		{ "<name>", "the name of the device, it should not have space" }
 	},
 	STATIC_LAMBDA(const CommandArgs& args) { 
-		if(args.count() != 1) {
-			return CommandResult::invalidParameters("please the name of the device without spaces");
-		}
-
 		ble_error_t err = gap().setDeviceName((const uint8_t*) args[0]);
 		return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();		
 	}
@@ -243,10 +239,6 @@ static constexpr const  Command setAppearance {
 		{ "<appearance>", "the appearance to set (see GapAdvertisingData::Appearance_t)" }
 	},
 	STATIC_LAMBDA(const CommandArgs& args) { 
-		if(args.count() != 1) {
-			return CommandResult::invalidParameters("this command need the appearance to set (see GapAdvertisingData::Appearance_t)");
-		}
-
 		GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
 		if(!fromString(args[0], appearance)) {
 			return CommandResult::invalidParameters("the appearance to set is illformed (see GapAdvertisingData::Appearance_t)");
@@ -279,10 +271,6 @@ static constexpr const Command setTxPower {
 		{ "<TxPower>", "The transmission power, it is an integer between [-128:127]"}
 	},
 	STATIC_LAMBDA(const CommandArgs& args) { 
-		if(args.count() != 1) {
-			return CommandResult::invalidParameters("this command need the TX power to be set [-127:128]");
-		}
-
 		int8_t txPower = 0;
 		if(!fromString(args[0], txPower)) { 
 			return CommandResult::invalidParameters("the txPower is malformed (should be between [-127:128])");
@@ -322,10 +310,6 @@ static constexpr const Command setAdvertisingType {
 		{ "<advertisingType>", "The advertising type as defined in GapAdvertisingParams::AdvertisingType_t" }
 	},
 	STATIC_LAMBDA(const CommandArgs& args) { 
-		if(args.count() != 1) {
-			return CommandResult::invalidParameters("the advertising type should be provided (see GapAdvertisingParams::AdvertisingType_t)");
-		}
-
 		GapAdvertisingParams::AdvertisingType_t advType;
 
 		if(!fromString(args[0], advType)) {
@@ -345,10 +329,6 @@ static constexpr const Command setAdvertisingInterval {
 		{ "<interval>", "The interval in ms, if 0, the advertising is disabled" }
 	},
 	STATIC_LAMBDA(const CommandArgs& args) { 
-		if(args.count() != 1) {
-			return CommandResult::invalidParameters("the advertising interval should be provided");
-		}
-
 		uint16_t interval = 0;
 		if(!fromString(args[0], interval)) {
 			return CommandResult::invalidParameters("the advertising interval is ill formed");
@@ -367,10 +347,6 @@ static constexpr const Command setAdvertisingTimeout {
 		{ "<timeout>", "An integer wich represent the advertising timeout in seconds [0x1 : 0x3FFF]. 0 disable the timeout" }
 	},
 	STATIC_LAMBDA(const CommandArgs& args) { 
-		if(args.count() != 1) {
-			return CommandResult::invalidParameters("the advertising timeout should be provided");
-		}	
-
 		uint16_t timeout = 0;
 		if(!fromString(args[0], timeout)) {
 			return CommandResult::invalidParameters("the advertising timeout is ill formed");
