@@ -1,5 +1,0 @@
-{
-  "build": {
-    "target": "nrf51dk-gcc,*"
-  }
-}
