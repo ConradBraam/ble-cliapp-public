@@ -1,4 +1,4 @@
-from lib.bench import Bench
+from mbed_clitest.bench import Bench
 
 import json
 
