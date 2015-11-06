@@ -1,5 +1,6 @@
 #include "BLECommands.h"
 #include "util/StaticLambda.h"
+#include "Serialization/Stringify.h"
    
 // isolation
 namespace {
@@ -23,8 +24,26 @@ static constexpr const Command init {
 	"Initialize the ble API and underlying BLE stack.\r\n"
 	"Be sure to call this function before any other ble API function",
 	STATIC_LAMBDA(const CommandArgs&) {
-		ble_error_t err = ble().init();
-		return err ? CommandResult::faillure() : CommandResult::success();
+		if(ble().hasInitialized()) {
+			return CommandResult::success();
+		}
+
+		ble().init([](BLE::InitializationCompleteCallbackContext* initializationStatus) {
+			if(initializationStatus->error) {
+				CommandSuite<BLECommandSuiteDescription>::commandReady(
+					init.name, 
+					CommandArgs(0, 0), 
+					CommandResult::faillure(to_string(initializationStatus->error))
+				);
+			} else {
+				CommandSuite<BLECommandSuiteDescription>::commandReady(
+					init.name, 
+					CommandArgs(0, 0), 
+					CommandResult::success()
+				);
+			}
+		});
+		return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);
 	}
 };
 
@@ -34,9 +53,13 @@ static constexpr const Command reset = {
 	"Reset the ble API and ble stack.\r\n"
 	"This function internaly does a reset and an init",
 	STATIC_LAMBDA(const CommandArgs&) {
-		ble_error_t err = ble().shutdown();
-		if(err) {
-			return CommandResult::faillure("Failled to shutdown the ble instance");
+		ble_error_t err;
+
+		if(ble().hasInitialized()) {
+			ble_error_t err = ble().shutdown();
+			if(err) {
+				return CommandResult::faillure("Failled to shutdown the ble instance");
+			}			
 		}
 
 		err = ble().init();
