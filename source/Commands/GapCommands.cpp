@@ -9,6 +9,12 @@
 #include "util/StaticLambda.h"
 #include "minar/minar.h"
 #include "CLICommand/CommandSuite.h"
+#include "dynamic/Value.h"
+#include "util/StaticString.h"
+#include "util/DynamicString.h"
+
+extern void * volatile mbed_sbrk_ptr;
+extern void * volatile mbed_krbs_ptr;
 
 // isolation ...
 namespace {
@@ -38,12 +44,12 @@ static constexpr const Command setAddress {
 		// extract first args 
 		Gap::AddressType_t addressType;
 		if(!fromString(args[0], addressType)) {
-			return CommandResult::invalidParameters("first argument should match Gap::AddressType_t");
+			return CommandResult::invalidParameters("first argument should match Gap::AddressType_t"_ss);
 		}
 
 		Gap::Address_t address;
 		if(!macAddressFromString(args[1], address)) { 
-			return CommandResult::invalidParameters("second argument should is a mac address which should match XX:XX:XX:XX:XX:XX format");
+			return CommandResult::invalidParameters("second argument should is a mac address which should match XX:XX:XX:XX:XX:XX format"_ss);
 		}
 
 		ble_error_t err = gap().setAddress(addressType, address);
@@ -59,8 +65,6 @@ static constexpr const Command getAddress {
 	"	* 'address_type': <type of the address. It is a string representation of Gap::AddressType_t>\r\n"
 	"	* 'address'     : <the address which is a string representation like 'XX:XX:XX:XX:XX:XX'>\r\n",
 	STATIC_LAMBDA(const CommandArgs&) {
-		namespace pj = picojson;
-
 		Gap::AddressType_t addressType;
 		Gap::Address_t address;
 
@@ -71,9 +75,9 @@ static constexpr const Command getAddress {
 		}
 
 		// building the result object 
-		pj::value res(pj::object_type, true);
-		res.get<pj::object>()["address_type"] = pj::value(toString(addressType));
-		res.get<pj::object>()["address"] = pj::value(macAddressToString(address).str);
+		dynamic::Value res;
+		res["address_type"_ss] = container::StaticString(toString(addressType));
+		res["address"_ss] = container::StaticString(macAddressToString(address).str);
 
 		return CommandResult::success(res);
 	}
@@ -84,7 +88,7 @@ static constexpr const Command getMinAdvertisingInterval {
 	"Return the minimum advertising interval",
 	STATIC_LAMBDA(const CommandArgs&) {
 		uint16_t minAdvertisingInterval = gap().getMinAdvertisingInterval();
-		return CommandResult::success(picojson::value((int64_t) minAdvertisingInterval));
+		return CommandResult::success((int64_t) minAdvertisingInterval);
 	}
 };
 
@@ -93,7 +97,7 @@ static constexpr const Command getMinNonConnectableAdvertisingInterval {
 	// TODO DOC
 	STATIC_LAMBDA(const CommandArgs&) {
 		uint16_t minNonConnectableAdvertisingInterval = gap().getMinNonConnectableAdvertisingInterval();
-		return CommandResult::success(picojson::value((int64_t) minNonConnectableAdvertisingInterval));
+		return CommandResult::success((int64_t) minNonConnectableAdvertisingInterval);
 	}
 };
 
@@ -102,7 +106,7 @@ static constexpr const Command getMaxAdvertisingInterval {
 	//TODO DOC
 	STATIC_LAMBDA(const CommandArgs&) {	
 		uint16_t maxAdvertisingInterval = gap().getMaxAdvertisingInterval();
-		return CommandResult::success(picojson::value((int64_t) maxAdvertisingInterval));
+		return CommandResult::success((int64_t) maxAdvertisingInterval);
 	}
 };
 
@@ -111,7 +115,7 @@ static constexpr const Command stopAdvertising {
 	//TODO DOC 
 	STATIC_LAMBDA(const CommandArgs&) {
 		ble_error_t err = gap().stopAdvertising();
-		return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();
+		return err ? CommandResult::faillure(container::StaticString(to_string(err))) : CommandResult::success();
 	}
 };
 
@@ -120,7 +124,7 @@ static constexpr const Command stopScan {
 	//TODO DOC
 	STATIC_LAMBDA(const CommandArgs&) {
 		ble_error_t err = gap().stopScan();
-		return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();
+		return err ? CommandResult::faillure(container::StaticString(to_string(err))) : CommandResult::success();
 	}
 };
 
@@ -156,7 +160,7 @@ static constexpr const Command getPreferredConnectionParams {
 		ble_error_t err = gap().getPreferredConnectionParams(&connectionParameters);
 
 		if(err) { 
-			return CommandResult::faillure(to_string(err));
+			return CommandResult::faillure(container::StaticString(to_string(err)));
 		}
 		return CommandResult::success(connectionParamsToJSON(connectionParameters));
 	}
@@ -173,11 +177,11 @@ static constexpr const Command setPreferredConnectionParams {
 		Gap::ConnectionParams_t connectionParameters;
 		if(!connectionParamsFromCLI(args[0], connectionParameters)) {
 			return CommandResult::invalidParameters("malformed connection parameters, should be like"\
-				"<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>");
+				"<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>"_ss);
 		}
 
 		ble_error_t err =  gap().setPreferredConnectionParams(&connectionParameters);
-		return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();
+		return err ? CommandResult::faillure(container::StaticString(to_string(err))) : CommandResult::success();
 	}	
 };
 
@@ -257,7 +261,7 @@ static constexpr const Command getAppearance {
 		ble_error_t err = gap().getAppearance(&appearance);
 
 		if(err) {
-			return CommandResult::faillure(to_string(err));				
+			return CommandResult::faillure(container::StaticString(to_string(err)));				
 		}
 
 		return CommandResult::success(toString(appearance));
@@ -546,7 +550,7 @@ static constexpr const Command setScanTimeout {
 	STATIC_LAMBDA(const CommandArgs& args) { 
 		uint16_t timeout = 0;
 		if(!fromString(args[0], timeout)) {
-			return CommandResult::invalidParameters("the timeout is ill formed");	
+			return CommandResult::invalidParameters("the timeout is ill formed"_ss);	
 		}
 
 		ble_error_t err = gap().setScanTimeout(timeout);
@@ -563,7 +567,7 @@ static constexpr const Command setActiveScanning {
 	STATIC_LAMBDA(const CommandArgs& args) { 
 		bool activeScanning = 0;
 		if(!fromString(args[0], activeScanning)) {
-			return CommandResult::invalidParameters("the active scanning state is ill formed");	
+			return CommandResult::invalidParameters("the active scanning state is ill formed"_ss);	
 		}
 
 		ble_error_t err = gap().setActiveScanning(activeScanning);
@@ -580,26 +584,28 @@ static constexpr const Command startScan {
 	},
 	STATIC_LAMBDA(const CommandArgs& args) {
 		static bool callAttached = false;
-		static picojson::value results;
+		static dynamic::Value results;
 		static bool scanning = false;
 		static Gap::Address_t address;
 		static uint32_t referenceTime;
 
 		if(scanning == true) { 
-			return CommandResult::faillure("a scan is already running");
+			return CommandResult::faillure("a scan is already running"_ss);
 		}
 
 		uint16_t duration = 0;
 		if(!fromString(args[0], duration)) {
-			return CommandResult::invalidParameters("first argument should be the duration of the scan in milliseconds");			
+			return CommandResult::invalidParameters("first argument should be the duration of the scan in milliseconds"_ss);			
 		}
 
 		if(!macAddressFromString(args[1], address)) { 
-			return CommandResult::invalidParameters("second argument should be a mac address which should match XX:XX:XX:XX:XX:XX format");
+			return CommandResult::invalidParameters("second argument should be a mac address which should match XX:XX:XX:XX:XX:XX format"_ss);
 		}
 
+		printf("before scan sbrk=%p, krbs=%p\r\n", mbed_sbrk_ptr, mbed_krbs_ptr);
+
 		// clear the previous results 
-		results = picojson::value(picojson::array_type, true); 
+		results = nullptr; 
 
 		ble_error_t err;
 		if(/* callAttached == false */ true) {
@@ -608,20 +614,24 @@ static constexpr const Command startScan {
 					return;
 				}
 
+				printf("adding new result sbrk=%p, krbs=%p\r\n", mbed_sbrk_ptr, mbed_krbs_ptr);
+
 				// setup reference time if there is no previous record 
-				if(results.get<picojson::array>().size() == 0) { 
+				if(results == nullptr) { 
 					referenceTime = minar::ticks(minar::getTime());
 				}
 
-				picojson::value result(picojson::object_type, true);
-				result.get<picojson::object>()["peerAddr"] = picojson::value(macAddressToString(scanResult->peerAddr).str);
-				result.get<picojson::object>()["rssi"] = picojson::value((int64_t) scanResult->rssi);
-				result.get<picojson::object>()["isScanResponse"] = picojson::value(scanResult->isScanResponse);
-				result.get<picojson::object>()["type"] = picojson::value(toString(scanResult->type));
-				result.get<picojson::object>()["data"] = gapAdvertisingDataToJSON(scanResult->advertisingData, scanResult->advertisingDataLen);
-				result.get<picojson::object>()["time"] = picojson::value((int64_t) minar::ticks(minar::getTime()) - referenceTime);
+				dynamic::Value result;
+				result["peerAddr"_ss] = macAddressToString(scanResult->peerAddr).str;
+				result["rssi"_ss] = (int64_t) scanResult->rssi;
+				result["isScanResponse"_ss] = scanResult->isScanResponse;
+				result["type"_ss] = container::StaticString(toString(scanResult->type));
+				result["data"_ss] = gapAdvertisingDataToJSON(scanResult->advertisingData, scanResult->advertisingDataLen);
+				result["time"_ss] = (int64_t) (minar::ticks(minar::getTime()) - referenceTime);
 
-				results.get<picojson::array>().push_back(result);
+				results.push_back(result);
+
+				printf("new result added sbrk=%p, krbs=%p\r\n", mbed_sbrk_ptr, mbed_krbs_ptr);
 			});
 			callAttached = true;
 		} else {
@@ -639,7 +649,10 @@ static constexpr const Command startScan {
 			// check for error 
 			gap().stopScan();
 			scanning = false;
-			CommandSuite<GapCommandSuiteDescription>::commandReady(startScan.name, CommandArgs(0, 0), CommandResult::success(results));
+			printf("returning scan result sbrk=%p, krbs=%p\r\n", mbed_sbrk_ptr, mbed_krbs_ptr);
+			CommandSuite<GapCommandSuiteDescription>::commandReady(startScan.name, CommandArgs(0, 0), CommandResult::success(std::move(results)));
+			results = nullptr; 
+			printf("scan result returned sbrk=%p, krbs=%p\r\n", mbed_sbrk_ptr, mbed_krbs_ptr);
 		}).delay(minar::milliseconds(duration));
 
 		return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);		
@@ -676,17 +689,17 @@ static constexpr const Command setAdvertisingParams {
 	STATIC_LAMBDA(const CommandArgs& args) { 
 		GapAdvertisingParams::AdvertisingType_t advertisingType;
 		if(!fromString(args[0], advertisingType)) {
-			return CommandResult::invalidParameters("Advertising type is malformed, please refer to GapAdvertisingParams::AdvertisingType_t");
+			return CommandResult::invalidParameters("Advertising type is malformed, please refer to GapAdvertisingParams::AdvertisingType_t"_ss);
 		}
 
 		uint16_t interval;
 		if(!fromString(args[1], interval)) {
-			return CommandResult::invalidParameters("Advertising interval is malformed, should be a number between 0 and 65534");
+			return CommandResult::invalidParameters("Advertising interval is malformed, should be a number between 0 and 65534"_ss);
 		}
 
 		uint16_t timeout;		
 		if(!fromString(args[2], timeout)) {
-			return CommandResult::invalidParameters("Advertising timeout is malformed, should be a number between 0 and 65534");
+			return CommandResult::invalidParameters("Advertising timeout is malformed, should be a number between 0 and 65534"_ss);
 		}
 
 		gap().setAdvertisingParams(GapAdvertisingParams(advertisingType, interval, timeout));

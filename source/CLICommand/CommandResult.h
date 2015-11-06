@@ -3,7 +3,7 @@
 
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-cli/ns_types.h"
-#include "util/picojson.h"
+#include "dynamic/Value.h"
 
 /**
  * @brief  Simple POD which encapsultate the result of a command.
@@ -37,7 +37,7 @@ struct CommandResult {
 	 * @param sc The status code of the result
 	 * @param inf The information associated with the result. It is a JSON value.
 	 */
-	CommandResult(int sc, const picojson::value& inf) : 
+	CommandResult(int sc, const dynamic::Value& inf) : 
 		statusCode(sc), info(inf) {
 	}
 
@@ -53,7 +53,7 @@ struct CommandResult {
 	 * 
 	 * @param reason The reason of the faillurem it should be a JSON value
 	 */
-	static CommandResult faillure(const picojson::value& reason) {
+	static CommandResult faillure(const dynamic::Value& reason) {
 		return CommandResult(
 			CMDLINE_RETCODE_FAIL, 
 			reason
@@ -66,7 +66,7 @@ struct CommandResult {
 	 * @param reason The reason of the faillurem it should be a str value
 	 */
 	static CommandResult faillure(const char* reason) {
-		return faillure(picojson::value(reason));
+		return faillure(dynamic::Value(reason));
 	}
 
 	/**
@@ -82,7 +82,7 @@ struct CommandResult {
 	 * 
 	 * @param reason The reason of the success, it should be a JSON value
 	 */
-	static CommandResult success(const picojson::value& reason) {
+	static CommandResult success(const dynamic::Value& reason) {
 		return CommandResult(
 			CMDLINE_RETCODE_SUCCESS, 
 			reason
@@ -96,7 +96,7 @@ struct CommandResult {
 	 * @param reason The reason of the success, it should be a str value
 	 */
 	static CommandResult success(const char* reason) {
-		return success(picojson::value(reason));
+		return success(dynamic::Value(reason));
 	}
 
 	/**
@@ -104,7 +104,7 @@ struct CommandResult {
 	 * 
 	 * @param reason Indication about the parameter invalid. It is a JSON value.
 	 */
-	static CommandResult invalidParameters(const picojson::value& reason) { 
+	static CommandResult invalidParameters(const dynamic::Value& reason) { 
 		return CommandResult(
 			CMDLINE_RETCODE_INVALID_PARAMETERS, 
 			reason
@@ -117,11 +117,11 @@ struct CommandResult {
 	 * @param reason Indication about the parameter invalid. It is a str value.
 	 */
 	static CommandResult invalidParameters(const char* reason) { 
-		return invalidParameters(picojson::value(reason));
+		return invalidParameters(dynamic::Value(reason));
 	}
 
 	int statusCode;                        /// command status code as described in mbed-client-cli/ns_cmdline.h.  
-	picojson::value info;                  /// additional informations
+	dynamic::Value info;                  /// additional informations
 };
 
 #endif //BLE_CLIAPP_COMMAND_RESULT_H_

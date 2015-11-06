@@ -11,8 +11,32 @@
 
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-cli/ns_types.h"
-#include "util/picojson.h"
 #include "mbed-client-cli/ns_cmdline.h"
+
+#include <iterator>
+
+#include "dynamic/Value.h"
+#include "util/StaticString.h"
+
+struct CmdPrintfOutputIterator : public std::iterator<std::output_iterator_tag,void,void,void,void> { 
+	CmdPrintfOutputIterator& operator=(const char value) {
+		cmd_printf("%c", value);
+		return *this;
+	}
+
+	CmdPrintfOutputIterator& operator*() {
+		return *this;
+	}
+
+	CmdPrintfOutputIterator& operator++() {
+		return *this;
+	}
+
+	CmdPrintfOutputIterator& operator++(int) {
+		return *this;
+	}
+};
+
 
 /**
  * @brief Allow to easily group and add a suite of commands into the cli system.
@@ -151,37 +175,38 @@ public:
 	 * @param result The result of the command execution
 	 */
 	static void printCommandResult(const char* commandGroup, const char* commandName, const CommandArgs& args, const CommandResult& result) {
-		namespace pj = picojson;
+		using dynamic::Value;
+		using container::DynamicString;
 
-		pj::value message(pj::object_type, true);
-
-		pj::object& msgObject = message.get<pj::object>();
+		Value message;
 
 		// build the name 
-		msgObject["name"] = pj::value(std::string(commandGroup) + " " + commandName);
+		std::string name((std::string(commandGroup) + " " + commandName)); 
+		message["name"_ss] = name.c_str();
 
 		// build the arguments 
-		pj::value arguments(pj::array_type, true);
+		message["arguments"_ss] = dynamic::Value::Array_t { };
 		for(size_t i = 0; i < args.count(); ++i) {
-			arguments.get<pj::array>().push_back(pj::value(args[i]));
+			message["arguments"_ss].push_back(DynamicString(args[i]));
 		}
-		msgObject["arguments"] = pj::value(arguments);
 
 		// set the command status
-		msgObject["status"] = pj::value((int64_t) result.statusCode);
+		message["status"_ss] = (int64_t) result.statusCode;
 
 		// add additional informations if there is any
-		if(result.info.is<pj::null>() == false) {
+		if(result.info != nullptr) {
 			// in case of a status code equal to 0, it is the result of the command
-			if(result.statusCode == 0) {
-				msgObject["result"] = result.info;
+			if(result.statusCode == (int64_t) 0) {
+				message["result"_ss] = result.info;
 			} else {
 				// otherwise it is the error reason
-				msgObject["error"] = result.info;
+				message["error"_ss] = result.info;
 			}
 		}
 
-		cmd_printf("%s\r\n", message.serialize(false).c_str());
+		CmdPrintfOutputIterator os;
+		message.serialize(os, true);
+		printf("done\r\n");
 	}
 
 	static void commandReady(const char* commandName, const CommandArgs& args, const CommandResult& result) {
@@ -214,7 +239,6 @@ public:
 	}
 };
 
-
 template<typename SuiteDescription>
 const Command* CommandSuite<SuiteDescription>::builtinCommands[3] = {
 	&CommandSuite::help,
@@ -244,16 +268,16 @@ const Command CommandSuite<SuiteDescription>::list {
 	"list",
 	"list all the command in a module",
 	STATIC_LAMBDA(const CommandArgs&) {
-		picojson::value res(picojson::array_type, true);
+		dynamic::Value res;
 
 		// builtin commands
 		for(size_t i = 0; i < sizeof(CommandSuite::builtinCommands) / sizeof(CommandSuite::builtinCommands[0]); ++i) {
-			res.get<picojson::array>().push_back(picojson::value(CommandSuite::builtinCommands[i]->name));
+			res.push_back(container::StaticString(CommandSuite::builtinCommands[i]->name));
 		}
 
 		const ConstArray<Command> commands = SuiteDescription::commands();
 		for(size_t i = 0; i < commands.count(); ++i) {
-			res.get<picojson::array>().push_back(picojson::value(commands[i].name));
+			res.push_back(container::StaticString(commands[i].name));
 		}
 
 		return CommandResult::success(res);
@@ -268,18 +292,17 @@ const Command CommandSuite<SuiteDescription>::args {
 		{ "commandName", "The name of the the command you want the args" }
 	},
 	STATIC_LAMBDA(const CommandArgs& args) {
+		using container::StaticString;
 		const Command* command = CommandSuite::getCommand(args[0]);
 		if(!command) {
 			return CommandResult::invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
 		}
 
-		picojson::value res(picojson::array_type, true);
+		dynamic::Value res;
 		for(size_t i = 0; i < command->argsDescription.count(); ++i) {
-			printf("argname = %s\r\n", command->argsDescription[i].name);
-
-			picojson::value arg(picojson::object_type, true);
-			arg.get<picojson::object>()[command->argsDescription[i].name] = picojson::value(command->argsDescription[i].desc);
-			res.get<picojson::array>().push_back(arg);	
+			res.push_back(dynamic::Value {} 
+				[container::DynamicString(command->argsDescription[i].name)] = StaticString(command->argsDescription[i].desc)
+			);	
 		}
 
 		return CommandResult::success(res);

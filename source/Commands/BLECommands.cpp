@@ -1,6 +1,6 @@
 #include "BLECommands.h"
 #include "util/StaticLambda.h"
-
+   
 // isolation
 namespace {
 

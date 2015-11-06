@@ -16,7 +16,6 @@
  */
 typedef CommandResult (*CommandHandler_t)(const CommandArgs& args);
 
-
 /**
  * @brief Simple POD describing a command
  * @details This object describe what a command is. It as to be included into a CommandSuite
@@ -66,7 +65,6 @@ struct Command {
 	constexpr Command(const char* _name, const char* _help, ConstArray<CommandArgDescription> _argsDescription, const CommandHandler_t _handler) : 
 		name(_name), help(_help), argsDescription(_argsDescription), maximumArgsRequired(_argsDescription.count()), handler(_handler) { }
 
-
 	/**
 	 * @brief Initialize a Command
 	 * @details In this form, the command expect a minimum and maximum number of arguments as described by the 
@@ -83,7 +81,6 @@ struct Command {
 	 */
 	constexpr Command(const char* _name, const char* _help, ConstArray<CommandArgDescription> _argsDescription, uint8_t _maximumArgsRequired, const CommandHandler_t _handler) : 
 		name(_name), help(_help), argsDescription(_argsDescription), maximumArgsRequired(_maximumArgsRequired), handler(_handler) { }
-
 
 	const char* name;                                            /// name of this command
 	const char* help;                                            /// help of this command

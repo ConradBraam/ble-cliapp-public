@@ -23,7 +23,4 @@ public:
 	static ConstArray<Command> commands();
 };
 
-
-
-
 #endif //BLE_CLIAPP_GAP_COMMANDS_H_

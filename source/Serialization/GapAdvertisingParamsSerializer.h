@@ -2,8 +2,9 @@
 #define BLE_CLIAPP_GAP_ADVERTISING_PARAMS_SERIALIZER_H_
 
 #include "Serializer.h"
-#include "util/picojson.h"
 #include "ble/GapAdvertisingParams.h"
+#include "dynamic/Value.h"
+#include "util/DynamicString.h"
 
 template<>
 struct SerializerDescription<GapAdvertisingParams::AdvertisingType_t> {
@@ -25,11 +26,11 @@ struct SerializerDescription<GapAdvertisingParams::AdvertisingType_t> {
 	}
 };
 
-static inline picojson::value advertisingParamsToJSON(const GapAdvertisingParams& advertisingParams) { 
-	picojson::value result(picojson::object_type, true);
-	result.get<picojson::object>()["interval"] = picojson::value((int64_t) advertisingParams.getInterval());
-	result.get<picojson::object>()["timeout"] = picojson::value((int64_t) advertisingParams.getTimeout());
-	result.get<picojson::object>()["type"] = picojson::value(toString(advertisingParams.getAdvertisingType()));
+static inline dynamic::Value advertisingParamsToJSON(const GapAdvertisingParams& advertisingParams) { 
+	dynamic::Value result;
+	result["interval"_ss] = (int64_t) advertisingParams.getInterval();
+	result["timeout"_ss] = (int64_t) advertisingParams.getTimeout();
+	result["type"_ss] = toString(advertisingParams.getAdvertisingType());
 	return result;
 }
 

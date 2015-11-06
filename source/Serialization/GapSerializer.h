@@ -3,7 +3,7 @@
 
 #include "Serializer.h"
 #include "ble/Gap.h"
-#include "util/picojson.h"
+#include "dynamic/Value.h"
 
 template<>
 struct SerializerDescription<Gap::AddressType_t> {
@@ -73,31 +73,29 @@ static inline bool connectionParamsFromCLI(const char* str, Gap::ConnectionParam
 	return false;
 }
 
-static inline picojson::value connectionParamsToJSON(const Gap::ConnectionParams_t& params) {
-	picojson::value res(picojson::object_type, true);
-	picojson::object& obj = res.get<picojson::object>();
-
-	obj["minConnectionInterval"] = picojson::value((int64_t) params.minConnectionInterval);
-	obj["maxConnectionInterval"] = picojson::value((int64_t) params.maxConnectionInterval);
-	obj["slaveLatency"] = picojson::value((int64_t) params.slaveLatency);
-	obj["connectionSupervisionTimeout"] = picojson::value((int64_t) params.connectionSupervisionTimeout);
+static inline dynamic::Value connectionParamsToJSON(const Gap::ConnectionParams_t& params) {
+	dynamic::Value res;
+	res["minConnectionInterval"_ss] = (int64_t) params.minConnectionInterval;
+	res["maxConnectionInterval"_ss] = (int64_t) params.maxConnectionInterval;
+	res["slaveLatency"_ss] = (int64_t) params.slaveLatency;
+	res["connectionSupervisionTimeout"_ss] = (int64_t) params.connectionSupervisionTimeout;
 	return res;
 }
 
 // TODO better than that, this has to be generic !!!!
-static inline picojson::value txPermittedValuesToJSON(const int8_t* permittedTxPowerValues, size_t permittedTxPowerValuesCount) {
-	picojson::value result(picojson::array_type, true);
+static inline dynamic::Value txPermittedValuesToJSON(const int8_t* permittedTxPowerValues, size_t permittedTxPowerValuesCount) {
+	dynamic::Value result;
 	for(size_t i = 0; i < permittedTxPowerValuesCount; ++i) {
-		result.get<picojson::array>().push_back(picojson::value((int64_t) permittedTxPowerValues[i]));
+		result.push_back((int64_t) permittedTxPowerValues[i]);
 	}
 
 	return result;
 }
 
-static inline picojson::value gapStateToJSON(Gap::GapState_t state) {
-	picojson::value result(picojson::object_type, true);
-	result.get<picojson::object>()["advertising"] = picojson::value(state.advertising ? true : false);
-	result.get<picojson::object>()["connected"] = picojson::value(state.connected ? true : false);	
+static inline dynamic::Value gapStateToJSON(Gap::GapState_t state) {
+	dynamic::Value result;
+	result["advertising"_ss] = state.advertising ? true : false;
+	result["connected"_ss] = state.connected ? true : false;	
 	return result;
 }
 
