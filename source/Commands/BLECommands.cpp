@@ -54,16 +54,14 @@ static constexpr const Command reset = {
 	"This function internaly does a reset and an init",
 	STATIC_LAMBDA(const CommandArgs&) {
 		ble_error_t err;
-
 		if(ble().hasInitialized()) {
-			ble_error_t err = ble().shutdown();
+			err = ble().shutdown()
 			if(err) {
 				return CommandResult::faillure("Failled to shutdown the ble instance");
 			}			
 		}
 
 		err = ble().init();
-
 		if(err) {
 			return CommandResult::faillure("Failled to init the ble instance");
 		}
