@@ -55,7 +55,7 @@ static constexpr const Command reset = {
     STATIC_LAMBDA(const CommandArgs&) {
         ble_error_t err;
         if(ble().hasInitialized()) {
-            err = ble().shutdown()
+            err = ble().shutdown();
             if(err) {
                 return CommandResult::faillure("Failled to shutdown the ble instance");
             }           

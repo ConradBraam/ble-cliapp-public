@@ -485,12 +485,14 @@ public:
     }   
 
     template <typename Iter> 
-    static void copy(const String_t& s, Iter oi) {
-        std::copy(s.cbegin(), s.cend(), oi);
+    static void copy(const String_t& s, Iter& oi) {
+        for(auto current = s.cbegin(), end = s.cend(); current != end; ++current, ++oi) {
+            *oi = *current;
+        }
     }
 
     template <typename Iter> 
-    static void serialize_str(const String_t& s, Iter oi) {
+    static void serialize_str(const String_t& s, Iter& oi) {
         *oi++ = '"';
         for (String_t::const_iterator i = s.cbegin(); i != s.cend(); ++i) {
             switch (*i) {
@@ -519,12 +521,12 @@ public:
     }
 
     template <typename Iter> 
-    void serialize(Iter oi, bool prettify) const {
+    void serialize(Iter& oi, bool prettify) const {
         return _serialize(oi, prettify ? 0 : -1);
     }
 
     template <typename Iter> 
-    void _serialize(Iter oi, int indent) const {
+    void _serialize(Iter& oi, int indent) const {
         switch (_type) {
             case ValueType_t::STRING_TYPE:
                 serialize_str(_string, oi);
@@ -590,7 +592,7 @@ public:
     }
 
     template <typename Iter> 
-    static void _indent(Iter oi, int indent) {
+    static void _indent(Iter& oi, int indent) {
         *oi++ = '\r';
         *oi++ = '\n';
         for(int i = 0; i < indent * INDENT_WIDTH; ++i) {
