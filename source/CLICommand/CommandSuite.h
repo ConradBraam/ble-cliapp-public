@@ -206,7 +206,6 @@ public:
 
 		CmdPrintfOutputIterator os;
 		message.serialize(os, true);
-		printf("done\r\n");
 	}
 
 	static void commandReady(const char* commandName, const CommandArgs& args, const CommandResult& result) {

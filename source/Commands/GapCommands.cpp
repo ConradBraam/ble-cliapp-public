@@ -602,8 +602,6 @@ static constexpr const Command startScan {
 			return CommandResult::invalidParameters("second argument should be a mac address which should match XX:XX:XX:XX:XX:XX format"_ss);
 		}
 
-		printf("before scan sbrk=%p, krbs=%p\r\n", mbed_sbrk_ptr, mbed_krbs_ptr);
-
 		// clear the previous results 
 		results = nullptr; 
 
@@ -613,8 +611,6 @@ static constexpr const Command startScan {
 				if(scanning == false || memcmp(scanResult->peerAddr, address, sizeof(address))) {
 					return;
 				}
-
-				printf("adding new result sbrk=%p, krbs=%p\r\n", mbed_sbrk_ptr, mbed_krbs_ptr);
 
 				// setup reference time if there is no previous record 
 				if(results == nullptr) { 
@@ -630,8 +626,6 @@ static constexpr const Command startScan {
 				result["time"_ss] = (int64_t) (minar::ticks(minar::getTime()) - referenceTime);
 
 				results.push_back(result);
-
-				printf("new result added sbrk=%p, krbs=%p\r\n", mbed_sbrk_ptr, mbed_krbs_ptr);
 			});
 			callAttached = true;
 		} else {
@@ -649,10 +643,8 @@ static constexpr const Command startScan {
 			// check for error 
 			gap().stopScan();
 			scanning = false;
-			printf("returning scan result sbrk=%p, krbs=%p\r\n", mbed_sbrk_ptr, mbed_krbs_ptr);
 			CommandSuite<GapCommandSuiteDescription>::commandReady(startScan.name, CommandArgs(0, 0), CommandResult::success(std::move(results)));
 			results = nullptr; 
-			printf("scan result returned sbrk=%p, krbs=%p\r\n", mbed_sbrk_ptr, mbed_krbs_ptr);
 		}).delay(minar::milliseconds(duration));
 
 		return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);		
