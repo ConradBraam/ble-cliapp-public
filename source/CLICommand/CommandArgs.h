@@ -8,5 +8,4 @@
  */
 typedef ConstArray<const char*> CommandArgs; 
 
-
 #endif //BLE_CLIAPP_COMMANDARGSE_H_

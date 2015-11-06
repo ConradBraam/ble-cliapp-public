@@ -15,32 +15,32 @@ struct CallGenerator;
 
 template<typename R, typename F>
 struct CallGenerator<R (F::*)() const> {
-	static_assert(std::is_empty<F>::value, "invalid, F should be empty");
+    static_assert(std::is_empty<F>::value, "invalid, F should be empty");
 
-	static R call() {
-		F* f = nullptr;
-		return (*f)();
-	}
+    static R call() {
+        F* f = nullptr;
+        return (*f)();
+    }
 };
 
 template<typename R, typename F, typename Arg0>
 struct CallGenerator<R (F::*)(Arg0) const> {
-	static_assert(std::is_empty<F>::value, "invalid, F should be empty");
+    static_assert(std::is_empty<F>::value, "invalid, F should be empty");
 
-	static R call(Arg0 arg0) {
-		F* f = nullptr;
-		return (*f)(arg0);
-	}
+    static R call(Arg0 arg0) {
+        F* f = nullptr;
+        return (*f)(arg0);
+    }
 };
 
 struct wrapper_factor
 {
-	typedef void(*EmptyFunc_t)();
+    typedef void(*EmptyFunc_t)();
 
     template<class F>
     constexpr auto operator += (F*) -> decltype(&CallGenerator<decltype(&F::operator())>::call)
     {
-    	return CallGenerator<decltype(&F::operator())>::call;
+        return CallGenerator<decltype(&F::operator())>::call;
     }
 };
 
