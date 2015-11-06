@@ -77,7 +77,7 @@ static constexpr const Command getAddress {
 		// building the result object 
 		dynamic::Value res;
 		res["address_type"_ss] = container::StaticString(toString(addressType));
-		res["address"_ss] = container::StaticString(macAddressToString(address).str);
+		res["address"_ss] = macAddressToString(address).str;
 
 		return CommandResult::success(res);
 	}
