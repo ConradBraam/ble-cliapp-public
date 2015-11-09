@@ -18,9 +18,22 @@
 #include "dynamic/Value.h"
 #include "util/StaticString.h"
 
-struct CmdPrintfOutputIterator : public std::iterator<std::output_iterator_tag,void,void,void,void> { 
+struct CmdPrintfOutputIterator : public std::iterator<std::output_iterator_tag,void,void,void,void> {
+    static const size_t BUFFER_SIZE = 64;
+
+    char buffer[BUFFER_SIZE] = { 0 };
+    size_t current_index = 0;
+
     CmdPrintfOutputIterator& operator=(const char value) {
-        cmd_printf("%c", value);
+        buffer[current_index] = value;
+        ++current_index;
+
+        if(current_index == BUFFER_SIZE || value == '\n') {
+            flush();
+        }
+
+//        cmd_printf("%c", value);
+
         return *this;
     }
 
@@ -34,6 +47,11 @@ struct CmdPrintfOutputIterator : public std::iterator<std::output_iterator_tag,v
 
     CmdPrintfOutputIterator& operator++(int) {
         return *this;
+    }
+
+    void flush() { 
+        cmd_printf("%.*s", (int) current_index, buffer);
+        current_index = 0;
     }
 };
 
@@ -206,6 +224,7 @@ public:
 
         CmdPrintfOutputIterator os;
         message.serialize(os, true);
+        os.flush();
     }
 
     static void commandReady(const char* commandName, const CommandArgs& args, const CommandResult& result) {
