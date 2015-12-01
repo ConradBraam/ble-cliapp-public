@@ -491,8 +491,30 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
             break;
         }
 
-        case GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA:
-            return "Not yet implemented for this kind of data types";
+        case GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA: {
+            if(args.count() != 2) {
+                return "too many arguments, only the manufacturer specific data is expected";
+            }
+
+            size_t len = strlen(args[1]);
+
+            if (len % 2) {
+                return "manufacturer data should be an hex string";
+            }
+
+            if (len > (sizeof(data) * 2)) {
+                return "manufacturer data provided are too long";
+            }
+
+            for(size_t i = 0; i < len / 2; ++i) {
+                if(hexToChar(args[1][i * 2], args[1][(i * 2) + 1], data[i]) == false) {
+                    return "invalid hex data";
+                }
+            }
+
+            dataLenght = len / 2;
+            break;
+        }
 
         default:
             return "unknown data type";
