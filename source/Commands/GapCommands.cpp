@@ -13,9 +13,6 @@
 #include "util/StaticString.h"
 #include "util/DynamicString.h"
 
-extern void * volatile mbed_sbrk_ptr;
-extern void * volatile mbed_krbs_ptr;
-
 // isolation ...
 namespace {
 
@@ -130,15 +127,196 @@ static constexpr const Command stopScan {
 
 static constexpr const Command connect {
     "connect",
+    "connect to a device, if this function succeed, a ConnectionCallbackParams_t is returned:\r\n"\
+    "\thandle: The connection handle\r\n"\
+    "\trole: Role of the device in the connection (here, it should be central)\r\n"\
+    "\tpeerAddrType: The addressType of the peer\r\n"\
+    "\tpeerAddr: The address of the peer\r\n"\
+    "\townAddrType: The address type of this device\r\n"\
+    "\townAddr: The address of this device\r\n"\
+    "\tconnectionParams: Object which contain the parameters of the connection\r\n"\
+    "\t\tminConnectionInterval: minimum connection interval for this connection\r\n"\
+    "\t\tmaxConnectionInterval: maximum connection interval for this connection\r\n"\
+    "\t\tslaveLatency: slave latency of the connection\r\n"\
+    "\t\tconnectionSupervisionTimeout: supervision timeout for this connection",
+    (const CommandArgDescription[]) {
+        { "<addressType>", "The address type to of the peer device."\
+                           "It is a string representation of Gap::AddressType_t" },
+        { "<address>", "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" },
+        // connection parameters
+        { "<minConnectionInterval>", "Minimum Connection Interval in 1.25 ms units" },
+        { "<maxConnectionInterval>", "Maximum Connection Interval in 1.25 ms units" },
+        { "<slaveLatency>", "Slave Latency in number of connection events" },
+        { "<connectionSupervisionTimeout>", "Connection Supervision Timeout in 10 ms units" },
+        // scan parameters
+        { "<interval>", "The scan interval, it should be a number between 3 and 10420ms." },
+        { "<window>", "The scan window, it should be a number between 3 and 10420ms." },
+        { "<scan timeout>", "The scan timeout, it should be a number between 0 and 65534" },
+        { "<activeScanning>", "A boolean value { true, false } indicating if the device send scan request or not" },
+        // timeout for this procedure
+        { "<timeout>", "Maximum time allowed for this procedure" },
+    },
+
     // TODO DOC
-    STATIC_LAMBDA(const CommandArgs&) {
-        // TODO 
-        /*  ble_error_t connect(const Address_t           peerAddr,
-                                Gap::AddressType_t        peerAddrType,
-                                const ConnectionParams_t *connectionParams,
-                                const GapScanningParams  *scanParams)
-                                */
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);  
+    STATIC_LAMBDA(const CommandArgs& args) {
+        // callback used when the device is connected
+        static void (*whenConnected)(const Gap::ConnectionCallbackParams_t*) = nullptr;
+        static minar::callback_handle_t timeoutHandle = nullptr;
+        static bool connectionProcedureRunning = false;
+
+        if (connectionProcedureRunning) {
+           return CommandResult::faillure("a connection procedure is already running "_ss);
+        }
+
+        // extract Address and address type 
+        static Gap::AddressType_t addressType;
+        if (!fromString(args[0], addressType)) {
+            return CommandResult::invalidParameters("first argument should match Gap::AddressType_t"_ss);
+        }
+
+        static Gap::Address_t address;
+        if (!macAddressFromString(args[1], address)) {
+            return CommandResult::invalidParameters(
+                "second argument should is a mac address which should match XX:XX:XX:XX:XX:XX format"_ss
+            );
+        }
+
+        // extract connection parameters
+        uint16_t minConnectionInterval;
+        if (!fromString(args[2], minConnectionInterval)) {
+            return CommandResult::invalidParameters("the minimum connection interval is ill formed"_ss);
+        }
+
+        uint16_t maxConnectionInterval;
+        if (!fromString(args[3], maxConnectionInterval)) {
+            return CommandResult::invalidParameters("the maximum connection interval is ill formed"_ss);
+        }
+
+        uint16_t slaveLatency;
+        if (!fromString(args[4], slaveLatency)) {
+            return CommandResult::invalidParameters("the slave latency is ill formed"_ss);
+        }
+
+        uint16_t connectionSupervisionTimeout;
+        if (!fromString(args[5], connectionSupervisionTimeout)) {
+            return CommandResult::invalidParameters("the connection supervision timeout is ill formed"_ss);
+        }
+
+        // extract scan parameters
+        uint16_t scanInterval;
+        if (!fromString(args[6], scanInterval)) {
+            return CommandResult::invalidParameters("the scan interval is ill formed"_ss);
+        }
+
+        uint16_t window; 
+        if (!fromString(args[7], window)) {
+            return CommandResult::invalidParameters("the scan window is ill formed"_ss);
+        }
+
+        uint16_t scanTimeout;
+        if (!fromString(args[8], scanTimeout)) {
+            return CommandResult::invalidParameters("the scan timeout is ill formed"_ss);
+        }
+
+        bool activeScanning;
+        if (!fromString(args[9], activeScanning)) {
+            return CommandResult::invalidParameters("the active scanning is ill formed"_ss);
+        }
+
+        // timeout for this procedure 
+        uint16_t procedureTimeout;
+        if (!fromString(args[10], procedureTimeout)) {
+            return CommandResult::invalidParameters("the procedure timeout is ill formed"_ss);
+        }
+
+        // everything is alright, launching the procedure
+        Gap::ConnectionParams_t connectionParams {
+            minConnectionInterval,
+            maxConnectionInterval,
+            slaveLatency,
+            connectionSupervisionTimeout
+        };
+
+        GapScanningParams scanParams {
+            scanInterval,
+            window,
+            scanTimeout,
+            activeScanning
+        };
+
+        ble_error_t err = gap().connect(
+            address,
+            addressType,
+            &connectionParams,
+            &scanParams
+        );
+
+        if (err) {
+            return CommandResult::faillure(to_string(err));           
+        }
+
+        connectionProcedureRunning = true;
+
+        // ok, the connection procedure has been launched, register callbacks and timeout
+        whenConnected = [](const Gap::ConnectionCallbackParams_t* params) {
+            // check that the callback has been called for the right address and object
+            if (memcmp(params->peerAddr, address, sizeof(address)) != 0 ||
+                params->peerAddrType != addressType) {
+                return;
+            }
+
+            // ok, now it is possible to unregister this callback
+            gap().onConnection().detach(whenConnected);
+
+            // unregister timeout callback
+            minar::Scheduler::cancelCallback(timeoutHandle);
+
+            if (connectionProcedureRunning == false) {
+                // nothing to do
+                return;
+            }
+
+            connectionProcedureRunning = false;
+
+            // constructing result
+            dynamic::Value result;
+
+            result["handle"_ss] = (int64_t) params->handle;
+            result["role"_ss] = toString(params->role);
+            result["peerAddrType"_ss] = toString(params->peerAddrType);
+            result["peerAddr"_ss] = macAddressToString(params->peerAddr).str;
+            result["ownAddrType"_ss] = toString(params->ownAddrType);
+            result["ownAddr"_ss] = macAddressToString(params->ownAddr).str;
+            result["connectionParams"_ss]["minConnectionInterval"_ss] = (int64_t) params->connectionParams->minConnectionInterval;
+            result["connectionParams"_ss]["maxConnectionInterval"_ss] = (int64_t) params->connectionParams->maxConnectionInterval;
+            result["connectionParams"_ss]["slaveLatency"_ss] = (int64_t) params->connectionParams->slaveLatency;
+            result["connectionParams"_ss]["connectionSupervisionTimeout"_ss] = (int64_t) params->connectionParams->connectionSupervisionTimeout;
+
+            CommandSuite<GapCommandSuiteDescription>::commandReady(
+                connect.name,
+                CommandArgs(0, 0), // command args are not saved right now, maybe later
+                CommandResult::success(std::move(result))
+            );
+        };
+        gap().onConnection(whenConnected);
+
+        timeoutHandle = minar::Scheduler::postCallback([]() {
+            // nothing to do
+            if(connectionProcedureRunning == false) {
+                return;
+            }
+
+            // detach whenConnected handle
+            gap().onConnection().detach(whenConnected);
+
+            CommandSuite<GapCommandSuiteDescription>::commandReady(
+                connect.name, 
+                CommandArgs(0, 0), // command args are not saved right now, maybe later
+                CommandResult::faillure("timeout"_ss)
+            );
+        }).delay(minar::milliseconds(procedureTimeout)).getHandle();
+
+        return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);
     }
 };
 
@@ -148,7 +326,7 @@ static constexpr const Command disconnect {
     STATIC_LAMBDA(const CommandArgs&) { 
         // TODO 
         //ble_error_t disconnect(Handle_t connectionHandle, DisconnectionReason_t reason)
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);  
+        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED); 
     }
 }; 
 

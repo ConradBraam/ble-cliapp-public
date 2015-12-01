@@ -25,6 +25,25 @@ struct SerializerDescription<Gap::AddressType_t> {
     }
 };
 
+template<>
+struct SerializerDescription<Gap::Role_t> {
+    typedef Gap::Role_t type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { Gap::PERIPHERAL, "PERIPHERAL" },
+            { Gap::CENTRAL, "CENTRAL" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown Gap::Role_t";
+    }
+};
+
+
 struct MacAddressString_t { 
     char str[sizeof("XX:XX:XX:XX:XX:XX")];
 };
