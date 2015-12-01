@@ -236,8 +236,13 @@ static inline dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8
             case GapAdvertisingData::ADVERTISING_INTERVAL:
                 break;
 
-            case GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA:
-                break;
+            case GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA: {
+                char hexData[(GAP_ADVERTISING_DATA_MAX_PAYLOAD * 2) + 1] = { 0 };
+                for(size_t j = 0; j < dataLenght; ++j) {
+                    snprintf(hexData + (j * 2), 3, "%02X", fieldData[j]);
+                }
+                fieldValue = hexData;
+            } break;
         }
 
         result[StaticString(toString(dataType))] = fieldValue;
