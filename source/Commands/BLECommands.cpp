@@ -15,7 +15,7 @@ static constexpr const Command shutdown {
     "call may lead to faillure.",
     STATIC_LAMBDA(const CommandArgs&) {
         ble_error_t err = ble().shutdown();
-        return err ? CommandResult::faillure() : CommandResult::success();
+        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();
     } 
 };
 
