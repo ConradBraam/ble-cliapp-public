@@ -54,7 +54,7 @@ static constexpr const Command setAddress {
 
         ble_error_t err = gap().setAddress(addressType, address);
 
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();
     }
 };
 
@@ -71,7 +71,7 @@ static constexpr const Command getAddress {
         ble_error_t err = gap().getAddress(&addressType, address);
 
         if(err) { 
-            return CommandResult::faillure(to_string(err));
+            return CommandResult::faillure(toString(err));
         }
 
         // building the result object 
@@ -115,7 +115,7 @@ static constexpr const Command stopAdvertising {
     //TODO DOC 
     STATIC_LAMBDA(const CommandArgs&) {
         ble_error_t err = gap().stopAdvertising();
-        return err ? CommandResult::faillure(container::StaticString(to_string(err))) : CommandResult::success();
+        return err ? CommandResult::faillure(container::StaticString(toString(err))) : CommandResult::success();
     }
 };
 
@@ -124,7 +124,7 @@ static constexpr const Command stopScan {
     //TODO DOC
     STATIC_LAMBDA(const CommandArgs&) {
         ble_error_t err = gap().stopScan();
-        return err ? CommandResult::faillure(container::StaticString(to_string(err))) : CommandResult::success();
+        return err ? CommandResult::faillure(container::StaticString(toString(err))) : CommandResult::success();
     }
 };
 
@@ -160,7 +160,7 @@ static constexpr const Command getPreferredConnectionParams {
         ble_error_t err = gap().getPreferredConnectionParams(&connectionParameters);
 
         if(err) { 
-            return CommandResult::faillure(container::StaticString(to_string(err)));
+            return CommandResult::faillure(container::StaticString(toString(err)));
         }
         return CommandResult::success(connectionParamsToJSON(connectionParameters));
     }
@@ -181,7 +181,7 @@ static constexpr const Command setPreferredConnectionParams {
         }
 
         ble_error_t err =  gap().setPreferredConnectionParams(&connectionParameters);
-        return err ? CommandResult::faillure(container::StaticString(to_string(err))) : CommandResult::success();
+        return err ? CommandResult::faillure(container::StaticString(toString(err))) : CommandResult::success();
     }   
 };
 
@@ -203,7 +203,7 @@ static constexpr const Command setDeviceName {
     },
     STATIC_LAMBDA(const CommandArgs& args) { 
         ble_error_t err = gap().setDeviceName((const uint8_t*) args[0]);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 }; 
 
@@ -227,7 +227,7 @@ static constexpr const Command getDeviceName {
 
         if(err) {
             free(deviceName);
-            return CommandResult::faillure(to_string(err)); 
+            return CommandResult::faillure(toString(err)); 
         }
 
         CommandResult res = CommandResult::success((const char*) deviceName);
@@ -249,7 +249,7 @@ static constexpr const  Command setAppearance {
         }
 
         ble_error_t err = gap().setAppearance(appearance);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -261,7 +261,7 @@ static constexpr const Command getAppearance {
         ble_error_t err = gap().getAppearance(&appearance);
 
         if(err) {
-            return CommandResult::faillure(container::StaticString(to_string(err)));                
+            return CommandResult::faillure(container::StaticString(toString(err)));                
         }
 
         return CommandResult::success(toString(appearance));
@@ -281,7 +281,7 @@ static constexpr const Command setTxPower {
         }
 
         ble_error_t err = gap().setTxPower(txPower);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -367,7 +367,7 @@ static constexpr const Command startAdvertising {
     "start the advertising",
     STATIC_LAMBDA(const CommandArgs&) { 
         ble_error_t err = gap().startAdvertising();
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -397,7 +397,7 @@ static constexpr const Command accumulateAdvertisingPayload {
         }
 
         ble_error_t err = gap().accumulateAdvertisingPayload(payloadField.dataType, payloadField.data, payloadField.dataLenght);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -419,7 +419,7 @@ static constexpr const Command updateAdvertisingPayload {
         }
 
         ble_error_t err = gap().updateAdvertisingPayload(payloadField.dataType, payloadField.data, payloadField.dataLenght);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -459,7 +459,7 @@ static constexpr const Command accumulateScanResponse {
         }
 
         ble_error_t err = gap().accumulateScanResponse(payloadField.dataType, payloadField.data, payloadField.dataLenght);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -503,7 +503,7 @@ static constexpr const Command setScanParams {
         }
 
         ble_error_t err = gap().setScanParams(interval, window, timeout, activeScanning);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -520,7 +520,7 @@ static constexpr const Command setScanInterval {
         }
 
         ble_error_t err = gap().setScanInterval(interval);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -537,7 +537,7 @@ static constexpr const Command setScanWindow {
         }
 
         ble_error_t err = gap().setScanWindow(window);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -554,7 +554,7 @@ static constexpr const Command setScanTimeout {
         }
 
         ble_error_t err = gap().setScanTimeout(timeout);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -571,7 +571,7 @@ static constexpr const Command setActiveScanning {
         }
 
         ble_error_t err = gap().setActiveScanning(activeScanning);
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();        
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();        
     }
 };
 
@@ -633,7 +633,7 @@ static constexpr const Command startScan {
         }
 
         if(err) {
-            return CommandResult::faillure(to_string(err));
+            return CommandResult::faillure(toString(err));
         }
 
         scanning = true;

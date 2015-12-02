@@ -1,6 +1,6 @@
 #include "BLECommands.h"
 #include "util/StaticLambda.h"
-#include "Serialization/Stringify.h"
+#include "Serialization/BLECommonSerializer.h"
    
 // isolation
 namespace {
@@ -15,7 +15,7 @@ static constexpr const Command shutdown {
     "call may lead to faillure.",
     STATIC_LAMBDA(const CommandArgs&) {
         ble_error_t err = ble().shutdown();
-        return err ? CommandResult::faillure(to_string(err)) : CommandResult::success();
+        return err ? CommandResult::faillure(toString(err)) : CommandResult::success();
     } 
 };
 
@@ -33,7 +33,7 @@ static constexpr const Command init {
                 CommandSuite<BLECommandSuiteDescription>::commandReady(
                     init.name, 
                     CommandArgs(0, 0), 
-                    CommandResult::faillure(to_string(initializationStatus->error))
+                    CommandResult::faillure(toString(initializationStatus->error))
                 );
             } else {
                 CommandSuite<BLECommandSuiteDescription>::commandReady(
