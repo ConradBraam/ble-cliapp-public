@@ -8,6 +8,7 @@
 #include "Commands/BLECommands.h"
 #include "Commands/GapCommands.h"
 #include "Commands/GattServerCommands.h"
+#include "Commands/GattClientCommands.h"
 
 // Prototypes
 void cmd_ready_cb(int retcode);
@@ -45,6 +46,7 @@ void initialize_app_commands(void) {
     registerCommandSuite<BLECommandSuiteDescription>();
     registerCommandSuite<GapCommandSuiteDescription>();
     registerCommandSuite<GattServerCommandSuiteDescription>();
+    registerCommandSuite<GattClientCommandSuiteDescription>();
 }
 
 void app_start(int, char*[])
