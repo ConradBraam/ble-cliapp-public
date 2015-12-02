@@ -4,33 +4,6 @@
 #include "ble/blecommon.h"
 #include "mbed-client-cli/ns_cmdline.h"
 
-static inline const char* to_string(ble_error_t err) {
-    switch(err) {
-        case BLE_ERROR_NONE: 
-            return "BLE_ERROR_NONE";
-        case BLE_ERROR_BUFFER_OVERFLOW: 
-            return "BLE_ERROR_BUFFER_OVERFLOW";
-        case BLE_ERROR_NOT_IMPLEMENTED: 
-            return "BLE_ERROR_NOT_IMPLEMENTED";
-        case BLE_ERROR_PARAM_OUT_OF_RANGE: 
-            return "BLE_ERROR_PARAM_OUT_OF_RANGE";
-        case BLE_ERROR_INVALID_PARAM: 
-            return "BLE_ERROR_INVALID_PARAM";
-        case BLE_STACK_BUSY: 
-            return "BLE_STACK_BUSY";
-        case BLE_ERROR_INVALID_STATE: 
-            return "BLE_ERROR_INVALID_STATE";
-        case BLE_ERROR_NO_MEM: 
-            return "BLE_ERROR_NO_MEM";
-        case BLE_ERROR_OPERATION_NOT_PERMITTED: 
-            return "BLE_ERROR_OPERATION_NOT_PERMITTED";
-        case BLE_ERROR_UNSPECIFIED: 
-            return "BLE_ERROR_UNSPECIFIED"; 
-        default:
-            return "Unknown ble_error_t";
-    }
-};
-
 static inline const char* cmdline_retcode_to_string(int code) {
     switch(code) {
         case CMDLINE_RETCODE_COMMAND_BUSY:
