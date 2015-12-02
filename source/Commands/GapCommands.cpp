@@ -252,7 +252,7 @@ static constexpr const Command connect {
         );
 
         if (err) {
-            return CommandResult::faillure(to_string(err));           
+            return CommandResult::faillure(toString(err));
         }
 
         connectionProcedureRunning = true;
@@ -356,7 +356,7 @@ static constexpr const Command disconnect {
         ble_error_t err = gap().disconnect(connectionHandle, reason);
 
         if (err) {
-            return CommandResult::faillure(to_string(err));
+            return CommandResult::faillure(toString(err));
         }
 
         procedureRunning = true;
