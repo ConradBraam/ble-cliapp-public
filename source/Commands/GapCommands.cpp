@@ -306,6 +306,8 @@ static constexpr const Command connect {
                 return;
             }
 
+            connectionProcedureRunning = false;
+
             // detach whenConnected handle
             gap().onConnection().detach(whenConnected);
 
@@ -322,11 +324,73 @@ static constexpr const Command connect {
 
 static constexpr const Command disconnect {
     "disconnect",
-    //TODO DOC
-    STATIC_LAMBDA(const CommandArgs&) { 
-        // TODO 
-        //ble_error_t disconnect(Handle_t connectionHandle, DisconnectionReason_t reason)
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED); 
+    "disconnect the device from a specific connection.\r\n"\
+    "If procedure succeed, a JSON object containing the following fields will be returned:\r\n"\
+    "\t* handle: The handle disconnected\r\n"\
+    "\t* reason: The reason of the disconnection (see Gap::DisconnectionReason_t)\r\n"\
+    "In case of error, the reason of the error will be returned.",
+    (const CommandArgDescription[]) {
+        { "<connectionHandle>", "The id of the connection to terminate." },
+        { "<reason>", "The reason of the termination (see Gap::DisconnectionReason_t)" }
+    },
+    STATIC_LAMBDA(const CommandArgs& args) {
+        static bool procedureRunning = false;
+        static void (*whenDisconnected)(const Gap::DisconnectionCallbackParams_t*) = nullptr;
+
+        // only one procedure can run
+        if (procedureRunning) {
+            return CommandResult::faillure("procedure already running");
+        }
+
+        static Gap::Handle_t connectionHandle;
+        if (!fromString(args[0], connectionHandle)) {
+            return CommandResult::invalidParameters("the connection handle is ill formed"_ss);
+        }
+
+        Gap::DisconnectionReason_t reason;
+        if (!fromString(args[1], reason)) {
+            return CommandResult::invalidParameters("the disconnection reason is ill formed"_ss);
+        }
+
+        // launch the procedure
+        ble_error_t err = gap().disconnect(connectionHandle, reason);
+
+        if (err) {
+            return CommandResult::faillure(to_string(err));
+        }
+
+        procedureRunning = true;
+
+        // register the handler for disconnection
+        whenDisconnected = [](const Gap::DisconnectionCallbackParams_t* params) {
+            if (params->handle != connectionHandle) {
+                return;
+            }
+
+            // unregister callbacks related to this procedure
+            gap().onDisconnection().detach(whenDisconnected);
+
+            if (!procedureRunning) {
+                return;
+            }
+
+            procedureRunning = false;
+
+            // the right connection has been disconnected, sending result back to the user
+            dynamic::Value result;
+            result["handle"_ss] = (int64_t) params->handle;
+            result["reason"_ss] = toString(params->reason);
+
+            CommandSuite<GapCommandSuiteDescription>::commandReady(
+                disconnect.name,
+                CommandArgs(0, 0), // command args are not saved right now, maybe later
+                CommandResult::success(std::move(result))
+            );
+        };
+
+        gap().onDisconnection(whenDisconnected);
+
+        return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);
     }
 }; 
 

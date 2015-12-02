@@ -43,6 +43,27 @@ struct SerializerDescription<Gap::Role_t> {
     }
 };
 
+template<>
+struct SerializerDescription<Gap::DisconnectionReason_t> {
+    typedef Gap::DisconnectionReason_t type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { Gap::CONNECTION_TIMEOUT, "CONNECTION_TIMEOUT" },
+            { Gap::REMOTE_USER_TERMINATED_CONNECTION, "REMOTE_USER_TERMINATED_CONNECTION" },
+            { Gap::REMOTE_DEV_TERMINATION_DUE_TO_LOW_RESOURCES, "REMOTE_DEV_TERMINATION_DUE_TO_LOW_RESOURCES" },
+            { Gap::REMOTE_DEV_TERMINATION_DUE_TO_POWER_OFF, "REMOTE_DEV_TERMINATION_DUE_TO_POWER_OFF" },
+            { Gap::LOCAL_HOST_TERMINATED_CONNECTION, "LOCAL_HOST_TERMINATED_CONNECTION" },
+            { Gap::CONN_INTERVAL_UNACCEPTABLE, "CONN_INTERVAL_UNACCEPTABLE" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown Gap::DisconnectionReason_t";
+    }
+};
 
 struct MacAddressString_t { 
     char str[sizeof("XX:XX:XX:XX:XX:XX")];
