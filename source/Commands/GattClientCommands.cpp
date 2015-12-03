@@ -1,7 +1,17 @@
 #include "GattClientCommands.h"
 #include "util/StaticLambda.h"
 #include "ble/BLE.h"
+#include "ble/DiscoveredService.h"
+#include "ble/DiscoveredCharacteristic.h"
 #include "Serialization/Serializer.h"
+#include "Serialization/BleCommonSerializer.h"
+#include "minar/minar.h"
+#include "CLICommand/CommandSuite.h"
+#include "dynamic/Value.h"
+#include "util/StaticString.h"
+#include "util/DynamicString.h"
+
+
 
 // TODO: description of returned results
 
@@ -12,14 +22,146 @@ static BLE& ble() {
     return BLE::Instance();
 }
 
+static GattClient& client() {
+    return ble().gattClient();
+}
+
+static Gap& gap() {
+    return ble().gap();
+}
+
 static constexpr const Command discoverAllServicesAndCharacteristics {
     "discoverAllServicesAndCharacteristics",
     "discover all services and characteristics available on a peer device",
     (const CommandArgDescription[]) {
         { "<connectionHandle>", "The connection used by this procedure" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs& args) {
+        static dynamic::Value result = nullptr;
+        static void (*whenTerminated)(Gap::Handle_t) = nullptr;
+        static void (*whenDisconnected)(const Gap::DisconnectionCallbackParams_t*) = nullptr;
+        static minar::callback_handle_t timeoutHandle = nullptr;
+        static auto returnResult = [] (CommandResult res) {
+            CommandSuite<GattClientCommandSuiteDescription>::commandReady(
+                discoverAllServicesAndCharacteristics.name,
+                CommandArgs(0, 0), // command args are not saved right now, maybe later
+                std::move(res)
+            );
+        };
+
+        static auto detachRegisteredCallbacks = []() {
+            client().onServiceDiscoveryTermination(nullptr);
+            gap().onDisconnection().detach(whenDisconnected);
+            if(timeoutHandle) {
+                minar::Scheduler::cancelCallback(timeoutHandle);
+                timeoutHandle = nullptr;
+            }
+        };
+
+        static void (*serviceCallback)(const DiscoveredService*) = [](const DiscoveredService * discoveredService) {
+            dynamic::Value service;
+            const UUID& uuid = discoveredService->getUUID();
+
+            if(uuid.shortOrLong() == UUID::UUID_TYPE_SHORT) {
+                service["UUID"_ss] = (int64_t) uuid.getShortUUID();
+            } else {
+                service["UUID"_ss] = "long uuid serialization is not yet implemented"_ss;
+            }
+
+            service["start_handle"_ss] = (int64_t) discoveredService->getStartHandle();
+            service["end_handle"_ss] = (int64_t) discoveredService->getEndHandle();
+            service["characteristics"_ss] = dynamic::Value::Array_t();
+
+            result.push_back(std::move(service));
+        };
+
+        static void (*characteristicCallback)(const DiscoveredCharacteristic*) = [](const DiscoveredCharacteristic* discoveredCharacteristic) {
+            dynamic::Value characteristic;
+
+            const UUID& uuid = discoveredCharacteristic->getUUID();
+
+            if(uuid.shortOrLong() == UUID::UUID_TYPE_SHORT) {
+                characteristic["UUID"_ss] = (int64_t) uuid.getShortUUID();
+            } else {
+                characteristic["UUID"_ss] = "long uuid serialization is not yet implemented"_ss;
+            }
+
+            characteristic["properties"_ss] = "serialization of characteristic properties is not yet implemented"_ss;
+            characteristic["start_handle"_ss] = (int64_t) discoveredCharacteristic->getDeclHandle();
+            characteristic["value_handle"_ss] = (int64_t) discoveredCharacteristic->getValueHandle();
+            /*
+            Waiting for integration of descriptor discovery PR
+            characteristic["end_handle"_ss] = (int64_t) discoveredCharacteristic->getLastHandle();
+            */
+
+            // get the last service and push the characteristic in it
+            auto lastService = result.array_end();
+            --lastService;
+            (*lastService)["characteristics"_ss].push_back(std::move(characteristic));
+        };
+
+        // get the connection handle
+        static uint16_t connectionHandle;
+        if (!fromString(args[0], connectionHandle)) {
+            return CommandResult::invalidParameters("the connection handle is ill formed"_ss);
+        }
+
+        // do the request
+        ble_error_t err = client().launchServiceDiscovery(
+            connectionHandle,
+            serviceCallback,
+            characteristicCallback
+        );
+
+        if(err) {
+            return CommandResult::faillure(toString(err));
+        }
+        // prepare result as an array
+        result = dynamic::Value::Array_t();
+
+        // register for terminations callback
+
+        // setup termination handle
+        client().onServiceDiscoveryTermination(whenTerminated = [](Gap::Handle_t handle) {
+            if(connectionHandle != handle) {
+                return;
+            };
+
+            detachRegisteredCallbacks();
+            returnResult(CommandResult::success(std::move(result)));
+        });
+
+        gap().onDisconnection(whenDisconnected = [](const Gap::DisconnectionCallbackParams_t* params) {
+            if(connectionHandle != params->handle) {
+                return;
+            };
+
+            detachRegisteredCallbacks();
+
+            // construct the result for this error
+            dynamic::Value discovered_services = std::move(result);
+            result["discovered_services"_ss] = discovered_services;
+            result["error"_ss] = "disconnection during discovery";
+
+            returnResult(CommandResult::faillure(std::move(result)));
+        });
+
+        // register for timeout
+        timeoutHandle = minar::Scheduler::postCallback([]() {
+            timeoutHandle = nullptr;
+
+            detachRegisteredCallbacks();
+
+            // construct the result for this error
+            dynamic::Value discovered_services = std::move(result);
+            result["discovered_services"_ss] = discovered_services;
+            result["error"_ss] = "discovery timeout";
+
+            returnResult(CommandResult::faillure(std::move(result)));
+        }).delay(minar::milliseconds(100 * 1000)).getHandle();
+
+
+        return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);
     }
 };
 
@@ -293,7 +435,7 @@ ConstArray<Command> GattClientCommandSuiteDescription::commands() {
     static constexpr const Command commandHandlers[] = {
         discoverAllServicesAndCharacteristics,
         discoverAllServices,
-        discoverServices,
+        //discoverServices,
         findIncludedServices,
         discoverCharacteristicsOfService,
         discoverCharacteristicsByUUID,
