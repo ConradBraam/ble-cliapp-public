@@ -161,11 +161,11 @@ deal with the command and response format and built easy to use device abstracti
   * `BleDevice`: Object representing a device running mbed os BLE shell
     - `BleDevice.command(self, cmd, expectedRetcode = 0) -> CommandResult` : Execute a command. The format is 
       the same as the one used in command line. However, in this case cmd is a string specifying the module,
-      command and arguments. Furthermore, it the command is expected to fail, then `expectedRetcode` can be set
+      command and arguments. Furthermore, if the command is expected to fail, then `expectedRetcode` can be set
       to the expected failure value, otherwise mbed-clitest will stop the test.
     - `BleDevice.ble(self, cmd, *argv) -> CommandResult` : Shortcut for `BleDevice.command(self, 'ble' + cmd + *argv)`. 
     - `BleDevice.bleWithRetcode(self, expectedRetcode, cmd, argv*) -> CommandResult` : Shortcut for
-      `BleDevice.command(self, 'ble' + cmd, + *argv, expectedRetcode)`.
+      `BleDevice.command(self, 'ble' + cmd + *argv, expectedRetcode)`.
     - `BleDevice.gap(self, cmd, *argv) -> CommandResult` : Shortcut for `BleDevice.command(self, 'gap' + cmd + *argv)`. 
   * `CommandResult`: This is the result of the command, this class contains three attributes 
     - `status`: The result status code
