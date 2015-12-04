@@ -159,17 +159,21 @@ deal with the command and response format and built easy to use device abstracti
 
   * `BleTestCase.getDevice(self, id) -> BleDevice` : Return an instance of the device referenced by `id`.
   * `BleDevice`: Object representing a device running mbed os BLE shell
-    - `BleDevice.command(self, module, cmd, *argv) -> CommandResult` : Execute a command. The format is 
-       the samee as the one used in command line.
-    - `BleDevice.ble(self, cmd, *argv) -> CommandResult` : Shortcut for BleDevice.command(self, 'ble', cmd, *argv). 
-    - `BleDevice.gap(self, cmd, *argv) -> CommandResult` : Shortcut for BleDevice.command(self, 'gap', cmd, *argv). 
+    - `BleDevice.command(self, cmd, expectedRetcode = 0) -> CommandResult` : Execute a command. The format is 
+      the same as the one used in command line. However, in this case cmd is a string specifying the module,
+      command and arguments. Furthermore, it the command is expected to fail, then `expectedRetcode` can be set
+      to the expected failure value, otherwise mbed-clitest will stop the test.
+    - `BleDevice.ble(self, cmd, *argv) -> CommandResult` : Shortcut for `BleDevice.command(self, 'ble' + cmd + *argv)`. 
+    - `BleDevice.bleWithRetcode(self, expectedRetcode, cmd, argv*) -> CommandResult` : Shortcut for
+      `BleDevice.command(self, 'ble' + cmd, + *argv, expectedRetcode)`.
+    - `BleDevice.gap(self, cmd, *argv) -> CommandResult` : Shortcut for `BleDevice.command(self, 'gap' + cmd + *argv)`. 
   * `CommandResult`: This is the result of the command, this class contains three attributes 
     - `status`: The result status code
     - `error`: Error informations about this command, this attribute is optionnal. The format of this attribute is 
-       the same as the one returned in the JSON document.
-    - `result`: Ruesult of this command, this attribute is optionnal. The format of this attribute is 
-       the same as the one returned in the JSON document.
-    - CommandResult.success(self) -> boolean : indicate if the operation have succeeded or not
+      the same as the one returned in the JSON document.
+    - `result`: Result of this command, this attribute is optional. The format of this attribute is 
+      the same as the one returned in the JSON document.
+    - CommandResult.success(self) -> boolean : indicate if the operation have succeeded or not.
 
 
 #### Full example 
