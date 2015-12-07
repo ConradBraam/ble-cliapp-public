@@ -3,14 +3,16 @@
 #include "ble/BLE.h"
 #include "ble/DiscoveredService.h"
 #include "ble/DiscoveredCharacteristic.h"
-#include "Serialization/Serializer.h"
-#include "Serialization/BleCommonSerializer.h"
 #include "minar/minar.h"
 #include "CLICommand/CommandSuite.h"
 #include "dynamic/Value.h"
 #include "util/StaticString.h"
 #include "util/DynamicString.h"
 
+#include "Serialization/Serializer.h"
+#include "Serialization/BleCommonSerializer.h"
+#include "Serialization/UUID.h"
+#include "Serialization/DiscoveredCharacteristic.h"
 
 
 // TODO: description of returned results
@@ -60,14 +62,8 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
 
         static void (*serviceCallback)(const DiscoveredService*) = [](const DiscoveredService * discoveredService) {
             dynamic::Value service;
-            const UUID& uuid = discoveredService->getUUID();
 
-            if(uuid.shortOrLong() == UUID::UUID_TYPE_SHORT) {
-                service["UUID"_ss] = (int64_t) uuid.getShortUUID();
-            } else {
-                service["UUID"_ss] = "long uuid serialization is not yet implemented"_ss;
-            }
-
+            service["UUID"_ss] = toString(discoveredService->getUUID());
             service["start_handle"_ss] = (int64_t) discoveredService->getStartHandle();
             service["end_handle"_ss] = (int64_t) discoveredService->getEndHandle();
             service["characteristics"_ss] = dynamic::Value::Array_t();
@@ -76,28 +72,10 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
         };
 
         static void (*characteristicCallback)(const DiscoveredCharacteristic*) = [](const DiscoveredCharacteristic* discoveredCharacteristic) {
-            dynamic::Value characteristic;
-
-            const UUID& uuid = discoveredCharacteristic->getUUID();
-
-            if(uuid.shortOrLong() == UUID::UUID_TYPE_SHORT) {
-                characteristic["UUID"_ss] = (int64_t) uuid.getShortUUID();
-            } else {
-                characteristic["UUID"_ss] = "long uuid serialization is not yet implemented"_ss;
-            }
-
-            characteristic["properties"_ss] = "serialization of characteristic properties is not yet implemented"_ss;
-            characteristic["start_handle"_ss] = (int64_t) discoveredCharacteristic->getDeclHandle();
-            characteristic["value_handle"_ss] = (int64_t) discoveredCharacteristic->getValueHandle();
-            /*
-            Waiting for integration of descriptor discovery PR
-            characteristic["end_handle"_ss] = (int64_t) discoveredCharacteristic->getLastHandle();
-            */
-
             // get the last service and push the characteristic in it
             auto lastService = result.array_end();
             --lastService;
-            (*lastService)["characteristics"_ss].push_back(std::move(characteristic));
+            (*lastService)["characteristics"_ss].push_back(toDynamicValue(discoveredCharacteristic));
         };
 
         // get the connection handle

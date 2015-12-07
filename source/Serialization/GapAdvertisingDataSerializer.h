@@ -5,13 +5,15 @@
 #include "ble/GapAdvertisingData.h"
 #include "ble/UUID.h"
 #include <algorithm>
+#include "UUID.h"
+#include "Hex.h"
 
 template<>
 struct SerializerDescription<GapAdvertisingData::Appearance_t> {
     typedef GapAdvertisingData::Appearance_t type;
 
     static const ConstArray<ValueToStringMapping<GapAdvertisingData::Appearance_t> > mapping() {
-        static const ValueToStringMapping<GapAdvertisingData::Appearance_t> map[] = { 
+        static const ValueToStringMapping<GapAdvertisingData::Appearance_t> map[] = {
             { GapAdvertisingData::UNKNOWN, "UNKNOWN" },
             { GapAdvertisingData::GENERIC_PHONE, "GENERIC_PHONE" },
             { GapAdvertisingData::GENERIC_COMPUTER, "GENERIC_COMPUTER" },
@@ -65,7 +67,7 @@ struct SerializerDescription<GapAdvertisingData::Appearance_t> {
         return makeConstArray(map);
     }
 
-    static const char* errorMessage() { 
+    static const char* errorMessage() {
         return "unknown GapAdvertisingData::Appearance_t";
     }
 };
@@ -75,7 +77,7 @@ struct SerializerDescription<GapAdvertisingData::DataType_t> {
     typedef GapAdvertisingData::DataType_t type;
 
     static const ConstArray<ValueToStringMapping<type> > mapping() {
-        static const ValueToStringMapping<type> map[] = { 
+        static const ValueToStringMapping<type> map[] = {
             { GapAdvertisingData::FLAGS, "FLAGS" },
             { GapAdvertisingData::INCOMPLETE_LIST_16BIT_SERVICE_IDS, "INCOMPLETE_LIST_16BIT_SERVICE_IDS" },
             { GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, "COMPLETE_LIST_16BIT_SERVICE_IDS" },
@@ -97,7 +99,7 @@ struct SerializerDescription<GapAdvertisingData::DataType_t> {
         return makeConstArray(map);
     }
 
-    static const char* errorMessage() { 
+    static const char* errorMessage() {
         return "unknown GapAdvertisingData::DataType_t";
     }
 };
@@ -107,7 +109,7 @@ struct SerializerDescription<GapAdvertisingData::Flags_t> {
     typedef GapAdvertisingData::Flags_t type;
 
     static const ConstArray<ValueToStringMapping<type> > mapping() {
-        static const ValueToStringMapping<type> map[] = { 
+        static const ValueToStringMapping<type> map[] = {
             { GapAdvertisingData::LE_LIMITED_DISCOVERABLE, "LE_LIMITED_DISCOVERABLE" },
             { GapAdvertisingData::LE_GENERAL_DISCOVERABLE, "LE_GENERAL_DISCOVERABLE" },
             { GapAdvertisingData::BREDR_NOT_SUPPORTED, "BREDR_NOT_SUPPORTED" },
@@ -118,7 +120,7 @@ struct SerializerDescription<GapAdvertisingData::Flags_t> {
         return makeConstArray(map);
     }
 
-    static const char* errorMessage() { 
+    static const char* errorMessage() {
         return "unknown GapAdvertisingData::Flags_t";
     }
 };
@@ -142,17 +144,17 @@ static inline dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8
 
         Value fieldValue = "conversion not handled"_ss;
 
-        // serialization 
-        switch(dataType) { 
+        // serialization
+        switch(dataType) {
             case GapAdvertisingData::FLAGS: {
-                // if the flags are malformed, we signal the error 
+                // if the flags are malformed, we signal the error
                 if(dataLenght != 1) {
-                    // TODO : add the true value of the field 
+                    // TODO : add the true value of the field
                     fieldValue = "malformed"_ss;
                     break;
                 }
 
-                // construct an array of the flags 
+                // construct an array of the flags
                 const ConstArray<ValueToStringMapping<GapAdvertisingData::Flags_t> > mapping = SerializerDescription<GapAdvertisingData::Flags_t>::mapping();
                 GapAdvertisingData::Flags_t flags = (GapAdvertisingData::Flags_t) fieldData[0];
 
@@ -167,14 +169,14 @@ static inline dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8
 
             case GapAdvertisingData::INCOMPLETE_LIST_16BIT_SERVICE_IDS:
             case GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS:
-                // if the flags are malformed, we signal the error 
+                // if the flags are malformed, we signal the error
                 if(dataLenght % sizeof(uint16_t)) {
-                    // TODO : add the true value of the field 
+                    // TODO : add the true value of the field
                     fieldValue = "malformed"_ss;
                     break;
                 }
 
-                // construct an array of the service ids 
+                // construct an array of the service ids
                 for(size_t j = 0; j < dataLenght; j += sizeof(uint16_t)) {
                     uint16_t uuid = 0;
                     memcpy(&uuid, fieldData + j, sizeof(uuid));
@@ -186,14 +188,14 @@ static inline dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8
 
             case GapAdvertisingData::INCOMPLETE_LIST_32BIT_SERVICE_IDS:
             case GapAdvertisingData::COMPLETE_LIST_32BIT_SERVICE_IDS:
-                // if the flags are malformed, we signal the error 
+                // if the flags are malformed, we signal the error
                 if(dataLenght % sizeof(uint32_t)) {
-                    // TODO : add the true value of the field 
+                    // TODO : add the true value of the field
                     fieldValue = "malformed"_ss;
                     break;
                 }
 
-                // construct an array of the service ids    
+                // construct an array of the service ids
                 for(size_t j = 0; j < dataLenght; j += sizeof(uint32_t)) {
                     uint32_t uuid = 0;
                     memcpy(&uuid, fieldData + j, sizeof(uuid));
@@ -210,7 +212,7 @@ static inline dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8
             case GapAdvertisingData::SHORTENED_LOCAL_NAME:
             case GapAdvertisingData::COMPLETE_LOCAL_NAME:
                 if(dataLenght == 0) {
-                    // TODO : add the true value of the field 
+                    // TODO : add the true value of the field
                     fieldValue = ""_ss;
                     break;
                 }
@@ -264,63 +266,17 @@ static inline dynamic::Value gapAdvertisingDataToJSON(const GapAdvertisingData& 
     return gapAdvertisingDataToJSON(advertisingData.getPayload(), advertisingData.getPayloadLen());
 }
 
-// todo : better than this
-static inline bool hexToChar(char msb, char lsb, uint8_t& result) {
-    char hexStr[] = { msb, lsb, 0 };
-    char* end;
-
-    long conversionResult = strtol(hexStr, &end, 16);
-    if(end == hexStr) {
-        return false;
-    }
-
-    result = (uint8_t) conversionResult;
-    return true;
-}
-
-static inline bool UUIDfromString(const char* str, UUID::LongUUIDBytes_t& uuid) {
-    static const char refUUID[] = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
-    if(strlen(str) != strlen(refUUID)) {
-        return false;
-    }
-
-    UUID::LongUUIDBytes_t tmp = { 0 };
-    for(size_t i = 0, currentStrIndex = 0; i < sizeof(tmp); ++i) {
-        // check for separator
-        if(currentStrIndex == 8 || currentStrIndex == 13 || currentStrIndex == 18 || currentStrIndex == 23) {
-            if(str[currentStrIndex] != '-') {
-                return false;
-            }
-            ++currentStrIndex;
-        }
-
-        uint8_t convertedByte = 0;
-        if(!hexToChar(str[currentStrIndex], str[currentStrIndex + 1], convertedByte)) {
-            return false;
-        }
-
-        tmp[i] = convertedByte;
-        currentStrIndex += 2;
-    }
-
-    memcpy(uuid, tmp, UUID::LENGTH_OF_LONG_UUID);
-    // copy in reverse order 
-    std::reverse(uuid, uuid + sizeof(uuid));
-
-    return true;
-}
-
 struct AdvertisingPayloadField_t {
     GapAdvertisingData::DataType_t dataType;
     uint8_t data[GAP_ADVERTISING_DATA_MAX_PAYLOAD];
     uint8_t dataLenght;
 };
 
-/** 
- * return NULL in case of success or the reason of the error 
+/**
+ * return NULL in case of success or the reason of the error
  */
 static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args, AdvertisingPayloadField_t& payloadField) {
-    // first we check that at least two arguments are provided 
+    // first we check that at least two arguments are provided
     if(args.count() < 2) {
         return "at least two parameters should be provided <GapAdvertisingData::DataType_t> <dataToSet>";
     }
@@ -345,8 +301,8 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
             }
             memcpy(data, &flags, 1);
             dataLenght = 1;
-            break;  
-        } 
+            break;
+        }
 
         case GapAdvertisingData::INCOMPLETE_LIST_16BIT_SERVICE_IDS:
         case GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS: {
@@ -358,7 +314,7 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
 
             for(size_t i = 0; i < args.count() - 1; ++i) {
                 uint16_t service;
-                if(!fromString(args[i + 1], service)) { 
+                if(!fromString(args[i + 1], service)) {
                     return "malformed service";
                 }
                 services[i] = service;
@@ -379,7 +335,7 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
 
             for(size_t i = 0; i < args.count() - 1; ++i) {
                 uint32_t service;
-                if(!fromString(args[i + 1], service)) { 
+                if(!fromString(args[i + 1], service)) {
                     return "malformed service";
                 }
                 services[i] = service;
@@ -397,13 +353,13 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
                 return "Too much UUIDs for the payload";
             }
 
-            UUID::LongUUIDBytes_t uuid;
-            if(!UUIDfromString(args[1], uuid)) {
+            UUID uuid;
+            if(!fromString(args[1], uuid)) {
                 return "The uuid is not properly formated (XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX)";
             }
 
-            memcpy(data, uuid, sizeof(uuid));
-            dataLenght = sizeof(uuid);
+            memcpy(data, uuid.getBaseUUID(), UUID::LENGTH_OF_LONG_UUID);
+            dataLenght = UUID::LENGTH_OF_LONG_UUID;
             break;
         }
 
@@ -433,8 +389,8 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
 
             memcpy(data, &txPower, sizeof(txPower));
             dataLenght = sizeof(txPower);
-            break; 
-        } 
+            break;
+        }
 
         case GapAdvertisingData::DEVICE_ID:
             return "Not yet implemented for this kind of data types";
@@ -442,7 +398,7 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
         case GapAdvertisingData::SLAVE_CONNECTION_INTERVAL_RANGE: {
             if(args.count() != 3) {
                 return "<minimumConnectionInterval> <maximumConnectionInterval> needed";
-            }           
+            }
 
             uint16_t intervals[2] = { 0 };
 
@@ -464,7 +420,7 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
              UUID (16 | 32 | 128) FOLLOWED by data
             */
             return "Not yet implemented for this kind of data types";
-        
+
         case GapAdvertisingData::APPEARANCE: {
             if(args.count() != 2) {
                 return "too many arguments, only the appearance is expected";
@@ -475,7 +431,7 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
                 return "appearance is malformed see (GapAdvertisingData::Appearance_t)";
             }
 
-            // take care, appearance is only on 2 bytes 
+            // take care, appearance is only on 2 bytes
             memcpy(data, &appearance, sizeof(uint16_t));
             dataLenght = sizeof(uint16_t);
             break;
@@ -484,7 +440,7 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
         case GapAdvertisingData::ADVERTISING_INTERVAL: {
             if(args.count() != 2) {
                 return "too many arguments, only the advertising interval is expected";
-            }           
+            }
 
             uint16_t advertisingInterval = 0;
             if(!fromString(args[1], advertisingInterval)) {
@@ -512,7 +468,7 @@ static inline const char* advertisingPayloadFieldFromCLI(const CommandArgs& args
             }
 
             for(size_t i = 0; i < len / 2; ++i) {
-                if(hexToChar(args[1][i * 2], args[1][(i * 2) + 1], data[i]) == false) {
+                if(asciiHexByteToByte(args[1][i * 2], args[1][(i * 2) + 1], data[i]) == false) {
                     return "invalid hex data";
                 }
             }
