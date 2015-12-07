@@ -13,6 +13,7 @@
 #include "Serialization/BleCommonSerializer.h"
 #include "Serialization/UUID.h"
 #include "Serialization/DiscoveredCharacteristic.h"
+#include "Serialization/GattCallbackParamTypes.h"
 
 
 // TODO: description of returned results
@@ -223,6 +224,82 @@ static constexpr const Command discoverAllCharacteristicsDescriptors {
     }
 };
 
+
+// this class handle the read procedure
+struct ReadProcedure {
+
+    /**
+     * @brief Launch the read procedure
+     */
+    static CommandResult launch(uint16_t _connectionHandle, uint16_t _valueHandle) {
+        ble_error_t err = client().read(_connectionHandle, _valueHandle, /* offset */ 0);
+
+        if (!err) {
+            // no need to catch the result, it will automatially attach all callbacks,
+            // and after a timeout or when the data has been read, it will release and
+            // destroy itself automatically
+            new ReadProcedure(_connectionHandle, _valueHandle);
+            return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);
+        }
+
+        return CommandResult::faillure(toString(err));
+    }
+
+private:
+
+    /**
+     * @brief Construct a read procedure, this will also attach all callbacks
+     */
+    ReadProcedure(uint16_t _connectionHandle, uint16_t _valueHandle) :
+        connectionHandle(_connectionHandle), valueHandle(_valueHandle), timeoutHandle(nullptr) {
+        // attach callbacks
+        client().onDataRead(makeFunctionPointer(this, &ReadProcedure::whenDataRead));
+        // attach timeout
+        auto foo = mbed::util::FunctionPointer(this, &ReadProcedure::whenTimeout);
+
+        timeoutHandle = minar::Scheduler::postCallback(this, &ReadProcedure::whenTimeout)
+        .delay(minar::milliseconds(100 * 1000)).getHandle();
+    }
+
+    ~ReadProcedure() {
+        // detach callbacks
+        if (timeoutHandle) {
+            minar::Scheduler::cancelCallback(timeoutHandle);
+        }
+
+        client().onDataRead().detach(makeFunctionPointer(this, &ReadProcedure::whenDataRead));
+    }
+
+    void whenDataRead(const GattReadCallbackParams* params) {
+        // verifiy that it is the right characteristic on the right connection
+        if (params->connHandle == connectionHandle && params->handle == valueHandle) {
+            // convert value to hex
+            returnResult(CommandResult::success(toDynamicValue(params)));
+
+            delete this;
+        }
+    }
+
+    void whenTimeout() {
+        timeoutHandle = nullptr;
+        returnResult(CommandResult::faillure("read procedure timeout"));
+        delete this;
+    }
+
+    static void returnResult(CommandResult res) {
+        CommandSuite<GattClientCommandSuiteDescription>::commandReady(
+            "readCharacteristicValue",
+            CommandArgs(0, 0), // command args are not saved right now, maybe later
+            std::move(res)
+        );
+    };
+
+private:
+    uint16_t connectionHandle;
+    uint16_t valueHandle;
+    minar::callback_handle_t timeoutHandle;
+};
+
 static constexpr const Command readCharacteristicValue {
     "readCharacteristicValue",
     "Read a characteristic value from a GATT Server using a characteristic value handle.",
@@ -230,8 +307,18 @@ static constexpr const Command readCharacteristicValue {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicValuehandle>", "The handle of characteristic value" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs& args) {
+        uint16_t connectionHandle;
+        if (!fromString(args[0], connectionHandle)) {
+            return CommandResult::invalidParameters("the connection handle is ill formed"_ss);
+        }
+
+        uint16_t characteristicValueHandle;
+        if (!fromString(args[1], characteristicValueHandle)) {
+            return CommandResult::invalidParameters("the characteristic value handle is ill formed"_ss);
+        }
+
+        return ReadProcedure::launch(connectionHandle, characteristicValueHandle);
     }
 };
 

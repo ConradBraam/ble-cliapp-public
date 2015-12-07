@@ -1,0 +1,23 @@
+#ifndef BLE_CLIAPP_GATT_CALLABCK_PARAM_TYPES_SERIALIZER_H_
+#define BLE_CLIAPP_GATT_CALLABCK_PARAM_TYPES_SERIALIZER_H_
+
+#include "Serializer.h"
+#include "ble/DiscoveredCharacteristic.h"
+#include "dynamic/Value.h"
+
+/**
+ * @brief Convert a result of GattClient read operation
+ * @details The returned object will be a map with the following attributes:
+ *     - "connection_handle": The handle of the connection where the read occur
+ *     - "attribute_handle": The handle of attribute read
+ *     - "offset": Offset of the data read
+ *     - "length": lenght of the data read
+ *     - "data": The data represented as an hex string
+ *
+ * @param readResult An instance of GattReadCallbackParams containing the value
+ * of a read operation
+ * @return The characteristic serialized to a dynamic::Value
+ */
+dynamic::Value toDynamicValue(const GattReadCallbackParams* readResult);
+
+#endif //BLE_CLIAPP_GATT_CALLABCK_PARAM_TYPES_SERIALIZER_H_
