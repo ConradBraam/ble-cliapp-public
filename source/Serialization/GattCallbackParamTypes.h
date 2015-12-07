@@ -16,8 +16,24 @@
  *
  * @param readResult An instance of GattReadCallbackParams containing the value
  * of a read operation
- * @return The characteristic serialized to a dynamic::Value
+ * @return The result of the read operation serialized to a dynamic::Value
  */
 dynamic::Value toDynamicValue(const GattReadCallbackParams* readResult);
+
+/**
+ * @brief Convert the result of GattClient write operation
+ * @details The returned object will be a map with the following attributes:
+ *     - "connection_handle": The handle of the connection where the write occur
+ *     - "attribute_handle": The handle of the attribute written
+ *     - "offset": Offset of the data written
+ *     - "length": lenght of the data written
+ *     - "data": The data written (as an hex string)
+ *     - "write_operation_type": The type of write operation
+ *
+ * @param writeResult An instance of GattWriteCallbackParams containing the value
+ * of a write operation
+ * @return The result of the write operation serialized to a dynamic::Value
+ */
+dynamic::Value toDynamicValue(const GattWriteCallbackParams* writeResult);
 
 #endif //BLE_CLIAPP_GATT_CALLABCK_PARAM_TYPES_SERIALIZER_H_

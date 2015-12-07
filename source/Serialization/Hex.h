@@ -2,6 +2,7 @@
 #define BLE_CLIAPP_SERIALIZATION_HEX_H_
 
 #include "util/SimpleString.h"
+#include "util/Vector.h"
 
 /**
  * @brief Convert the string representation of a byte in asci hexadecimal
@@ -25,5 +26,15 @@ bool asciiHexByteToByte(char msb, char lsb, uint8_t& result);
  */
 container::SimpleString rawDataToHexString(const uint8_t* data, size_t length);
 
+/**
+ * @brief Convert the string representation of bytes in ascii hexadecimal to
+ * an array of bytes.
+ *
+ * @param data data to convert, it should be null terminated
+ *
+ * @return The converted data, if input data were invalid, the returned Vector is
+ * invalid.
+ */
+container::Vector<uint8_t> hexStringToRawData(const char* data);
 
 #endif //BLE_CLIAPP_SERIALIZATION_HEX_H_
