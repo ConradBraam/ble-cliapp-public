@@ -25,11 +25,54 @@ void custom_cmd_response_out(const char* fmt, va_list ap)
     fflush(stdout);
 }
 
+
+/** The queue used to hold received characters. */
+#define UART_RX_LEN 256
+uint8_t uart_rx_buffer[UART_RX_LEN];
+uint16_t uart_rx_rd = 0;
+uint16_t uart_rx_wr = 0;
+int16_t uart_rx_get(void)
+{
+    int16_t rx_byte = -1;
+    if (uart_rx_rd != uart_rx_wr)
+    {
+        uint16_t ptr = uart_rx_rd;
+        rx_byte = uart_rx_buffer[ptr++];
+        if (ptr >= UART_RX_LEN) ptr = 0;
+        uart_rx_rd = ptr;
+    }
+    return rx_byte;
+
+}
 // serial RX interrupt function
 // there should be buffer to improve performance..
-void cmd_cb(void) 
+void minarCallback(void) 
 {
-    cmd_char_input(pc.getc());        
+    int16_t rx;
+    do {
+        rx = uart_rx_get();
+        if( rx >= 0 ) {
+            cmd_char_input(rx);
+        }
+    } while(rx);
+}
+void rx_interrupt(void)
+{
+    char chr = pc.getc();
+    uint16_t index;
+    bool sendEvent = (uart_rx_rd == uart_rx_wr);
+    index = uart_rx_wr;
+    index++;
+    if (index >= UART_RX_LEN) index = 0;
+    if (index != uart_rx_rd)
+    {
+            uart_rx_buffer[uart_rx_wr] = chr;
+            uart_rx_wr = index;
+    }
+    if(sendEvent)
+    {
+        minar::Scheduler::postCallback(minarCallback);
+    }
 }
 
 // this function should be inside some "event scheduler", because
@@ -49,7 +92,8 @@ void app_start(int, char*[])
 {
     //configure serial port
     pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
-    pc.attach(&cmd_cb);
+    pc.attach(&rx_interrupt);
+    
     
     // initialize trace libary
     mbed_client_trace_init();
