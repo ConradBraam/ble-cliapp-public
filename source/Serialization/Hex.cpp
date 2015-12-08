@@ -29,7 +29,7 @@ container::SimpleString rawDataToHexString(const uint8_t* data, size_t length) {
         snprintf(hexData + (i * 2), 3, "%02X", data[i]);
     }
 
-    container::SimpleString result = hexData;
+    result = hexData;
     free(hexData);
     return result;
 }
