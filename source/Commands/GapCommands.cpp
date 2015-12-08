@@ -458,7 +458,7 @@ static constexpr const Command getDeviceName {
         ble_error_t err = gap().getDeviceName(NULL, &deviceNameLength);
 
         if(err) {
-            return CommandResult::faillure("impossible to get the lenght of the name");
+            return CommandResult::faillure("impossible to get the length of the name");
         }
 
         // acquire the name

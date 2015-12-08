@@ -1,11 +1,13 @@
 #ifndef BLE_CLIAPP_SERIALIZER_H_
 #define BLE_CLIAPP_SERIALIZER_H_
 
-#include "util/ConstArray.h"
-
+#include <cstdlib>
 #include <string.h>
 
+#include "util/ConstArray.h"
 #include "ble/Gap.h"
+
+
 
 /**
  * @brief simple POD object which map a value to a string
@@ -20,7 +22,7 @@ struct ValueToStringMapping {
 /**
  * @brief Base class for Serializer description, all Serializer description should specialize
  * this type.
- * 
+ *
  * @tparam T The type on which this descripion apply
  */
 template<typename T>
@@ -28,7 +30,7 @@ struct SerializerDescription;
 
 /**
  * @brief simple serializer logic.
- * 
+ *
  * @tparam T The type of the serialization. It require that SerializerDescription<T> exist
  */
 template<typename T>
@@ -38,14 +40,14 @@ struct Serializer {
     static const char* toString(const serialized_type val) {
         return toString(
             val,
-            SerializerDescription<T>::mapping(), 
+            SerializerDescription<T>::mapping(),
             SerializerDescription<T>::errorMessage()
         );
     }
 
     static bool fromString(const char* str, serialized_type& val) {
         return fromString(
-            str, 
+            str,
             val,
             SerializerDescription<T>::mapping()
         );
@@ -73,7 +75,7 @@ private:
 };
 
 /**
- * @brief convert a value to a string 
+ * @brief convert a value to a string
  */
 template<typename T>
 static const char* toString(const T& value) {
@@ -81,7 +83,7 @@ static const char* toString(const T& value) {
 }
 
 /**
- * @brief Convert a string to a value 
+ * @brief Convert a string to a value
  */
 template<typename T>
 static bool fromString(const char* str, T& value) {
