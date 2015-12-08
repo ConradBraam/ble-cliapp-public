@@ -13,7 +13,7 @@
   "homepage": "https://github.com/ARMmbed/mbed-client-cliapp",
   "license": "Apache-2.0",
   "dependencies": {
-    "ble": "^1.0.0",
+    "ble": "ARMmbed/ble",
     "mbed-client-cli": "ARMmbed/mbed-client-cli",
     "mbed-client-trace": "ARMmbed/mbed-client-trace"
   },

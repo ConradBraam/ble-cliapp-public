@@ -1,10 +1,14 @@
-#include "mbed.h"
+#include "mbed-drivers/mbed.h"
 #include "ble/BLE.h"
 #include "ble/services/iBeacon.h"
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-client-trace/mbed_client_trace.h"
 
-#include "commands.h"
+#include "CLICommand/CommandSuite.h"
+#include "Commands/BLECommands.h"
+#include "Commands/GapCommands.h"
+#include "Commands/GattServerCommands.h"
+#include "Commands/GattClientCommands.h"
 
 // Prototypes
 void cmd_ready_cb(int retcode);
@@ -13,8 +17,8 @@ Serial pc(USBTX, USBRX);
 
 void trace_printer(const char* str)
 {
-    pc.printf("%s\r\n", str);
-    cmd_output();
+	pc.printf("%s\r\n", str);
+	cmd_output();
 }
 
 void custom_cmd_response_out(const char* fmt, va_list ap)
@@ -25,9 +29,9 @@ void custom_cmd_response_out(const char* fmt, va_list ap)
 
 // serial RX interrupt function
 // there should be buffer to improve performance..
-void cmd_cb(void)
+void cmd_cb(void) 
 {
-    cmd_char_input(pc.getc());
+    cmd_char_input(pc.getc());        
 }
 
 // this function should be inside some "event scheduler", because
@@ -38,18 +42,25 @@ void cmd_ready_cb(int retcode)
     cmd_next( retcode );
 }
 
+void initialize_app_commands(void) {
+    registerCommandSuite<BLECommandSuiteDescription>();
+    registerCommandSuite<GapCommandSuiteDescription>();
+    registerCommandSuite<GattServerCommandSuiteDescription>();
+    registerCommandSuite<GattClientCommandSuiteDescription>();
+}
+
 void app_start(int, char*[])
 {
     //configure serial port
-    pc.baud(115200);    // This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
+    pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
     pc.attach(&cmd_cb);
-
+    
     // initialize trace libary
     mbed_client_trace_init();
     mbed_client_trace_print_function_set( trace_printer );
     mbed_client_trace_cmdprint_function_set( cmd_printer );
     mbed_client_trace_config_set(TRACE_MODE_COLOR|TRACE_ACTIVE_LEVEL_DEBUG|TRACE_CARRIAGE_RETURN);
-
+    
     cmd_init( &custom_cmd_response_out );
     cmd_set_ready_cb( cmd_ready_cb );
     initialize_app_commands();
@@ -61,7 +72,7 @@ void app_start(int, char*[])
 int main(void)
 {
     app_start(0, NULL);
-
+    
     return 0;
 }
 #endif
