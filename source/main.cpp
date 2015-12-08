@@ -10,10 +10,46 @@
 #include "Commands/GattServerCommands.h"
 #include "Commands/GattClientCommands.h"
 
+#include <core-util/atomic_ops.h>
+#include <mbed-drivers/CircularBuffer.h>
+
 // Prototypes
 void cmd_ready_cb(int retcode);
 
-Serial pc(USBTX, USBRX);
+static Serial pc(USBTX, USBRX);
+
+static const size_t CIRCULAR_BUFFER_LENGTH = 128;
+
+// circular buffer used by serial port interrupt to store characters
+// It will be use in a single producer, single consumer setup:
+// producer => RX interrupt
+// consumer => a callback run by yotta
+// note: This class is not designed for this kind of setup, we try to mitigate
+// this by relyin on an external counter instead of an internal one
+static CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
+
+// a counter is used to track count of bytes not yet consumed
+static uint32_t bytesNotConsumed = 0;
+
+// callback called when a character arrive on the serial port
+void whenRxInterrupt(void)
+{
+    char chr = pc.getc();
+    rxBuffer.push((uint8_t) chr);
+
+    if(mbed::util::atomic_incr(&bytesNotConsumed, (uint32_t) 1) == 1) {
+        // if it is the first character send, just post a callback into minar
+        minar::Scheduler::postCallback([]() {
+            do {
+                uint8_t data = 0;
+                if(rxBuffer.pop(data) == false) {
+                    error("invalid state of rxBuffer");
+                }
+                cmd_char_input(data);
+            } while(mbed::util::atomic_decr(&bytesNotConsumed,  (uint32_t) 1));
+        });
+    }
+}
 
 void trace_printer(const char* str)
 {
@@ -25,56 +61,6 @@ void custom_cmd_response_out(const char* fmt, va_list ap)
 {
     vprintf(fmt, ap);
     fflush(stdout);
-}
-
-
-/** The queue used to hold received characters. */
-#define UART_RX_LEN 256
-uint8_t uart_rx_buffer[UART_RX_LEN];
-uint16_t uart_rx_rd = 0;
-uint16_t uart_rx_wr = 0;
-int16_t uart_rx_get(void)
-{
-    int16_t rx_byte = -1;
-    if (uart_rx_rd != uart_rx_wr)
-    {
-        uint16_t ptr = uart_rx_rd;
-        rx_byte = uart_rx_buffer[ptr++];
-        if (ptr >= UART_RX_LEN) ptr = 0;
-        uart_rx_rd = ptr;
-    }
-    return rx_byte;
-
-}
-// serial RX interrupt function
-// there should be buffer to improve performance..
-void minarCallback(void) 
-{
-    int16_t rx;
-    do {
-        rx = uart_rx_get();
-        if( rx >= 0 ) {
-            cmd_char_input(rx);
-        }
-    } while(rx);
-}
-void rx_interrupt(void)
-{
-    char chr = pc.getc();
-    uint16_t index;
-    bool sendEvent = (uart_rx_rd == uart_rx_wr);
-    index = uart_rx_wr;
-    index++;
-    if (index >= UART_RX_LEN) index = 0;
-    if (index != uart_rx_rd)
-    {
-            uart_rx_buffer[uart_rx_wr] = chr;
-            uart_rx_wr = index;
-    }
-    if(sendEvent)
-    {
-        minar::Scheduler::postCallback(minarCallback);
-    }
 }
 
 // this function should be inside some "event scheduler", because
@@ -96,15 +82,15 @@ void app_start(int, char*[])
 {
     //configure serial port
     pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
-    pc.attach(&rx_interrupt);
-    
-    
+    pc.attach(whenRxInterrupt);
+
+
     // initialize trace libary
     mbed_client_trace_init();
     mbed_client_trace_print_function_set( trace_printer );
     mbed_client_trace_cmdprint_function_set( cmd_printer );
     mbed_client_trace_config_set(TRACE_MODE_COLOR|TRACE_ACTIVE_LEVEL_DEBUG|TRACE_CARRIAGE_RETURN);
-    
+
     cmd_init( &custom_cmd_response_out );
     cmd_set_ready_cb( cmd_ready_cb );
     initialize_app_commands();
@@ -116,7 +102,7 @@ void app_start(int, char*[])
 int main(void)
 {
     app_start(0, NULL);
-    
+
     return 0;
 }
 #endif
