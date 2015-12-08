@@ -49,7 +49,7 @@ struct CmdPrintfOutputIterator : public std::iterator<std::output_iterator_tag,v
         return *this;
     }
 
-    void flush() { 
+    void flush() {
         cmd_printf("%.*s", (int) current_index, buffer);
         current_index = 0;
     }
@@ -59,61 +59,61 @@ struct CmdPrintfOutputIterator : public std::iterator<std::output_iterator_tag,v
 /**
  * @brief Allow to easily group and add a suite of commands into the cli system.
  * @details This class is parametized by a description which should provide information to run.
- * 
- * @tparam SuiteDescription The class describing the command suite. The class should 
- * provide the following static methods : 
+ *
+ * @tparam SuiteDescription The class describing the command suite. The class should
+ * provide the following static methods :
  *    - static const char* name() : The name of the suite. Each commands present in the suite
  *    will be available through this entry point.
- *    - static const char* info() : Informations about this command suite 
- *    - static const char* man() : The manual of this command suite 
+ *    - static const char* info() : Informations about this command suite
+ *    - static const char* man() : The manual of this command suite
  *    - static ConstArray<Command> commands() : The array of commands presents in the suite
- *    
+ *
  * \code
- * 
+ *
  * class DummyCommandSuite {
- * 
+ *
  * public:
- * 
- * static const char* name() { 
+ *
+ * static const char* name() {
  *    return "dummy";
  * }
- * 
+ *
  * static const char* info() {
  *     return "dummy info"
  * }
- * 
+ *
  * static const char* man() {
  *     return "dummy <command> <command arguments>\r\n"\
  *            "    * dummy foo : print foo\r\n"
  *            "    * dummy bar : print bar\r\n";
  * }
- * 
+ *
  * static ConstArray<Command> commands() {
  *    static const Command commandHandlers[] = {
- *        { "foo", doFoo }, 
+ *        { "foo", doFoo },
  *        { "bar", doBar }
  *    }
- *    
+ *
  *    return ConstArray<Command>(commandHandlers);
  * }
- * 
- * 
+ *
+ *
  * private:
- * 
+ *
  * static CommandResult doFoo(const CommandArgs& args) {
  *     cmd_printf("foo");
  *     return CMDLINE_RETCODE_SUCCESS;
  * }
- * 
+ *
  * static CommandResult doBar(const CommandArgs& args) {
  *     cmd_printf("bar");
  *     return CMDLINE_RETCODE_SUCCESS;
  * }
- * 
+ *
  * }
- * 
+ *
  * \endcode
- * 
+ *
  */
 template<typename SuiteDescription>
 class CommandSuite {
@@ -125,19 +125,19 @@ public:
      */
     static void registerSuite() {
         cmd_add(
-            SuiteDescription::name(), 
-            commandHandler, 
-            SuiteDescription::info(), 
-            SuiteDescription::man() 
+            SuiteDescription::name(),
+            commandHandler,
+            SuiteDescription::info(),
+            SuiteDescription::man()
         );
-    } 
+    }
 
     /**
      * @brief  Entry point for the command handler of the suite.
      * @details This function demultiplex command and args from CLI and execute the right comamnd.
-     * It also collect results and format message result. 
-     * 
-     * @return a command status code as described in mbed-client-cli/ns_cmdline.h. 
+     * It also collect results and format message result.
+     *
+     * @return a command status code as described in mbed-client-cli/ns_cmdline.h.
      */
     static int commandHandler(int argc, char** argv) {
         const CommandArgs args(argc, argv);
@@ -146,7 +146,7 @@ public:
 
         CommandResult result = executeCommandHandler(commandName, commandArgs);
         if(result.statusCode != CMDLINE_RETCODE_EXCUTING_CONTINUE) {
-            printCommandResult(SuiteDescription::name(), commandName, commandArgs, result);         
+            printCommandResult(SuiteDescription::name(), commandName, commandArgs, result);
         }
         return result.statusCode;
     }
@@ -157,13 +157,13 @@ public:
     static CommandResult executeCommandHandler(const char* commandName, const CommandArgs commandArgs) {
         const Command* command = CommandSuite::getCommand(commandName);
         if(command) {
-            // check arguments 
+            // check arguments
             if(commandArgs.count() < command->argsDescription.count()) {
-                return CommandResult::invalidParameters("not enough arguments"); 
+                return CommandResult::invalidParameters("not enough arguments");
             }
 
             if(commandArgs.count() > command->maximumArgsRequired) {
-                return CommandResult::invalidParameters("too many arguments"); 
+                return CommandResult::invalidParameters("too many arguments");
             }
             return command->handler(commandArgs);
         } else {
@@ -173,22 +173,22 @@ public:
 
     /**
      * @brief Format and print the command result through the command line
-     * @details The result printed is a JSON describing the command and its results. 
-     * The JSON format is as follow : 
+     * @details The result printed is a JSON describing the command and its results.
+     * The JSON format is as follow :
      * {
-     *     "command_name": "name of the command", 
+     *     "command_name": "name of the command",
      *     "arguments": [
      *         "arg0",
      *         "arg1",
      *         ...
      *     ],
-     *     "status": 0, // The status of the command as described in mbed-client-cli/ns_cmdline.h. 
+     *     "status": 0, // The status of the command as described in mbed-client-cli/ns_cmdline.h.
      *     "result": <some json value>, // this field is only present if the status is equal to zero
      *     "error": <some json value>  // this field is only present if the status is NOT equal to zero
      * }
-     * 
-     * @param commandGroup The group name of the command executed 
-     * @param commandName The name of the command executed 
+     *
+     * @param commandGroup The group name of the command executed
+     * @param commandName The name of the command executed
      * @param args Arguments of the command
      * @param result The result of the command execution
      */
@@ -198,11 +198,11 @@ public:
 
         Value message;
 
-        // build the name 
-        std::string name((std::string(commandGroup) + " " + commandName)); 
+        // build the name
+        std::string name((std::string(commandGroup) + " " + commandName));
         message["name"_ss] = name.c_str();
 
-        // build the arguments 
+        // build the arguments
         message["arguments"_ss] = dynamic::Value::Array_t { };
         for(size_t i = 0; i < args.count(); ++i) {
             message["arguments"_ss].push_back(DynamicString(args[i]));
@@ -223,8 +223,9 @@ public:
         }
 
         CmdPrintfOutputIterator os;
-        message.serialize(os, true);
+        message.serialize(os, false);
         os.flush();
+        printf("\n");
     }
 
     static void commandReady(const char* commandName, const CommandArgs& args, const CommandResult& result) {
@@ -318,9 +319,9 @@ const Command CommandSuite<SuiteDescription>::args {
 
         dynamic::Value res;
         for(size_t i = 0; i < command->argsDescription.count(); ++i) {
-            res.push_back(dynamic::Value {} 
+            res.push_back(dynamic::Value {}
                 [container::DynamicString(command->argsDescription[i].name)] = StaticString(command->argsDescription[i].desc)
-            );  
+            );
         }
 
         return CommandResult::success(res);
@@ -329,7 +330,7 @@ const Command CommandSuite<SuiteDescription>::args {
 
 /**
  * @brief Register a command suite into the system
- * 
+ *
  * @tparam CommandSuiteDescription The command suite to register
  */
 template<typename CommandSuiteDescription>
