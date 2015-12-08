@@ -5,7 +5,7 @@
 #include "Serialization/GapSerializer.h"
 #include "Serialization/GapAdvertisingDataSerializer.h"
 #include "Serialization/GapAdvertisingParamsSerializer.h"
-#include "Serialization/BleCommonSerializer.h"
+#include "Serialization/BLECommonSerializer.h"
 #include "util/StaticLambda.h"
 #include "minar/minar.h"
 #include "CLICommand/CommandSuite.h"

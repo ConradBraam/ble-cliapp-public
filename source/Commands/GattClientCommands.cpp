@@ -10,7 +10,7 @@
 #include "util/DynamicString.h"
 
 #include "Serialization/Serializer.h"
-#include "Serialization/BleCommonSerializer.h"
+#include "Serialization/BLECommonSerializer.h"
 #include "Serialization/UUID.h"
 #include "Serialization/Hex.h"
 #include "Serialization/DiscoveredCharacteristic.h"
