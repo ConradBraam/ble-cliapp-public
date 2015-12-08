@@ -10,10 +10,46 @@
 #include "Commands/GattServerCommands.h"
 #include "Commands/GattClientCommands.h"
 
+#include <core-util/atomic_ops.h>
+#include <mbed-drivers/CircularBuffer.h>
+
 // Prototypes
 void cmd_ready_cb(int retcode);
 
-Serial pc(USBTX, USBRX);
+static Serial pc(USBTX, USBRX);
+
+static const size_t CIRCULAR_BUFFER_LENGTH = 128;
+
+// circular buffer used by serial port interrupt to store characters
+// It will be use in a single producer, single consumer setup:
+// producer => RX interrupt
+// consumer => a callback run by yotta
+// note: This class is not designed for this kind of setup, we try to mitigate
+// this by relyin on an external counter instead of an internal one
+static CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
+
+// a counter is used to track count of bytes not yet consumed
+static uint32_t bytesNotConsumed = 0;
+
+// callback called when a character arrive on the serial port
+void whenRxInterrupt(void)
+{
+    char chr = pc.getc();
+    rxBuffer.push((uint8_t) chr);
+
+    if(mbed::util::atomic_incr(&bytesNotConsumed, (uint32_t) 1) == 1) {
+        // if it is the first character send, just post a callback into minar
+        minar::Scheduler::postCallback([]() {
+            do {
+                uint8_t data = 0;
+                if(rxBuffer.pop(data) == false) {
+                    error("invalid state of rxBuffer");
+                }
+                cmd_char_input(data);
+            } while(mbed::util::atomic_decr(&bytesNotConsumed,  (uint32_t) 1));
+        });
+    }
+}
 
 void trace_printer(const char* str)
 {
@@ -25,13 +61,6 @@ void custom_cmd_response_out(const char* fmt, va_list ap)
 {
     vprintf(fmt, ap);
     fflush(stdout);
-}
-
-// serial RX interrupt function
-// there should be buffer to improve performance..
-void cmd_cb(void) 
-{
-    cmd_char_input(pc.getc());        
 }
 
 // this function should be inside some "event scheduler", because
@@ -53,14 +82,15 @@ void app_start(int, char*[])
 {
     //configure serial port
     pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
-    pc.attach(&cmd_cb);
-    
+    pc.attach(whenRxInterrupt);
+
+
     // initialize trace libary
     mbed_client_trace_init();
     mbed_client_trace_print_function_set( trace_printer );
     mbed_client_trace_cmdprint_function_set( cmd_printer );
     mbed_client_trace_config_set(TRACE_MODE_COLOR|TRACE_ACTIVE_LEVEL_DEBUG|TRACE_CARRIAGE_RETURN);
-    
+
     cmd_init( &custom_cmd_response_out );
     cmd_set_ready_cb( cmd_ready_cb );
     initialize_app_commands();
@@ -72,7 +102,7 @@ void app_start(int, char*[])
 int main(void)
 {
     app_start(0, NULL);
-    
+
     return 0;
 }
 #endif
