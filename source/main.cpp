@@ -7,6 +7,7 @@
 #include "CLICommand/CommandSuite.h"
 #include "Commands/BLECommands.h"
 #include "Commands/GapCommands.h"
+#include "Commands/GattServerCommands.h"
 
 // Prototypes
 void cmd_ready_cb(int retcode);
@@ -43,6 +44,7 @@ void cmd_ready_cb(int retcode)
 void initialize_app_commands(void) {
     registerCommandSuite<BLECommandSuiteDescription>();
     registerCommandSuite<GapCommandSuiteDescription>();
+    registerCommandSuite<GattServerCommandSuiteDescription>();
 }
 
 void app_start(int, char*[])
