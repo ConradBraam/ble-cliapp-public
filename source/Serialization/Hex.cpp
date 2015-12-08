@@ -18,6 +18,12 @@ bool asciiHexByteToByte(char msb, char lsb, uint8_t& result) {
 }
 
 container::SimpleString rawDataToHexString(const uint8_t* data, size_t length) {
+    container::SimpleString result;
+
+    if(!length) {
+        return result;
+    }
+
     char* hexData = (char*) malloc((length * 2) + 1);
     for (size_t i = 0; i < length; ++i) {
         snprintf(hexData + (i * 2), 3, "%02X", data[i]);
