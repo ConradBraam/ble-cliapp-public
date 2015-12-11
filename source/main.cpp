@@ -18,35 +18,36 @@ void cmd_ready_cb(int retcode);
 
 static Serial pc(USBTX, USBRX);
 
-static const size_t CIRCULAR_BUFFER_LENGTH = 128;
+static const size_t CIRCULAR_BUFFER_LENGTH = 768;
 
 // circular buffer used by serial port interrupt to store characters
 // It will be use in a single producer, single consumer setup:
 // producer => RX interrupt
 // consumer => a callback run by yotta
-// note: This class is not designed for this kind of setup, we try to mitigate
-// this by relyin on an external counter instead of an internal one
 static CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
-
-// a counter is used to track count of bytes not yet consumed
-static uint32_t bytesNotConsumed = 0;
 
 // callback called when a character arrive on the serial port
 void whenRxInterrupt(void)
 {
-    char chr = pc.getc();
-    rxBuffer.push((uint8_t) chr);
+    bool startConsumer = rxBuffer.empty();
+    rxBuffer.push((uint8_t) pc.getc());
 
-    if(mbed::util::atomic_incr(&bytesNotConsumed, (uint32_t) 1) == 1) {
-        // if it is the first character send, just post a callback into minar
+    if(startConsumer) {
         minar::Scheduler::postCallback([]() {
-            do {
-                uint8_t data = 0;
-                if(rxBuffer.pop(data) == false) {
-                    error("invalid state of rxBuffer");
+            uint8_t data;
+            bool shouldExit = false;
+            while(shouldExit == false) {
+                {
+                    util::CriticalSectionLock lock;
+                    if(rxBuffer.empty()) {
+                        return;
+                    }
+                    rxBuffer.pop(data);
+                    shouldExit = rxBuffer.empty();
                 }
+
                 cmd_char_input(data);
-            } while(mbed::util::atomic_decr(&bytesNotConsumed,  (uint32_t) 1));
+            }
         });
     }
 }
@@ -83,7 +84,6 @@ void app_start(int, char*[])
     //configure serial port
     pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
     pc.attach(whenRxInterrupt);
-
 
     // initialize trace libary
     mbed_client_trace_init();
