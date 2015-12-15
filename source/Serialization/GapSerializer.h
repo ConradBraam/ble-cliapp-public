@@ -6,11 +6,11 @@
 #include "dynamic/Value.h"
 
 template<>
-struct SerializerDescription<Gap::AddressType_t> {
-    typedef Gap::AddressType_t type;
+struct SerializerDescription<BLEProtocol::AddressType_t> {
+    typedef BLEProtocol::AddressType_t type;
 
-    static const ConstArray<ValueToStringMapping<Gap::AddressType_t> > mapping() {
-        static const ValueToStringMapping<Gap::AddressType_t> map[] = {
+    static const ConstArray<ValueToStringMapping<BLEProtocol::AddressType_t> > mapping() {
+        static const ValueToStringMapping<BLEProtocol::AddressType_t> map[] = {
             { BLEProtocol::AddressType::PUBLIC, "ADDR_TYPE_PUBLIC" },
             { BLEProtocol::AddressType::RANDOM_STATIC, "ADDR_TYPE_RANDOM_STATIC" },
             { BLEProtocol::AddressType::RANDOM_PRIVATE_RESOLVABLE, "ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE" },
@@ -21,7 +21,7 @@ struct SerializerDescription<Gap::AddressType_t> {
     }
 
     static const char* errorMessage() {
-        return "unknown Gap::AddressType_t";
+        return "unknown BLEProtocol::AddressType_t";
     }
 };
 
