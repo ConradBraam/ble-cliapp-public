@@ -10,17 +10,17 @@ struct SerializerDescription<Gap::AddressType_t> {
     typedef Gap::AddressType_t type;
 
     static const ConstArray<ValueToStringMapping<Gap::AddressType_t> > mapping() {
-        static const ValueToStringMapping<Gap::AddressType_t> map[] = { 
-            { Gap::ADDR_TYPE_PUBLIC, "ADDR_TYPE_PUBLIC" },
-            { Gap::ADDR_TYPE_RANDOM_STATIC, "ADDR_TYPE_RANDOM_STATIC" },
-            { Gap::ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE, "ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE" },
-            { Gap::ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE, "ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE" }
+        static const ValueToStringMapping<Gap::AddressType_t> map[] = {
+            { BLEProtocol::AddressType::PUBLIC, "ADDR_TYPE_PUBLIC" },
+            { BLEProtocol::AddressType::RANDOM_STATIC, "ADDR_TYPE_RANDOM_STATIC" },
+            { BLEProtocol::AddressType::RANDOM_PRIVATE_RESOLVABLE, "ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE" },
+            { BLEProtocol::AddressType::RANDOM_PRIVATE_NON_RESOLVABLE, "ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE" }
         };
 
         return makeConstArray(map);
     }
 
-    static const char* errorMessage() { 
+    static const char* errorMessage() {
         return "unknown Gap::AddressType_t";
     }
 };
@@ -65,7 +65,7 @@ struct SerializerDescription<Gap::DisconnectionReason_t> {
     }
 };
 
-struct MacAddressString_t { 
+struct MacAddressString_t {
     char str[sizeof("XX:XX:XX:XX:XX:XX")];
 };
 
@@ -78,7 +78,7 @@ static inline bool macAddressFromString(const char* str, Gap::Address_t& val) {
 
     if(count == Gap::ADDR_LEN) {
         for(size_t i = 0; i < Gap::ADDR_LEN; ++i) {
-            val[i] = (uint8_t) tmp[i];          
+            val[i] = (uint8_t) tmp[i];
         }
         return true;
     }
@@ -93,7 +93,7 @@ static inline MacAddressString_t macAddressToString(const Gap::Address_t& src) {
 }
 
 
-// TODO : bidirectional way of serialization / deserialization 
+// TODO : bidirectional way of serialization / deserialization
 
 /// convert Gap::ConnectionParams_t from CLI to structure
 static inline bool connectionParamsFromCLI(const char* str, Gap::ConnectionParams_t& params) {
@@ -135,7 +135,7 @@ static inline dynamic::Value txPermittedValuesToJSON(const int8_t* permittedTxPo
 static inline dynamic::Value gapStateToJSON(Gap::GapState_t state) {
     dynamic::Value result;
     result["advertising"_ss] = state.advertising ? true : false;
-    result["connected"_ss] = state.connected ? true : false;    
+    result["connected"_ss] = state.connected ? true : false;
     return result;
 }
 
