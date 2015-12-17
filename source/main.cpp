@@ -11,7 +11,7 @@
 #include "Commands/GattClientCommands.h"
 
 #include <core-util/atomic_ops.h>
-#include <mbed-drivers/CircularBuffer.h>
+#include "util/CircularBuffer.h"
 
 // Prototypes
 void cmd_ready_cb(int retcode);
@@ -24,30 +24,34 @@ static const size_t CIRCULAR_BUFFER_LENGTH = 768;
 // It will be use in a single producer, single consumer setup:
 // producer => RX interrupt
 // consumer => a callback run by yotta
-static CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
+static ::util::CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
 
 // callback called when a character arrive on the serial port
 void whenRxInterrupt(void)
 {
     bool startConsumer = rxBuffer.empty();
-    rxBuffer.push((uint8_t) pc.getc());
+    if(rxBuffer.push((uint8_t) pc.getc()) == false) {
+        error("error, serial buffer is full\r\n");
+    }
 
     if(startConsumer) {
         minar::Scheduler::postCallback([]() {
-            uint8_t data;
+            // buffer of data
+            uint8_t data[32];
+            uint32_t dataAvailable = 0;
             bool shouldExit = false;
-            while(shouldExit == false) {
+            do {
                 {
-                    util::CriticalSectionLock lock;
-                    if(rxBuffer.empty()) {
-                        return;
+                    mbed::util::CriticalSectionLock lock;
+                    dataAvailable = rxBuffer.pop(data);
+                    if(!dataAvailable) {
+                        error("error, serial buffer is empty\r\n");
                     }
-                    rxBuffer.pop(data);
                     shouldExit = rxBuffer.empty();
                 }
 
-                cmd_char_input(data);
-            }
+                std::for_each(data, data + dataAvailable, cmd_char_input);
+            } while(shouldExit == false);
         });
     }
 }
