@@ -15,19 +15,25 @@
 
 // Prototypes
 void cmd_ready_cb(int retcode);
+static void whenRxInterrupt(void);
+static void consumeSerialBytes(void);
 
-static Serial pc(USBTX, USBRX);
-
+// constants
 static const size_t CIRCULAR_BUFFER_LENGTH = 768;
+static const size_t CONSUMER_BUFFER_LENGTH = 32;
+
+// variables
+static Serial pc(USBTX, USBRX);
 
 // circular buffer used by serial port interrupt to store characters
 // It will be use in a single producer, single consumer setup:
 // producer => RX interrupt
-// consumer => a callback run by yotta
+// consumer => a callback run by minar
 static ::util::CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
 
 // callback called when a character arrive on the serial port
-void whenRxInterrupt(void)
+// this function will run in handler mode
+static void whenRxInterrupt(void)
 {
     bool startConsumer = rxBuffer.empty();
     if(rxBuffer.push((uint8_t) pc.getc()) == false) {
@@ -35,25 +41,30 @@ void whenRxInterrupt(void)
     }
 
     if(startConsumer) {
-        minar::Scheduler::postCallback([]() {
-            // buffer of data
-            uint8_t data[32];
-            uint32_t dataAvailable = 0;
-            bool shouldExit = false;
-            do {
-                {
-                    mbed::util::CriticalSectionLock lock;
-                    dataAvailable = rxBuffer.pop(data);
-                    if(!dataAvailable) {
-                        error("error, serial buffer is empty\r\n");
-                    }
-                    shouldExit = rxBuffer.empty();
-                }
-
-                std::for_each(data, data + dataAvailable, cmd_char_input);
-            } while(shouldExit == false);
-        });
+        minar::Scheduler::postCallback(consumeSerialBytes);
     }
+}
+
+// consumptions of bytes from the serial port.
+// this function should run in thread mode
+static void consumeSerialBytes(void) {
+// buffer of data
+    uint8_t data[CONSUMER_BUFFER_LENGTH];
+    uint32_t dataAvailable = 0;
+    bool shouldExit = false;
+    do {
+        {
+            mbed::util::CriticalSectionLock lock;
+            dataAvailable = rxBuffer.pop(data);
+            if(!dataAvailable) {
+                // sanity check, this should never happen
+                error("error, serial buffer is empty\r\n");
+            }
+            shouldExit = rxBuffer.empty();
+        }
+
+        std::for_each(data, data + dataAvailable, cmd_char_input);
+    } while(shouldExit == false);
 }
 
 void trace_printer(const char* str)
