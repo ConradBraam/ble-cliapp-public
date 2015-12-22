@@ -10,45 +10,72 @@
 #include "Commands/GattServerCommands.h"
 #include "Commands/GattClientCommands.h"
 
-#include <core-util/atomic_ops.h>
-#include <mbed-drivers/CircularBuffer.h>
+// mbed::util::CriticalSectionLock is broken on nordic platform.
+// This is a temporary workaround which should be removed as soon as
+// https://github.com/ARMmbed/core-util/pull/50 is accepted and published
+// in yotta registry.
+#ifdef TARGET_NORDIC
+#include "util/NordicCriticalSectionLock.h"
+typedef ::util::NordicCriticalSectionLock CriticalSection;
+#else
+#include <core-util/CriticalSectionLock.h>
+typedef ::mbed::util::CriticalSectionLock CriticalSection;
+#endif
+
+#include "util/CircularBuffer.h"
 
 // Prototypes
 void cmd_ready_cb(int retcode);
+static void whenRxInterrupt(void);
+static void consumeSerialBytes(void);
 
+// constants
+static const size_t CIRCULAR_BUFFER_LENGTH = 768;
+static const size_t CONSUMER_BUFFER_LENGTH = 32;
+
+// variables
 static Serial pc(USBTX, USBRX);
-
-static const size_t CIRCULAR_BUFFER_LENGTH = 128;
 
 // circular buffer used by serial port interrupt to store characters
 // It will be use in a single producer, single consumer setup:
 // producer => RX interrupt
-// consumer => a callback run by yotta
-// note: This class is not designed for this kind of setup, we try to mitigate
-// this by relyin on an external counter instead of an internal one
-static CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
-
-// a counter is used to track count of bytes not yet consumed
-static uint32_t bytesNotConsumed = 0;
+// consumer => a callback run by minar
+static ::util::CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
 
 // callback called when a character arrive on the serial port
-void whenRxInterrupt(void)
+// this function will run in handler mode
+static void whenRxInterrupt(void)
 {
-    char chr = pc.getc();
-    rxBuffer.push((uint8_t) chr);
-
-    if(mbed::util::atomic_incr(&bytesNotConsumed, (uint32_t) 1) == 1) {
-        // if it is the first character send, just post a callback into minar
-        minar::Scheduler::postCallback([]() {
-            do {
-                uint8_t data = 0;
-                if(rxBuffer.pop(data) == false) {
-                    error("invalid state of rxBuffer");
-                }
-                cmd_char_input(data);
-            } while(mbed::util::atomic_decr(&bytesNotConsumed,  (uint32_t) 1));
-        });
+    bool startConsumer = rxBuffer.empty();
+    if(rxBuffer.push((uint8_t) pc.getc()) == false) {
+        error("error, serial buffer is full\r\n");
     }
+
+    if(startConsumer) {
+        minar::Scheduler::postCallback(consumeSerialBytes);
+    }
+}
+
+// consumptions of bytes from the serial port.
+// this function should run in thread mode
+static void consumeSerialBytes(void) {
+// buffer of data
+    uint8_t data[CONSUMER_BUFFER_LENGTH];
+    uint32_t dataAvailable = 0;
+    bool shouldExit = false;
+    do {
+        {
+            CriticalSection lock;
+            dataAvailable = rxBuffer.pop(data);
+            if(!dataAvailable) {
+                // sanity check, this should never happen
+                error("error, serial buffer is empty\r\n");
+            }
+            shouldExit = rxBuffer.empty();
+        }
+
+        std::for_each(data, data + dataAvailable, cmd_char_input);
+    } while(shouldExit == false);
 }
 
 void trace_printer(const char* str)
@@ -83,7 +110,6 @@ void app_start(int, char*[])
     //configure serial port
     pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
     pc.attach(whenRxInterrupt);
-
 
     // initialize trace libary
     mbed_client_trace_init();
