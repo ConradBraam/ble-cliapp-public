@@ -10,7 +10,18 @@
 #include "Commands/GattServerCommands.h"
 #include "Commands/GattClientCommands.h"
 
-#include <core-util/atomic_ops.h>
+// mbed::util::CriticalSectionLock is broken on nordic platform.
+// This is a temporary workaround which should be removed as soon as
+// https://github.com/ARMmbed/core-util/pull/50 is accepted and published
+// in yotta registry.
+#ifdef TARGET_NORDIC
+#include "util/NordicCriticalSectionLock.h"
+typedef ::util::NordicCriticalSectionLock CriticalSection;
+#else
+#include <core-util/CriticalSectionLock.h>
+typedef ::mbed::util::CriticalSectionLock CriticalSection;
+#endif
+
 #include "util/CircularBuffer.h"
 
 // Prototypes
@@ -54,7 +65,7 @@ static void consumeSerialBytes(void) {
     bool shouldExit = false;
     do {
         {
-            mbed::util::CriticalSectionLock lock;
+            CriticalSection lock;
             dataAvailable = rxBuffer.pop(data);
             if(!dataAvailable) {
                 // sanity check, this should never happen
