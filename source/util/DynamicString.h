@@ -2,43 +2,78 @@
 #define BLE_CLIAPP_DYNAMIC_DYNAMIC_STRING_H_
 
 #include <memory>
-#include <cstring>
 
 namespace container {
 
+/**
+ * @brief RAII object to store a string dynamically allocated
+ */
 class DynamicString {
 
 public:
     /**
      * @brief construct an empty DynamicString
      */
-    DynamicString() : _str(), _size(0) {}
+    DynamicString();
 
-    DynamicString(const char* str, size_t size) : _str(new char[size + 1]), _size(size) { 
-        std::memcpy(_str.get(), str, size);
-        _str[size] = '\0';
-    }
+    /**
+     * @brief Construct a string of a given length
+     *
+     * @param str The str used to construct this object
+     * @param size The number of characters to copy excluding the null character at the end
+     */
+    DynamicString(const char* str, size_t size);
 
-    DynamicString(const char* str) : DynamicString(str, strlen(str)) { }
+    /**
+     * @brief Create a DynamicString from a null terminated byte string
+     *
+     * @param str The null terminated byte strin
+     */
+    DynamicString(const char* str);
 
+    /**
+     * @brief Create a DynamicString from a null terminated byte array
+     *
+     * @param str The null terminated byte array  used to create this object
+     * @tparam N The number of elements in the byte array
+     */
     template<size_t N>
-    DynamicString(const char (&str)[N]) : _str(new char[N]), _size(N - 1) { 
-        std::memcpy(_str.get(), str, N);
-    }
+    DynamicString(const char (&str)[N]) : DynamicString(str, N - 1) { }
 
-    DynamicString(const DynamicString& that) : _str(new char[that._size + 1]), _size(that._size) { 
-        std::memcpy(_str.get(), that._str.get(), _size + 1);
-    }
+    /**
+     * @brief Copy constructor
+     *
+     * @param other The DynamicString used in the copy construction
+     */
+    DynamicString(const DynamicString& other);
 
-    DynamicString(DynamicString&& that) : _str(std::move(that._str)), _size(that._size) { 
-        that._size = 0;
-    }
+    /**
+     * @brief Move constructor
+     *
+     * @param that The DynamicString instance moved into the constructed one.
+     */
+    DynamicString(DynamicString&& that);
 
-    DynamicString& operator=(DynamicString that) { 
-        std::swap(this->_str, that._str);
-        std::swap(this->_size, that._size);
-        return *this;
-    }
+    /**
+     * @brief Destructor
+     */
+    ~DynamicString();
+
+    /**
+     * @brief copy assignement operator
+     *
+     * @param other the DynamicString to copy assign to this
+     * @return *this
+     */
+    DynamicString& operator=(const DynamicString& other);
+
+    /**
+     * @brief move assignement operator
+     *
+     * @param other the DynamicString moved into this instance
+     * @return *this
+     */
+    DynamicString& operator=(DynamicString&& other);
 
     /**
      * @brief return the c string held
@@ -48,7 +83,7 @@ public:
     /**
      * length of the string without the null terminated character
      */
-    size_t size() const { return _size; }   
+    size_t size() const { return _size; }
 
 private:
     std::unique_ptr<char[]> _str;
