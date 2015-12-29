@@ -2,6 +2,7 @@
 #define BLE_CLIAPP_SERIALIZER_H_
 
 #include "util/ConstArray.h"
+#include <cstring>
 
 /**
  * @brief simple POD object which map a value to a string
