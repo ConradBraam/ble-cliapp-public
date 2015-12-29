@@ -1,9 +1,6 @@
 #ifndef BLE_CLIAPP_DYNAMIC_SIMPLE_STRING_H_
 #define BLE_CLIAPP_DYNAMIC_SIMPLE_STRING_H_
 
-#include <memory>
-#include <utility>
-#include <cstring>
 #include "StaticString.h"
 #include "DynamicString.h"
 
@@ -21,128 +18,94 @@ public:
     /**
      * @brief construct an empty DynamicString
      */
-    SimpleString() : _static() {}
+    SimpleString();
 
-    SimpleString(const char* str, ImplementationType_t type = ImplementationType_t::DYNAMIC_STRING) : _type(type) {
-        if(_type == ImplementationType_t::STATIC_STRING) {
-            new(&_static) StaticString(str);
-        } else {
-            new(&_dynamic) DynamicString(str);
-        }
-    }
+    /**
+     * @brief Create a string from a null terminated byte string, the user can
+     * choose if the string is a dynamic one or the static one by providing the
+     * implementation type
+     *
+     * @param str the null terminated byte string used to create this string
+     * @param type The type of the string (dynamic or static)
+     */
+    SimpleString(const char* str, ImplementationType_t type = ImplementationType_t::DYNAMIC_STRING);
 
-    SimpleString(const StaticString& staticString) : _static(staticString), _type(ImplementationType_t::STATIC_STRING) { }
+    /**
+     * @brief copy construct a SimpleString from a StaticString
+     */
+    SimpleString(const StaticString& staticString);
 
-    SimpleString(StaticString&& staticString) : _static(staticString), _type(ImplementationType_t::STATIC_STRING) { }
+    /**
+     * @brief move construct a SimpleString from a static string
+     */
+    SimpleString(StaticString&& staticString);
 
-    SimpleString(const DynamicString& dynamicString) : _dynamic(dynamicString), _type(ImplementationType_t::DYNAMIC_STRING) { }
+    /**
+     * @brief copy construct a SimpleString from a DynamicString
+     */
+    SimpleString(const DynamicString& dynamicString);
 
-    SimpleString(DynamicString&& dynamicString) : _dynamic(dynamicString), _type(ImplementationType_t::DYNAMIC_STRING) { }
+    /**
+     * @brief move construct a SimpleString from a DynamicString
+     */
+    SimpleString(DynamicString&& dynamicString);
 
-    SimpleString(const SimpleString& that) : _type(that._type) {
-        if(_type == ImplementationType_t::STATIC_STRING) {
-            new(&_static) StaticString(that._static);
-        } else {
-            new(&_dynamic) DynamicString(that._dynamic);
-        }
-    }
+    /**
+     * @brief Copy construct a SimpleString
+     */
+    SimpleString(const SimpleString& that);
 
-    SimpleString(SimpleString&& that) : _type(that._type) {
-        if(_type == ImplementationType_t::STATIC_STRING) {
-            new(&_static) StaticString(std::move(that._static));
-        } else {
-            new(&_dynamic) DynamicString(std::move(that._dynamic));
-        }
-    }
+    /**
+     * @brief Move construct a SimpleString
+     */
+    SimpleString(SimpleString&& that);
 
-    ~SimpleString() {
-        if(_type == ImplementationType_t::STATIC_STRING) {
-            _static.~StaticString();
-        } else {
-            _dynamic.~DynamicString();
-        }
-    }
+    /**
+     * @brief Destructor of a SimpleString
+     */
+    ~SimpleString();
 
+    /**
+     * @brief Copy assignement of a SimpleString
+     */
+    SimpleString& operator=(const SimpleString& that);
 
-    SimpleString& operator=(SimpleString that) {
-        if(_type == that._type) {
-            if(_type == ImplementationType_t::STATIC_STRING) {
-                std::swap(_static, that._static);
-            } else {
-                std::swap(_dynamic, that._dynamic);
-            }
-            std::swap(_type, that._type);
-        } else {
-            if(_type == ImplementationType_t::STATIC_STRING) {
-                _static.~StaticString();
-                new(&_dynamic) DynamicString(std::move(that._dynamic));
-            } else {
-                _dynamic.~DynamicString();
-                new(&_static) StaticString(std::move(that._static));
-            }
-            _type = that._type;
-        }
-
-        return *this;
-    }
+    /**
+     * @brief Move assignement of a SimpleString
+     */
+    SimpleString& operator=(SimpleString&& that);
 
     /**
      * @brief return the c string held
      */
-    const char* c_str() const {
-        if(_type == ImplementationType_t::STATIC_STRING) {
-            return _static.c_str();
-        } else {
-            return _dynamic.c_str();
-        }
-    }
+    const char* c_str() const;
 
     /**
      * length of the string without the null terminated character
      */
-    size_t size() const {
-        if(_type == ImplementationType_t::STATIC_STRING) {
-            return _static.size();
-        } else {
-            return _dynamic.size();
-        }
-    }
+    size_t size() const;
 
-    friend bool operator==(const SimpleString& lhs, const SimpleString& rhs) {
-        if(lhs._type == ImplementationType_t::STATIC_STRING) {
-            if(rhs._type == ImplementationType_t::STATIC_STRING) {
-                return lhs._static.size() == rhs._static.size() && memcmp(lhs._static.c_str(), rhs._static.c_str(), lhs._static.size()) == 0;
-            } else {
-                return lhs._static.size() == rhs._dynamic.size() && memcmp(lhs._static.c_str(), rhs._dynamic.c_str(), lhs._static.size()) == 0;
-            }
-        } else {
-            if(rhs._type == ImplementationType_t::STATIC_STRING) {
-                return lhs._dynamic.size() == rhs._static.size() && memcmp(lhs._dynamic.c_str(), rhs._static.c_str(), lhs._dynamic.size()) == 0;
-            } else {
-                return lhs._dynamic.size() == rhs._dynamic.size() && memcmp(lhs._dynamic.c_str(), rhs._dynamic.c_str(), lhs._dynamic.size()) == 0;
-            }
-        }
-    }
+    /**
+     * @brief return a constant iterator to the begining of the string
+     */
+    const_iterator cbegin() const;
 
-    friend bool operator!=(const SimpleString& lhs, const SimpleString& rhs) {
-        return !(lhs == rhs);
-    }
+    /**
+     * @brief return a constant iterator to the end of the string
+     */
+    const_iterator cend() const;
 
-    const_iterator cbegin() const {
-        if(_type == ImplementationType_t::STATIC_STRING) {
-            return _static.c_str();
-        } else {
-            return _dynamic.c_str();
-        }
-    }
+    /**
+     * @brief equal to operator for SimpleString
+     * @return true if lhs == rhs and false otherwise
+     */
+    friend bool operator==(const SimpleString& lhs, const SimpleString& rhs);
 
-    const_iterator cend() const {
-        if(_type == ImplementationType_t::STATIC_STRING) {
-            return _static.c_str() + _static.size();
-        } else {
-            return _dynamic.c_str() + _dynamic.size();
-        }
-    }
+    /**
+     * @brief not equal to operator for SimpleString
+     * @return true if lhs != rhs and false otherwise
+     */
+    friend bool operator!=(const SimpleString& lhs, const SimpleString& rhs);
 
 private:
     union {

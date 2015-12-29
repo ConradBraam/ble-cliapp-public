@@ -1,13 +1,8 @@
 #ifndef BLE_CLIAPP_SERIALIZER_H_
 #define BLE_CLIAPP_SERIALIZER_H_
 
-#include <cstdlib>
-#include <string.h>
-
 #include "util/ConstArray.h"
-#include "ble/Gap.h"
-
-
+#include <cstring>
 
 /**
  * @brief simple POD object which map a value to a string
@@ -86,67 +81,48 @@ static const char* toString(const T& value) {
  * @brief Convert a string to a value
  */
 template<typename T>
-static bool fromString(const char* str, T& value) {
+static inline bool fromString(const char* str, T& value) {
     return Serializer<T>::fromString(str, value);
 }
 
-// Serialization functions from builtin types goes here
-static bool fromString(const char* str, int8_t& val) {
-    char* end;
-    long tmp = strtol(str, &end, 0);
-    if(str == end) {
-        return false;
-    }
+/**
+ * @brief Convert a string to an uin8_t
+ *
+ * @param[in] str The string to convert
+ * @param[out] val The result of the conversion
+ *
+ * @return true if the conversion succeed and false otherwise
+ */
+bool fromString(const char* str, int8_t& val);
 
-    if(tmp < INT8_MIN || tmp > INT8_MAX) {
-        return false;
-    }
+/**
+ * @brief Convert a string to an uint16_t
+ *
+ * @param[in] str The string to convert
+ * @param[out] val The result of the conversion
+ *
+ * @return true if the conversion succeed and false otherwise
+ */
+bool fromString(const char* str, uint16_t& val);
 
-    val = (int8_t) tmp;
-    return true;
-}
+/**
+ * @brief Convert a string to an uint32_t
+ *
+ * @param[in] str The string to convert
+ * @param[out] val The result of the conversion
+ *
+ * @return true if the conversion succeed and false otherwise
+ */
+bool fromString(const char* str, uint32_t& val);
 
-// Serialization functions from builtin types goes here
-static bool fromString(const char* str, uint16_t& val) {
-    char* end;
-    unsigned long tmp = strtoul(str, &end, 0);
-    if(str == end) {
-        return false;
-    }
-
-    if(tmp > UINT16_MAX) {
-        return false;
-    }
-
-    val = (uint16_t) tmp;
-    return true;
-}
-
-// Serialization functions from builtin types goes here
-static bool fromString(const char* str, uint32_t& val) {
-    char* end;
-    unsigned long tmp = strtoul(str, &end, 0);
-    if(str == end) {
-        return false;
-    }
-
-    val = (uint32_t) tmp;
-    return true;
-}
-
-// Serialization functions from builtin types goes here
-static bool fromString(const char* str, bool& val) {
-    if(strcmp(str, "true") == 0) {
-        val = true;
-        return true;
-    }
-
-    if(strcmp(str, "false") == 0) {
-        val = false;
-        return true;
-    }
-
-    return false;
-}
+/**
+ * @brief Convert a string to a bool
+ *
+ * @param[in] str The string to convert
+ * @param[out] val The result of the conversion
+ *
+ * @return true if the conversion succeed and false otherwise
+ */
+bool fromString(const char* str, bool& val);
 
 #endif //BLE_CLIAPP_SERIALIZER_H_
