@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <stdint.h>
 #include <cstdarg>
+#include <cstdio>
 #include <memory>
 
 namespace serialization {
