@@ -1,7 +1,6 @@
 #ifndef BLE_CLIAPP_SERIALIZATION_HEX_H_
 #define BLE_CLIAPP_SERIALIZATION_HEX_H_
 
-#include "util/SimpleString.h"
 #include "util/Vector.h"
 #include "JSONOutputStream.h"
 

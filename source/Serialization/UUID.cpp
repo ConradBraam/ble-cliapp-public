@@ -5,8 +5,6 @@
 #include "Hex.h"
 #include "Serializer.h"
 
-using container::SimpleString;
-
 using namespace serialization;
 
 namespace {
