@@ -34,6 +34,20 @@ container::SimpleString rawDataToHexString(const uint8_t* data, size_t length) {
     return result;
 }
 
+serialization::JSONOutputStream& serializeRawDataToHexString(serialization::JSONOutputStream& os, const uint8_t* data, size_t length) {
+    if(!length) {
+        return os;
+    }
+
+    for (size_t i = 0; i < length; ++i) {
+        os.format("%02X", data[i]);
+    }
+    os.commitValue();
+
+    return os;
+}
+
+
 container::Vector<uint8_t> hexStringToRawData(const char* data) {
     container::Vector<uint8_t> result;
 

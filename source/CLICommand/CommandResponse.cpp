@@ -3,8 +3,14 @@
 
 using namespace serialization;
 
-CommandResponse::CommandResponse(const OnClose_t& onCloseCallBack) :
-    onClose(onCloseCallBack), out(), statusCode(), nameSet(0), argumentsSet(0),
+namespace {
+
+void dummyOnClose(const CommandResponse*) { }
+
+}
+
+CommandResponse::CommandResponse() :
+    onClose(dummyOnClose), out(), statusCode(), nameSet(0), argumentsSet(0),
     statusCodeSet(0), resultStarted(0), closed(0) {
     // start the output
     out << startObject;
@@ -63,6 +69,10 @@ JSONOutputStream& CommandResponse::getResultStream() {
     return out;
 }
 
+void CommandResponse::setOnClose(const OnClose_t& onCloseCallBack) {
+        onClose = onCloseCallBack;
+}
+
 void CommandResponse::close() {
     if(closed) {
         return;
@@ -79,3 +89,30 @@ bool CommandResponse::isClosed() {
     return closed;
 }
 
+bool CommandResponse::invalidParameters(const char* msg) {
+    return setStatusCodeAndMessage(INVALID_PARAMETERS, msg);
+}
+
+bool CommandResponse::notImplemented(const char* msg) {
+    return setStatusCodeAndMessage(COMMAND_NOT_IMPLEMENTED, msg);
+}
+
+bool CommandResponse::faillure(const char* msg) {
+    return setStatusCodeAndMessage(FAIL, msg);
+}
+
+bool CommandResponse::success(const char* msg) {
+    return setStatusCodeAndMessage(SUCCESS, msg);
+}
+
+bool CommandResponse::setStatusCodeAndMessage(StatusCode_t sc, const char* msg) {
+    if(!setStatusCode(sc)) {
+        return false;
+    }
+
+    if(msg) {
+        getResultStream() << msg;
+    }
+
+    return true;
+}

@@ -15,6 +15,9 @@
 #include "Serialization/Hex.h"
 #include "Serialization/DiscoveredCharacteristic.h"
 #include "Serialization/GattCallbackParamTypes.h"
+#include "util/AsyncProcedure.h"
+
+
 
 
 // TODO: description of returned results
@@ -40,108 +43,122 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
     (const CommandArgDescription[]) {
         { "<connectionHandle>", "The connection used by this procedure" }
     },
-    STATIC_LAMBDA(const CommandArgs& args) {
-        static dynamic::Value result = nullptr;
-        static void (*whenTerminated)(Gap::Handle_t) = nullptr;
-        static void (*whenDisconnected)(const Gap::DisconnectionCallbackParams_t*) = nullptr;
-        static minar::callback_handle_t timeoutHandle = nullptr;
-        static auto returnResult = [] (CommandResult res) {
-            CommandSuite<GattClientCommandSuiteDescription>::commandReady(
-                discoverAllServicesAndCharacteristics.name,
-                CommandArgs(0, 0), // command args are not saved right now, maybe later
-                std::move(res)
-            );
-        };
-
-        static auto detachRegisteredCallbacks = []() {
-            client().onServiceDiscoveryTermination(nullptr);
-            gap().onDisconnection().detach(whenDisconnected);
-            if(timeoutHandle) {
-                minar::Scheduler::cancelCallback(timeoutHandle);
-                timeoutHandle = nullptr;
-            }
-        };
-
-        static void (*serviceCallback)(const DiscoveredService*) = [](const DiscoveredService * discoveredService) {
-            dynamic::Value service;
-
-            service["UUID"_ss] = toString(discoveredService->getUUID());
-            service["start_handle"_ss] = (int64_t) discoveredService->getStartHandle();
-            service["end_handle"_ss] = (int64_t) discoveredService->getEndHandle();
-            service["characteristics"_ss] = dynamic::Value::Array_t();
-
-            result.push_back(std::move(service));
-        };
-
-        static void (*characteristicCallback)(const DiscoveredCharacteristic*) = [](const DiscoveredCharacteristic* discoveredCharacteristic) {
-            // get the last service and push the characteristic in it
-            auto lastService = result.array_end();
-            --lastService;
-            (*lastService)["characteristics"_ss].push_back(toDynamicValue(discoveredCharacteristic));
-        };
-
+    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
         // get the connection handle
-        static uint16_t connectionHandle;
+        uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
-            return CommandResult::invalidParameters("the connection handle is ill formed"_ss);
+            response->invalidParameters("the connection handle is ill formed");
+            return;
         }
 
-        // do the request
-        ble_error_t err = client().launchServiceDiscovery(
-            connectionHandle,
-            serviceCallback,
-            characteristicCallback
+        struct DiscoverAllServicesAndCharacteristicsProcedure : public AsyncProcedure {
+            DiscoverAllServicesAndCharacteristicsProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t timeout, uint16_t handle) :
+                AsyncProcedure(res, timeout), connectionHandle(handle), isFirstServiceDiscovered(true) {
+            }
+
+            ~DiscoverAllServicesAndCharacteristicsProcedure() {
+                client().onServiceDiscoveryTermination(nullptr);
+                gap().onDisconnection().detach(makeFunctionPointer(
+                    this, &DiscoverAllServicesAndCharacteristicsProcedure::whenDisconnected
+                ));
+            }
+
+            virtual bool doStart() {
+                ble_error_t err = client().launchServiceDiscovery(
+                    connectionHandle,
+                    makeFunctionPointer(this, &DiscoverAllServicesAndCharacteristicsProcedure::whenServiceDiscovered),
+                    makeFunctionPointer(this, &DiscoverAllServicesAndCharacteristicsProcedure::whenCharacteristicDiscovered)
+                );
+
+                if(err) {
+                    response->faillure(err);
+                    return false;
+                }
+
+                client().onServiceDiscoveryTermination(makeFunctionPointer(
+                    this, &DiscoverAllServicesAndCharacteristicsProcedure::whenServiceDiscoveryTerminated
+                ));
+
+                gap().onDisconnection(makeFunctionPointer(
+                    this, &DiscoverAllServicesAndCharacteristicsProcedure::whenDisconnected
+                ));
+
+                response->getResultStream() << serialization::startArray;
+                return true;
+            }
+
+            void whenServiceDiscovered(const DiscoveredService * discoveredService) {
+                using namespace serialization;
+
+                if(isFirstServiceDiscovered) {
+                    isFirstServiceDiscovered = false;
+                } else {
+                    response->getResultStream() << endArray << endObject;
+                }
+
+                response->getResultStream() <<  startObject <<
+                    key("UUID") << discoveredService->getUUID() <<
+                    key("start_handle") << discoveredService->getStartHandle() <<
+                    key("end_handle") << discoveredService->getEndHandle() <<
+                    key("characteristics") << startArray;
+            }
+
+            void whenCharacteristicDiscovered(const DiscoveredCharacteristic* discoveredCharacteristic) {
+                response->getResultStream() << discoveredCharacteristic;
+            }
+
+            void whenServiceDiscoveryTerminated(Gap::Handle_t handle) {
+                using namespace serialization;
+
+                if(connectionHandle != handle) {
+                    return;
+                };
+
+                if(isFirstServiceDiscovered == false) {
+                    response->getResultStream() << endArray << endObject;
+                }
+
+                response->getResultStream() << endArray;
+
+                response->success();
+                terminate();
+            }
+
+            void whenDisconnected(const Gap::DisconnectionCallbackParams_t* params) {
+                using namespace serialization;
+
+                if(connectionHandle != params->handle) {
+                    return;
+                };
+
+                if(isFirstServiceDiscovered == false) {
+                    response->getResultStream() << endArray << endObject;
+                }
+
+                response->getResultStream() << "disconnection during discovery";
+                response->faillure();
+            }
+
+            virtual void doWhenTimeout() {
+                using namespace serialization;
+
+                if(isFirstServiceDiscovered == false) {
+                    response->getResultStream() << endArray << endObject;
+                }
+
+                response->getResultStream() << "discovery timeout";
+                response->faillure();
+            }
+
+            uint16_t connectionHandle;
+            bool isFirstServiceDiscovered;
+        };
+
+
+        startProcedure<DiscoverAllServicesAndCharacteristicsProcedure>(
+            response, /* timeout */ 100 * 1000, connectionHandle
         );
 
-        if(err) {
-            return CommandResult::faillure(toString(err));
-        }
-        // prepare result as an array
-        result = dynamic::Value::Array_t();
-
-        // register for terminations callback
-
-        // setup termination handle
-        client().onServiceDiscoveryTermination(whenTerminated = [](Gap::Handle_t handle) {
-            if(connectionHandle != handle) {
-                return;
-            };
-
-            detachRegisteredCallbacks();
-            returnResult(CommandResult::success(std::move(result)));
-        });
-
-        gap().onDisconnection(whenDisconnected = [](const Gap::DisconnectionCallbackParams_t* params) {
-            if(connectionHandle != params->handle) {
-                return;
-            };
-
-            detachRegisteredCallbacks();
-
-            // construct the result for this error
-            dynamic::Value discovered_services = std::move(result);
-            result["discovered_services"_ss] = discovered_services;
-            result["error"_ss] = "disconnection during discovery";
-
-            returnResult(CommandResult::faillure(std::move(result)));
-        });
-
-        // register for timeout
-        timeoutHandle = minar::Scheduler::postCallback([]() {
-            timeoutHandle = nullptr;
-
-            detachRegisteredCallbacks();
-
-            // construct the result for this error
-            dynamic::Value discovered_services = std::move(result);
-            result["discovered_services"_ss] = discovered_services;
-            result["error"_ss] = "discovery timeout";
-
-            returnResult(CommandResult::faillure(std::move(result)));
-        }).delay(minar::milliseconds(100 * 1000)).getHandle();
-
-
-        return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);
     }
 };
 
@@ -151,8 +168,8 @@ static constexpr const Command discoverAllServices {
     (const CommandArgDescription[]) {
         { "<connectionHandle>", "The connection used by this procedure" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -163,8 +180,8 @@ static constexpr const Command discoverPrimaryServicesByUUID {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<serviceUUID>", "The UUID of the services to discover" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -176,8 +193,8 @@ static constexpr const Command findIncludedServices {
         { "<serviceStartHandle>", "The starting handle of the service" },
         { "<serviceEndHandle>", "The ending handle of the service" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -190,8 +207,8 @@ static constexpr const Command discoverCharacteristicsOfService {
         { "<serviceStartHandle>", "The starting handle of the service" },
         { "<serviceEndHandle>", "The ending handle of the service" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -204,8 +221,8 @@ static constexpr const Command discoverCharacteristicsByUUID {
         { "<serviceEndHandle>", "The ending handle of the service" },
         { "<serviceUUID>", "The UUID of the characteristics to discover" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -220,85 +237,50 @@ static constexpr const Command discoverAllCharacteristicsDescriptors {
           "The starting handle of the descriptors for this characteristic" },
         { "<endHandle>", "The ending handle of the characteristic definition" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
 
 // this class handle the read procedure
-struct ReadProcedure {
-
-    /**
-     * @brief Launch the read procedure
-     */
-    static CommandResult launch(uint16_t _connectionHandle, uint16_t _valueHandle) {
-        ble_error_t err = client().read(_connectionHandle, _valueHandle, /* offset */ 0);
-
-        if (!err) {
-            // no need to catch the result, it will automatially attach all callbacks,
-            // and after a timeout or when the data has been read, it will release and
-            // destroy itself automatically
-            new ReadProcedure(_connectionHandle, _valueHandle);
-            return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);
-        }
-
-        return CommandResult::faillure(toString(err));
-    }
-
-private:
-
+struct ReadProcedure : public AsyncProcedure {
     /**
      * @brief Construct a read procedure, this will also attach all callbacks
      */
-    ReadProcedure(uint16_t _connectionHandle, uint16_t _valueHandle) :
-        connectionHandle(_connectionHandle), valueHandle(_valueHandle), timeoutHandle(nullptr) {
-        // attach callbacks
-        client().onDataRead(makeFunctionPointer(this, &ReadProcedure::whenDataRead));
-        // attach timeout
-        auto foo = mbed::util::FunctionPointer(this, &ReadProcedure::whenTimeout);
-
-        timeoutHandle = minar::Scheduler::postCallback(this, &ReadProcedure::whenTimeout)
-        .delay(minar::milliseconds(100 * 1000)).getHandle();
+    ReadProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t timeout, uint16_t _connectionHandle, uint16_t _valueHandle) :
+        AsyncProcedure(res, timeout), connectionHandle(_connectionHandle), valueHandle(_valueHandle) {
     }
 
     ~ReadProcedure() {
         // detach callbacks
-        if (timeoutHandle) {
-            minar::Scheduler::cancelCallback(timeoutHandle);
+        client().onDataRead().detach(makeFunctionPointer(this, &ReadProcedure::whenDataRead));
+    }
+
+    bool doStart() {
+        ble_error_t err = client().read(connectionHandle, valueHandle, /* offset */ 0);
+        if (err) {
+            response->faillure(err);
+            return false;
         }
 
-        client().onDataRead().detach(makeFunctionPointer(this, &ReadProcedure::whenDataRead));
+        // attach callbacks
+        client().onDataRead(makeFunctionPointer(this, &ReadProcedure::whenDataRead));
+        return true;
     }
 
     void whenDataRead(const GattReadCallbackParams* params) {
         // verifiy that it is the right characteristic on the right connection
         if (params->connHandle == connectionHandle && params->handle == valueHandle) {
             // convert value to hex
-            returnResult(CommandResult::success(toDynamicValue(params)));
-
-            delete this;
+            response->success(*params);
+            terminate();
         }
     }
-
-    void whenTimeout() {
-        timeoutHandle = nullptr;
-        returnResult(CommandResult::faillure("read procedure timeout"));
-        delete this;
-    }
-
-    static void returnResult(CommandResult res) {
-        CommandSuite<GattClientCommandSuiteDescription>::commandReady(
-            "readCharacteristicValue",
-            CommandArgs(0, 0), // command args are not saved right now, maybe later
-            std::move(res)
-        );
-    };
 
 private:
     uint16_t connectionHandle;
     uint16_t valueHandle;
-    minar::callback_handle_t timeoutHandle;
 };
 
 static constexpr const Command readCharacteristicValue {
@@ -308,18 +290,21 @@ static constexpr const Command readCharacteristicValue {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicValuehandle>", "The handle of characteristic value" }
     },
-    STATIC_LAMBDA(const CommandArgs& args) {
+    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
-            return CommandResult::invalidParameters("the connection handle is ill formed"_ss);
+            response->invalidParameters("the connection handle is ill formed");
+            return;
         }
 
         uint16_t characteristicValueHandle;
         if (!fromString(args[1], characteristicValueHandle)) {
-            return CommandResult::invalidParameters("the characteristic value handle is ill formed"_ss);
+            response->invalidParameters("the characteristic value handle is ill formed");
+            return;
         }
 
-        return ReadProcedure::launch(connectionHandle, characteristicValueHandle);
+        startProcedure<ReadProcedure>(response, /* timeout */ 100 * 1000, connectionHandle, characteristicValueHandle);
     }
 };
 
@@ -334,8 +319,8 @@ static constexpr const Command readUsingCharacteristicUUID {
         { "<serviceEndHandle>", "The ending handle of the service" },
         { "<characteristicUUID>", "The UUID of the characteristic" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -348,8 +333,8 @@ static constexpr const Command readLongCharacteristicValue {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicValuehandle>", "The handle of characteristic value" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -361,86 +346,59 @@ static constexpr const Command readMultipleCharacteristicValues {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicValuehandles...>", "Handles of characteristics values to read" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
-class WriteProcedure {
-public:
-    static CommandResult launch(GattClient::WriteOp_t cmd, uint16_t _connectionHandle,
-        uint16_t _valueHandle, container::Vector<uint8_t> dataToWrite) {
-        ble_error_t err = client().write(
-            cmd, _connectionHandle, _valueHandle, dataToWrite.size(), dataToWrite.begin()
-        );
-
-        if (!err) {
-            // in this case, no response is expected from the server
-            if(cmd == GattClient::GATT_OP_WRITE_CMD) {
-                return CommandResult::success();
-            } else {
-                // no need to catch the result, it will automatially attach all callbacks,
-                // and after a timeout or when the data has been writen, it will release and
-                // destroy itself automatically
-                new WriteProcedure(_connectionHandle, _valueHandle);
-                return CommandResult(CMDLINE_RETCODE_EXCUTING_CONTINUE);
-            }
-        }
-
-        return CommandResult::faillure(toString(err));
-    }
-
-private:
-
-    /**
-     * @brief Construct a read procedure, this will also attach all callbacks
-     */
-    WriteProcedure(uint16_t _connectionHandle, uint16_t _valueHandle) :
-        connectionHandle(_connectionHandle), valueHandle(_valueHandle), timeoutHandle(nullptr) {
-        // attach callbacks
-        client().onDataWritten(makeFunctionPointer(this, &WriteProcedure::whenDataWritten));
-        // attach timeout
-        timeoutHandle = minar::Scheduler::postCallback(this, &WriteProcedure::whenTimeout)
-        .delay(minar::milliseconds(100 * 1000)).getHandle();
+struct WriteProcedure : public AsyncProcedure {
+    WriteProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t timeout,
+        GattClient::WriteOp_t _cmd, uint16_t _connectionHandle, uint16_t _valueHandle, container::Vector<uint8_t> _dataToWrite) :
+        AsyncProcedure(res, timeout), cmd(_cmd), connectionHandle(_connectionHandle),
+        valueHandle(_valueHandle), dataToWrite(_dataToWrite) {
     }
 
     ~WriteProcedure() {
-        // detach callbacks
-        if (timeoutHandle) {
-            minar::Scheduler::cancelCallback(timeoutHandle);
+        client().onDataWritten().detach(makeFunctionPointer(this, &WriteProcedure::whenDataWritten));
+    }
+
+    bool doStart() {
+        ble_error_t err = client().write(
+            cmd, connectionHandle, valueHandle, dataToWrite.size(), dataToWrite.begin()
+        );
+
+        if(err) {
+            response->faillure(toString(err));
+            return false;
         }
 
-        client().onDataWritten().detach(makeFunctionPointer(this, &WriteProcedure::whenDataWritten));
+        // in this case, no response is expected from the server
+        if(cmd == GattClient::GATT_OP_WRITE_CMD) {
+            response->success();
+            // terminate here
+            return false;
+        }
+
+        // attach callbacks
+        client().onDataWritten(makeFunctionPointer(this, &WriteProcedure::whenDataWritten));
     }
 
     void whenDataWritten(const GattWriteCallbackParams* params) {
         // verifiy that it is the right characteristic on the right connection
         if (params->connHandle == connectionHandle && params->handle == valueHandle) {
             // convert value to hex
-            returnResult(CommandResult::success(toDynamicValue(params)));
-            delete this;
+            response->success(*params);
+            terminate();
         }
     }
 
-    void whenTimeout() {
-        timeoutHandle = nullptr;
-        returnResult(CommandResult::faillure("write procedure timeout"));
-        delete this;
-    }
-
-    static void returnResult(CommandResult res) {
-        CommandSuite<GattClientCommandSuiteDescription>::commandReady(
-            "writeXXX",
-            CommandArgs(0, 0), // command args are not saved right now, maybe later
-            std::move(res)
-        );
-    };
-
 private:
+    GattClient::WriteOp_t cmd;
     uint16_t connectionHandle;
     uint16_t valueHandle;
-    minar::callback_handle_t timeoutHandle;
+    container::Vector<uint8_t> dataToWrite;
 };
+
 
 static constexpr const Command writeWithoutResponse {
     "writeWithoutResponse",
@@ -450,23 +408,27 @@ static constexpr const Command writeWithoutResponse {
         { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs& args) {
+    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
-            return CommandResult::faillure("connection handle is ill formed");
+            response->faillure("connection handle is ill formed");
+            return;
         }
 
         uint16_t characteristicValuehandle;
         if (!fromString(args[1], characteristicValuehandle)) {
-            return CommandResult::faillure("characteristic value handle is ill formed");
+            response->faillure("characteristic value handle is ill formed");
+            return;
         }
 
         auto dataToWrite = hexStringToRawData(args[2]);
         if(dataToWrite.size() == 0) {
-            return CommandResult::faillure("data to write provided are invalids");
+            response->faillure("data to write provided are invalids");
+            return;
         }
 
-        return WriteProcedure::launch(
+        startProcedure<WriteProcedure>(
+            response, /* timeout */ 100 * 1000,
             GattClient::GATT_OP_WRITE_CMD, connectionHandle, characteristicValuehandle, dataToWrite
         );
     }
@@ -482,8 +444,8 @@ static constexpr const Command signedWriteWithoutResponse {
         { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -495,23 +457,27 @@ static constexpr const Command write {
         { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs& args) {
+    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
-            return CommandResult::faillure("connection handle is ill formed");
+            response->faillure("connection handle is ill formed");
+            return;
         }
 
         uint16_t characteristicValuehandle;
         if (!fromString(args[1], characteristicValuehandle)) {
-            return CommandResult::faillure("characteristic value handle is ill formed");
+            response->faillure("characteristic value handle is ill formed");
+            return;
         }
 
         auto dataToWrite = hexStringToRawData(args[2]);
         if(dataToWrite.size() == 0) {
-            return CommandResult::faillure("data to write provided are invalids");
+            response->faillure("data to write provided are invalids");
+            return;
         }
 
-        return WriteProcedure::launch(
+        startProcedure<WriteProcedure>(
+            response, 100 * 1000,
             GattClient::GATT_OP_WRITE_REQ, connectionHandle, characteristicValuehandle, dataToWrite
         );
     }
@@ -528,8 +494,8 @@ static constexpr const Command writeLong {
         { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -546,8 +512,8 @@ static constexpr const Command reliableWrite {
         { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -558,8 +524,8 @@ static constexpr const Command readCharacteristicDescriptor {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -572,8 +538,8 @@ static constexpr const Command readLongCharacteristicDescriptor {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -585,8 +551,8 @@ static constexpr const Command writeCharacteristicDescriptor {
         { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 
@@ -600,8 +566,8 @@ static constexpr const Command writeLongCharacteristicDescriptor {
         { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&) {
-        return CommandResult(CMDLINE_RETCODE_COMMAND_NOT_IMPLEMENTED);
+    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+        response->notImplemented();
     }
 };
 

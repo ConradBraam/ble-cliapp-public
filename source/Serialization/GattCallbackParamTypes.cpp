@@ -13,6 +13,18 @@ dynamic::Value toDynamicValue(const GattReadCallbackParams* readResult) {
     return result;
 }
 
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GattReadCallbackParams& readResult) {
+    using namespace serialization;
+    os << startObject <<
+        key("connection_handle") << readResult.connHandle <<
+        key("attribute_handle") << readResult.handle <<
+        key("offset") << readResult.offset <<
+        key("length") << readResult.len <<
+        key("data");
+    return serializeRawDataToHexString(os, readResult.data, readResult.len) << endObject;
+}
+
+
 namespace {
 const char* toString(GattWriteCallbackParams::WriteOp_t op) {
     switch(op) {
@@ -47,4 +59,17 @@ dynamic::Value toDynamicValue(const GattWriteCallbackParams* writeResult) {
     result["write_operation_type"_ss] = toString(writeResult->writeOp);
 
     return result;
+}
+
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GattWriteCallbackParams& writeResult) {
+    using namespace serialization;
+
+    os << startObject <<
+        key("connection_handle") << writeResult.connHandle <<
+        key("attribute_handle") << writeResult.handle <<
+        key("offset") << writeResult.offset <<
+        key("length") << writeResult.len <<
+        key("write_operation_type") << toString(writeResult.writeOp) <<
+        key("data");
+    return serializeRawDataToHexString(os, writeResult.data, writeResult.len) << endObject;
 }

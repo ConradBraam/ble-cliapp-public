@@ -4,6 +4,7 @@
 #include "Serializer.h"
 #include "ble/Gap.h"
 #include "dynamic/Value.h"
+#include "JSONOutputStream.h"
 
 template<>
 struct SerializerDescription<BLEProtocol::AddressType_t> {
@@ -24,6 +25,10 @@ struct SerializerDescription<BLEProtocol::AddressType_t> {
         return "unknown BLEProtocol::AddressType_t";
     }
 };
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, BLEProtocol::AddressType_t addr) {
+    return os << toString(addr);
+}
 
 template<>
 struct SerializerDescription<Gap::Role_t> {
@@ -65,6 +70,10 @@ struct SerializerDescription<Gap::DisconnectionReason_t> {
     }
 };
 
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, Gap::DisconnectionReason_t reason) {
+    return os << toString(reason);
+}
+
 struct MacAddressString_t {
     char str[sizeof("XX:XX:XX:XX:XX:XX")];
 };
@@ -73,12 +82,19 @@ struct MacAddressString_t {
 bool macAddressFromString(const char* str, Gap::Address_t& val);
 MacAddressString_t macAddressToString(const Gap::Address_t& src);
 
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::Address_t& addr) {
+    return os.formatValue("%02X:%02X:%02X:%02X:%02X:%02X", addr[5], addr[4], addr[3],addr[2],addr[1],addr[0]);
+}
+
 /// convert Gap::ConnectionParams_t from CLI to structure
 bool connectionParamsFromCLI(const char* str, Gap::ConnectionParams_t& params);
 
-dynamic::Value connectionParamsToJSON(const Gap::ConnectionParams_t& params);
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os,const Gap::ConnectionParams_t&);
 
 dynamic::Value txPermittedValuesToJSON(const int8_t* permittedTxPowerValues, size_t permittedTxPowerValuesCount);
 dynamic::Value gapStateToJSON(Gap::GapState_t state);
+
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::GapState_t& state);
+
 
 #endif //BLE_CLIAPP_GAP_SERIALIZER_H_

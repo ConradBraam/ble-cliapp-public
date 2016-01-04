@@ -34,6 +34,11 @@ public:
         out(output), startNewValue(false) {
     }
 
+    ~JSONOutputStream() {
+        fputs("\r\n", out);
+        flush();
+    }
+
     // disable all copy operation and move assignment (delete of move operations
     // is more questionable here)
     JSONOutputStream(const JSONOutputStream&) = delete;

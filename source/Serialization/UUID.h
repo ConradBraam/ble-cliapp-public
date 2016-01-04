@@ -3,6 +3,8 @@
 
 #include "ble/UUID.h"
 #include "util/SimpleString.h"
+#include "JSONOutputStream.h"
+
 
 /**
  * @brief Construct a UUID from an input string
@@ -24,5 +26,8 @@ bool fromString(const char* str, UUID& uuid);
  *   - 128 bits UUID: the string will use the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
  */
 container::SimpleString toString(const UUID& uuid);
+
+
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const UUID& uuid);
 
 #endif //BLE_CLIAPP_SERIALIZATION_UUID_H_

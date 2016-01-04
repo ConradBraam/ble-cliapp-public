@@ -20,7 +20,7 @@ public:
      * @important It is expected that outputStream reference remain valid until
      * the response has been closed.
      */
-    CommandResponse(const OnClose_t& onCloseCallBack);
+    CommandResponse();
 
     /**
      * @brief Destroy the command response and close the stream if the stream was not
@@ -82,6 +82,12 @@ public:
     serialization::JSONOutputStream& getResultStream();
 
     /**
+     * @brief Set the callback to call when the response is closed
+     * @param onCloseCallBack callback called when the stream is closed
+     */
+    void setOnClose(const OnClose_t& onCloseCallBack);
+
+    /**
      * @brief Ask to close the response
      */
     void close();
@@ -92,7 +98,47 @@ public:
      */
     bool isClosed();
 
+    // TODO DOC
+    bool invalidParameters(const char* msg = NULL);
+
+    template<typename T>
+    bool invalidParameters(const T& val) {
+        return setStatusCodeAndMessage(INVALID_PARAMETERS, val);
+    }
+
+    bool notImplemented(const char* msg = NULL);
+    bool faillure(const char* msg = NULL);
+    bool success(const char* msg = NULL);
+
+    template<typename T>
+    bool notImplemented(const T& val) {
+        return setStatusCodeAndMessage(COMMAND_NOT_IMPLEMENTED, val);
+    }
+
+    template<typename T>
+    bool faillure(const T& val) {
+        return setStatusCodeAndMessage(FAIL, val);
+    }
+
+    template<typename T>
+    bool success(const T& val) {
+        return setStatusCodeAndMessage(SUCCESS, val);
+    }
+
+
 private:
+    bool setStatusCodeAndMessage(StatusCode_t sc, const char* msg);
+
+    template<typename T>
+    bool setStatusCodeAndMessage(StatusCode_t sc, const T& msg) {
+        if(!setStatusCode(sc)) {
+            return false;
+        }
+
+        getResultStream() << msg;
+        return true;
+    }
+
     OnClose_t onClose;
     serialization::JSONOutputStream out;
     StatusCode_t statusCode;

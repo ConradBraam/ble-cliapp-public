@@ -5,6 +5,8 @@
 #include "ble/DiscoveredCharacteristic.h"
 #include "dynamic/Value.h"
 
+#include "JSONOutputStream.h"
+
 /**
  * @brief Convert a result of GattClient read operation
  * @details The returned object will be a map with the following attributes:
@@ -19,6 +21,8 @@
  * @return The result of the read operation serialized to a dynamic::Value
  */
 dynamic::Value toDynamicValue(const GattReadCallbackParams* readResult);
+
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GattReadCallbackParams& readResult);
 
 /**
  * @brief Convert the result of GattClient write operation
@@ -35,5 +39,7 @@ dynamic::Value toDynamicValue(const GattReadCallbackParams* readResult);
  * @return The result of the write operation serialized to a dynamic::Value
  */
 dynamic::Value toDynamicValue(const GattWriteCallbackParams* writeResult);
+
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GattWriteCallbackParams& writeResult);
 
 #endif //BLE_CLIAPP_GATT_CALLABCK_PARAM_TYPES_SERIALIZER_H_

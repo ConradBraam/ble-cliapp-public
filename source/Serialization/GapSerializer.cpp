@@ -43,13 +43,14 @@ bool connectionParamsFromCLI(const char* str, Gap::ConnectionParams_t& params) {
     return false;
 }
 
-dynamic::Value connectionParamsToJSON(const Gap::ConnectionParams_t& params) {
-    dynamic::Value res;
-    res["minConnectionInterval"_ss] = (int64_t) params.minConnectionInterval;
-    res["maxConnectionInterval"_ss] = (int64_t) params.maxConnectionInterval;
-    res["slaveLatency"_ss] = (int64_t) params.slaveLatency;
-    res["connectionSupervisionTimeout"_ss] = (int64_t) params.connectionSupervisionTimeout;
-    return res;
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os,const Gap::ConnectionParams_t& params) {
+    using namespace serialization;
+    return os << startObject <<
+        key("minConnectionInterval") << params.minConnectionInterval <<
+        key("maxConnectionInterval") << params.maxConnectionInterval <<
+        key("slaveLatency") << params.slaveLatency <<
+        key("connectionSupervisionTimeout") << params.connectionSupervisionTimeout <<
+    endObject;
 }
 
 // TODO better than that, this has to be generic !!!!
@@ -69,3 +70,11 @@ dynamic::Value gapStateToJSON(Gap::GapState_t state) {
     return result;
 }
 
+
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::GapState_t& state) {
+    using namespace serialization;
+    return os << startObject <<
+        key("advertising") << (state.advertising ? true : false) <<
+        key("connected") << (state.connected ? true : false) <<
+    endObject;
+}

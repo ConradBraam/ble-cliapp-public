@@ -149,6 +149,152 @@ dynamic::Value gapAdvertisingDataToJSON(const GapAdvertisingData& advertisingDat
     return gapAdvertisingDataToJSON(advertisingData.getPayload(), advertisingData.getPayloadLen());
 }
 
+serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSONOutputStream& os, const uint8_t* data, uint8_t size) {
+    using namespace serialization;
+
+    os << startObject;
+
+    for(size_t i = 0; i < size; i = (i + data[i] + 1)) {
+        if(data[i] == 0) {
+            continue;
+        }
+
+        // Setup field access
+        GapAdvertisingData::DataType_t dataType = (GapAdvertisingData::DataType_t) data[i + 1];
+        const uint8_t* fieldData = (data[i] == 1) ? NULL : data + i + 2;
+        uint8_t dataLenght = data[i] - 1;
+
+        os << key(toString(dataType));
+
+        // serialization
+        switch(dataType) {
+            case GapAdvertisingData::FLAGS: {
+                // if the flags are malformed, we signal the error
+                if(dataLenght != 1) {
+                    // TODO : add the true value of the field
+                    os << "malformed";
+                    break;
+                }
+
+                // construct an array of the flags
+                const ConstArray<ValueToStringMapping<GapAdvertisingData::Flags_t> > mapping = SerializerDescription<GapAdvertisingData::Flags_t>::mapping();
+                GapAdvertisingData::Flags_t flags = (GapAdvertisingData::Flags_t) fieldData[0];
+
+                os << startArray;
+                for(size_t j = 0; j < mapping.count(); ++j) {
+                    if(flags & mapping[j].value) {
+                        os << mapping[j].str;
+                    }
+                }
+                os << endArray;
+
+                break;
+            }
+
+            case GapAdvertisingData::INCOMPLETE_LIST_16BIT_SERVICE_IDS:
+            case GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS:
+                // if the flags are malformed, we signal the error
+                if(dataLenght % sizeof(uint16_t)) {
+                    // TODO : add the true value of the field
+                    os << "malformed";
+                    break;
+                }
+
+                // construct an array of the service ids
+                os << startArray;
+                for(size_t j = 0; j < dataLenght; j += sizeof(uint16_t)) {
+                    uint16_t uuid = 0;
+                    memcpy(&uuid, fieldData + j, sizeof(uuid));
+                    os.formatValue("0x%04X", uuid);
+                }
+                os << endArray;
+                break;
+
+            case GapAdvertisingData::INCOMPLETE_LIST_32BIT_SERVICE_IDS:
+            case GapAdvertisingData::COMPLETE_LIST_32BIT_SERVICE_IDS:
+                // if the flags are malformed, we signal the error
+                if(dataLenght % sizeof(uint32_t)) {
+                    // TODO : add the true value of the field
+                    os << "malformed";
+                    break;
+                }
+
+                // construct an array of the service ids
+                os << startArray;
+                for(size_t j = 0; j < dataLenght; j += sizeof(uint32_t)) {
+                    uint32_t uuid = 0;
+                    memcpy(&uuid, fieldData + j, sizeof(uuid));
+                    os.format("0x%08lX", uuid);
+                }
+                os << endArray;
+                break;
+
+            case GapAdvertisingData::INCOMPLETE_LIST_128BIT_SERVICE_IDS:
+            case GapAdvertisingData::COMPLETE_LIST_128BIT_SERVICE_IDS:
+                break;
+
+            case GapAdvertisingData::SHORTENED_LOCAL_NAME:
+            case GapAdvertisingData::COMPLETE_LOCAL_NAME:
+                if(dataLenght == 0) {
+                    // TODO : add the true value of the field
+                    os << "";
+                    break;
+                }
+
+                os.write((const char*)fieldData, dataLenght);
+                os.commitValue();
+                break;
+
+            case GapAdvertisingData::TX_POWER_LEVEL:
+                os << "";
+                break;
+
+            case GapAdvertisingData::DEVICE_ID:
+                os << "";
+                break;
+
+            case GapAdvertisingData::SLAVE_CONNECTION_INTERVAL_RANGE:
+                os << "";
+                break;
+
+            case GapAdvertisingData::SERVICE_DATA:
+                os << "";
+                break;
+
+            case GapAdvertisingData::APPEARANCE:
+                os << "";
+                break;
+
+            case GapAdvertisingData::ADVERTISING_INTERVAL:
+                os << "";
+                break;
+
+            case GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA: {
+                for(size_t j = 0; j < dataLenght; ++j) {
+                    os.format("%02X", fieldData[j]);
+                }
+                os.commitValue();
+            } break;
+        }
+    }
+
+    os << key("raw");
+    for(size_t i = 0; i < size; ++i) {
+        os.format("%02X", data[i]);
+    }
+    os.commitValue();
+
+    os << endObject;
+
+    return os;
+}
+
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GapAdvertisingData& advertisingData) {
+    return serializeGapAdvertisingData(os, advertisingData.getPayload(), advertisingData.getPayloadLen());
+}
+
+
+
 /**
  * return NULL in case of success or the reason of the error
  */

@@ -10,6 +10,7 @@
 
 #include "dynamic/Value.h"
 #include "CLICommand/CommandArgs.h"
+#include "JSONOutputStream.h"
 
 template<>
 struct SerializerDescription<GapAdvertisingData::Appearance_t> {
@@ -75,6 +76,10 @@ struct SerializerDescription<GapAdvertisingData::Appearance_t> {
     }
 };
 
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, GapAdvertisingData::Appearance_t appearance) {
+    return os << toString(appearance);
+}
+
 template<>
 struct SerializerDescription<GapAdvertisingData::DataType_t> {
     typedef GapAdvertisingData::DataType_t type;
@@ -138,6 +143,21 @@ dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size);
 
 
 dynamic::Value gapAdvertisingDataToJSON(const GapAdvertisingData& advertisingData);
+
+
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GapAdvertisingData& advertisingData);
+serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSONOutputStream& os, const uint8_t* data, uint8_t size);
+
+struct AdvertisingDataSerializer {
+    AdvertisingDataSerializer(const uint8_t* _data, uint8_t _size) : data(_data), size(_size) {}
+    const uint8_t* data;
+    uint8_t size;
+};
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const AdvertisingDataSerializer& advertisingData) {
+    return serializeGapAdvertisingData(os, advertisingData.data, advertisingData.size);
+}
+
 
 
 struct AdvertisingPayloadField_t {

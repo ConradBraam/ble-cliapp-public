@@ -6,6 +6,8 @@
 #include "dynamic/Value.h"
 #include "util/DynamicString.h"
 
+#include "JSONOutputStream.h"
+
 template<>
 struct SerializerDescription<GapAdvertisingParams::AdvertisingType_t> {
     typedef GapAdvertisingParams::AdvertisingType_t type;
@@ -26,11 +28,18 @@ struct SerializerDescription<GapAdvertisingParams::AdvertisingType_t> {
     }
 };
 
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, GapAdvertisingParams::AdvertisingType_t type) {
+    return os << toString(type);
+}
+
 /**
  * @brief Convert an advertising param to a dynamic::Value
 
  * @param advertisingParams The advertising param to convert
  */
 dynamic::Value advertisingParamsToJSON(const GapAdvertisingParams& advertisingParams);
+
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GapAdvertisingParams& advertisingParams);
+
 
 #endif //BLE_CLIAPP_GAP_ADVERTISING_PARAMS_SERIALIZER_H_
