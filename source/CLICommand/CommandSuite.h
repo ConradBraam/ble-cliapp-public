@@ -16,6 +16,7 @@
 
 #include "dynamic/Value.h"
 #include "util/StaticString.h"
+#include <minar/minar.h>
 
 
 /**
@@ -153,8 +154,7 @@ public:
     }
 
     static void whenAsyncCommandEnd(const CommandResponse* response) {
-        // TODO: post this thing into minar
-        cmd_ready(response->getStatusCode());
+        minar::Scheduler::postCallback(mbed::util::FunctionPointer1<void, int>(cmd_ready).bind(response->getStatusCode()));
     }
 
     // builtin commands
