@@ -3,7 +3,6 @@
 
 #include "Serializer.h"
 #include "ble/Gap.h"
-#include "dynamic/Value.h"
 #include "JSONOutputStream.h"
 
 template<>
@@ -89,10 +88,6 @@ bool connectionParamsFromCLI(const char* str, Gap::ConnectionParams_t& params);
 
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os,const Gap::ConnectionParams_t&);
 
-dynamic::Value txPermittedValuesToJSON(const int8_t* permittedTxPowerValues, size_t permittedTxPowerValuesCount);
-dynamic::Value gapStateToJSON(Gap::GapState_t state);
-
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::GapState_t& state);
-
 
 #endif //BLE_CLIAPP_GAP_SERIALIZER_H_

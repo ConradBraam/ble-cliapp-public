@@ -8,7 +8,6 @@
 #include "UUID.h"
 #include "Hex.h"
 
-#include "dynamic/Value.h"
 #include "CLICommand/CommandArgs.h"
 #include "JSONOutputStream.h"
 
@@ -139,25 +138,13 @@ struct SerializerDescription<GapAdvertisingData::Flags_t> {
  * @param data The data to convert
  * @param size The length of the data
  */
-dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size);
-
-
-dynamic::Value gapAdvertisingDataToJSON(const GapAdvertisingData& advertisingData);
-
-
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GapAdvertisingData& advertisingData);
-serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSONOutputStream& os, const uint8_t* data, uint8_t size);
-
 struct AdvertisingDataSerializer {
     AdvertisingDataSerializer(const uint8_t* _data, uint8_t _size) : data(_data), size(_size) {}
     const uint8_t* data;
     uint8_t size;
 };
-
-static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const AdvertisingDataSerializer& advertisingData) {
-    return serializeGapAdvertisingData(os, advertisingData.data, advertisingData.size);
-}
-
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const AdvertisingDataSerializer& advertisingData);
 
 
 struct AdvertisingPayloadField_t {

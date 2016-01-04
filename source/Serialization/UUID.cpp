@@ -33,17 +33,6 @@ static bool longUUIDfromString(const char* str, UUID& uuid) {
     return true;
 }
 
-static SimpleString toStringLongUUID(const uint8_t* data) {
-    char uuidStr[sizeof("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")];
-
-    snprintf(uuidStr, sizeof(uuidStr),
-        "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
-        data[15], data[14], data[13], data[12], data[11], data[10], data[9], data[8],
-        data[7], data[6], data[5], data[4], data[3], data[2], data[1], data[0]);
-
-    return uuidStr;
-}
-
 static JSONOutputStream& serializeLongUUID(JSONOutputStream& os, const uint8_t* data) {
     return os.formatValue(
         "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
@@ -63,12 +52,6 @@ static bool shortUUIDFromString(const char* str, UUID& uuid) {
     return true;
 }
 
-static SimpleString toStringShortUUID(uint16_t uuid) {
-    char uuidStr[2 + sizeof(uint16_t) * 2 + 1] = { 0 };
-    snprintf(uuidStr, sizeof(uuidStr), "0x%04X", uuid);
-    return uuidStr;
-}
-
 static JSONOutputStream& serializeShortUUID(JSONOutputStream& os, uint16_t uuid) {
     return os.formatValue("\"0x%04X\"", uuid);
 }
@@ -80,14 +63,6 @@ bool fromString(const char* str, UUID& uuid) {
         return longUUIDfromString(str, uuid);
     } else {
         return shortUUIDFromString(str, uuid);
-    }
-}
-
-SimpleString toString(const UUID& uuid) {
-    if(uuid.shortOrLong() == UUID::UUID_TYPE_SHORT) {
-        return toStringShortUUID(uuid.getShortUUID());
-    } else {
-        return toStringLongUUID(uuid.getBaseUUID());
     }
 }
 

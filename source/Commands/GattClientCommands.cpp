@@ -5,9 +5,6 @@
 #include "ble/DiscoveredCharacteristic.h"
 #include "minar/minar.h"
 #include "CLICommand/CommandSuite.h"
-#include "dynamic/Value.h"
-#include "util/StaticString.h"
-#include "util/DynamicString.h"
 
 #include "Serialization/Serializer.h"
 #include "Serialization/BLECommonSerializer.h"

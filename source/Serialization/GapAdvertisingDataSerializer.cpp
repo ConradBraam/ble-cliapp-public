@@ -8,147 +8,6 @@
 #include "GapAdvertisingDataSerializer.h"
 #include <cstring>
 
-dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size) {
-    using container::StaticString;
-    using container::DynamicString;
-    using dynamic::Value;
-
-    Value result;
-
-    for(size_t i = 0; i < size; i = (i + data[i] + 1)) {
-        if(data[i] == 0) {
-            continue;
-        }
-
-        // Setup field access
-        GapAdvertisingData::DataType_t dataType = (GapAdvertisingData::DataType_t) data[i + 1];
-        const uint8_t* fieldData = (data[i] == 1) ? NULL : data + i + 2;
-        uint8_t dataLenght = data[i] - 1;
-
-        Value fieldValue = "conversion not handled"_ss;
-
-        // serialization
-        switch(dataType) {
-            case GapAdvertisingData::FLAGS: {
-                // if the flags are malformed, we signal the error
-                if(dataLenght != 1) {
-                    // TODO : add the true value of the field
-                    fieldValue = "malformed"_ss;
-                    break;
-                }
-
-                // construct an array of the flags
-                const ConstArray<ValueToStringMapping<GapAdvertisingData::Flags_t> > mapping = SerializerDescription<GapAdvertisingData::Flags_t>::mapping();
-                GapAdvertisingData::Flags_t flags = (GapAdvertisingData::Flags_t) fieldData[0];
-
-                for(size_t j = 0; j < mapping.count(); ++j) {
-                    if(flags & mapping[j].value) {
-                        fieldValue.push_back(StaticString(mapping[j].str));
-                    }
-                }
-
-                break;
-            }
-
-            case GapAdvertisingData::INCOMPLETE_LIST_16BIT_SERVICE_IDS:
-            case GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS:
-                // if the flags are malformed, we signal the error
-                if(dataLenght % sizeof(uint16_t)) {
-                    // TODO : add the true value of the field
-                    fieldValue = "malformed"_ss;
-                    break;
-                }
-
-                // construct an array of the service ids
-                for(size_t j = 0; j < dataLenght; j += sizeof(uint16_t)) {
-                    uint16_t uuid = 0;
-                    memcpy(&uuid, fieldData + j, sizeof(uuid));
-                    char uuidStr[2 + sizeof(uint16_t) * 2 + 1] = { 0 };
-                    snprintf(uuidStr, sizeof(uuidStr), "0x%04X", uuid);
-                    fieldValue.push_back(DynamicString(uuidStr));
-                }
-                break;
-
-            case GapAdvertisingData::INCOMPLETE_LIST_32BIT_SERVICE_IDS:
-            case GapAdvertisingData::COMPLETE_LIST_32BIT_SERVICE_IDS:
-                // if the flags are malformed, we signal the error
-                if(dataLenght % sizeof(uint32_t)) {
-                    // TODO : add the true value of the field
-                    fieldValue = "malformed"_ss;
-                    break;
-                }
-
-                // construct an array of the service ids
-                for(size_t j = 0; j < dataLenght; j += sizeof(uint32_t)) {
-                    uint32_t uuid = 0;
-                    memcpy(&uuid, fieldData + j, sizeof(uuid));
-                    char uuidStr[2 + sizeof(uint32_t) * 2 + 1] = { 0 };
-                    snprintf(uuidStr, sizeof(uuidStr), "0x%08lX", uuid);
-                    fieldValue.push_back(DynamicString(uuidStr));
-                }
-                break;
-
-            case GapAdvertisingData::INCOMPLETE_LIST_128BIT_SERVICE_IDS:
-            case GapAdvertisingData::COMPLETE_LIST_128BIT_SERVICE_IDS:
-                break;
-
-            case GapAdvertisingData::SHORTENED_LOCAL_NAME:
-            case GapAdvertisingData::COMPLETE_LOCAL_NAME:
-                if(dataLenght == 0) {
-                    // TODO : add the true value of the field
-                    fieldValue = ""_ss;
-                    break;
-                }
-
-                fieldValue = DynamicString((const char*)fieldData, dataLenght);
-                break;
-
-            case GapAdvertisingData::TX_POWER_LEVEL:
-                break;
-
-            case GapAdvertisingData::DEVICE_ID:
-                break;
-
-            case GapAdvertisingData::SLAVE_CONNECTION_INTERVAL_RANGE:
-                break;
-
-            case GapAdvertisingData::SERVICE_DATA:
-                break;
-
-            case GapAdvertisingData::APPEARANCE:
-                break;
-
-            case GapAdvertisingData::ADVERTISING_INTERVAL:
-                break;
-
-            case GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA: {
-                char hexData[(GAP_ADVERTISING_DATA_MAX_PAYLOAD * 2) + 1] = { 0 };
-                for(size_t j = 0; j < dataLenght; ++j) {
-                    snprintf(hexData + (j * 2), 3, "%02X", fieldData[j]);
-                }
-                fieldValue = hexData;
-            } break;
-        }
-
-        result[StaticString(toString(dataType))] = fieldValue;
-    }
-
-    char rawData[(GAP_ADVERTISING_DATA_MAX_PAYLOAD * 2) + 1] = { 0 };
-    for(size_t i = 0; i < size; ++i) {
-        snprintf(rawData + (i * 2), 3, "%02X", data[i]);
-    }
-
-    result["raw"_ss] = DynamicString((const char*) rawData);
-
-    return result;
-}
-
-
-// TODO : data to string as hex ...
-dynamic::Value gapAdvertisingDataToJSON(const GapAdvertisingData& advertisingData) {
-    return gapAdvertisingDataToJSON(advertisingData.getPayload(), advertisingData.getPayloadLen());
-}
-
 serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSONOutputStream& os, const uint8_t* data, uint8_t size) {
     using namespace serialization;
 
@@ -300,7 +159,9 @@ serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os,
     return serializeGapAdvertisingData(os, advertisingData.getPayload(), advertisingData.getPayloadLen());
 }
 
-
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const AdvertisingDataSerializer& advertisingData) {
+    return serializeGapAdvertisingData(os, advertisingData.data, advertisingData.size);
+}
 
 /**
  * return NULL in case of success or the reason of the error

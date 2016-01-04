@@ -3,9 +3,6 @@
 
 #include "Serializer.h"
 #include "ble/GapAdvertisingParams.h"
-#include "dynamic/Value.h"
-#include "util/DynamicString.h"
-
 #include "JSONOutputStream.h"
 
 template<>
@@ -37,8 +34,6 @@ static inline serialization::JSONOutputStream& operator<<(serialization::JSONOut
 
  * @param advertisingParams The advertising param to convert
  */
-dynamic::Value advertisingParamsToJSON(const GapAdvertisingParams& advertisingParams);
-
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GapAdvertisingParams& advertisingParams);
 
 
