@@ -64,12 +64,11 @@ dynamic::Value toDynamicValue(const GattWriteCallbackParams* writeResult) {
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GattWriteCallbackParams& writeResult) {
     using namespace serialization;
 
-    os << startObject <<
+    return os << startObject <<
         key("connection_handle") << writeResult.connHandle <<
         key("attribute_handle") << writeResult.handle <<
         key("offset") << writeResult.offset <<
         key("length") << writeResult.len <<
         key("write_operation_type") << toString(writeResult.writeOp) <<
-        key("data");
-    return serializeRawDataToHexString(os, writeResult.data, writeResult.len) << endObject;
+    endObject;
 }

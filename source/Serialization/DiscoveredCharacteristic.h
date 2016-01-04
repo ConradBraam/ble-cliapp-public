@@ -4,6 +4,7 @@
 #include "Serializer.h"
 #include "ble/DiscoveredCharacteristic.h"
 #include "dynamic/Value.h"
+#include "JSONOutputStream.h"
 
 /**
  * @brief Convert a discovered characteristic intance to a dynamic::Value.
@@ -19,6 +20,7 @@
  * @return The characteristic serialized to a dynamic::Value
  */
 dynamic::Value toDynamicValue(const DiscoveredCharacteristic* characteristic);
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const DiscoveredCharacteristic& characteristic);
 
 /**
  * @brief Convert properties of discovered characteristic to a dynamic::Value
@@ -36,5 +38,7 @@ dynamic::Value toDynamicValue(const DiscoveredCharacteristic* characteristic);
  * @return An array of the available properties
  */
 dynamic::Value toDynamicValue(const DiscoveredCharacteristic::Properties_t& properties);
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const DiscoveredCharacteristic::Properties_t& properties);
+
 
 #endif //BLE_CLIAPP_DISCOVERED_CHARACTERISTIC_SERIALIZER_H_

@@ -104,7 +104,7 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
             }
 
             void whenCharacteristicDiscovered(const DiscoveredCharacteristic* discoveredCharacteristic) {
-                response->getResultStream() << discoveredCharacteristic;
+                response->getResultStream() << *discoveredCharacteristic;
             }
 
             void whenServiceDiscoveryTerminated(Gap::Handle_t handle) {
@@ -381,6 +381,7 @@ struct WriteProcedure : public AsyncProcedure {
 
         // attach callbacks
         client().onDataWritten(makeFunctionPointer(this, &WriteProcedure::whenDataWritten));
+        return true;
     }
 
     void whenDataWritten(const GattWriteCallbackParams* params) {

@@ -205,7 +205,7 @@ serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSON
                 for(size_t j = 0; j < dataLenght; j += sizeof(uint16_t)) {
                     uint16_t uuid = 0;
                     memcpy(&uuid, fieldData + j, sizeof(uuid));
-                    os.formatValue("0x%04X", uuid);
+                    os.formatValue("\"0x%04X\"", uuid);
                 }
                 os << endArray;
                 break;
@@ -224,13 +224,14 @@ serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSON
                 for(size_t j = 0; j < dataLenght; j += sizeof(uint32_t)) {
                     uint32_t uuid = 0;
                     memcpy(&uuid, fieldData + j, sizeof(uuid));
-                    os.format("0x%08lX", uuid);
+                    os.format("\"0x%08lX\"", uuid);
                 }
                 os << endArray;
                 break;
 
             case GapAdvertisingData::INCOMPLETE_LIST_128BIT_SERVICE_IDS:
             case GapAdvertisingData::COMPLETE_LIST_128BIT_SERVICE_IDS:
+                os << "";
                 break;
 
             case GapAdvertisingData::SHORTENED_LOCAL_NAME:
@@ -241,7 +242,9 @@ serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSON
                     break;
                 }
 
+                os.put('"');
                 os.write((const char*)fieldData, dataLenght);
+                os.put('"');
                 os.commitValue();
                 break;
 
@@ -270,18 +273,22 @@ serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSON
                 break;
 
             case GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA: {
+                os.put('"');
                 for(size_t j = 0; j < dataLenght; ++j) {
                     os.format("%02X", fieldData[j]);
                 }
+                os.put('"');
                 os.commitValue();
             } break;
         }
     }
 
     os << key("raw");
+    os.put('"');
     for(size_t i = 0; i < size; ++i) {
         os.format("%02X", data[i]);
     }
+    os.put('"');
     os.commitValue();
 
     os << endObject;

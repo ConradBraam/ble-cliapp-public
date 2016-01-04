@@ -39,9 +39,11 @@ serialization::JSONOutputStream& serializeRawDataToHexString(serialization::JSON
         return os;
     }
 
+    os.put('"');
     for (size_t i = 0; i < length; ++i) {
         os.format("%02X", data[i]);
     }
+    os.put('"');
     os.commitValue();
 
     return os;

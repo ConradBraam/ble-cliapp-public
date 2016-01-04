@@ -456,7 +456,7 @@ static constexpr const Command getDeviceName {
     "return the device name as a string",
     STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
         // first : collect the size of the name
-        unsigned deviceNameLength;
+        unsigned deviceNameLength = 0;
         ble_error_t err = gap().getDeviceName(NULL, &deviceNameLength);
 
         if(err) {
