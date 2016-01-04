@@ -82,9 +82,7 @@ struct MacAddressString_t {
 bool macAddressFromString(const char* str, Gap::Address_t& val);
 MacAddressString_t macAddressToString(const Gap::Address_t& src);
 
-static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::Address_t& addr) {
-    return os.formatValue("%02X:%02X:%02X:%02X:%02X:%02X", addr[5], addr[4], addr[3],addr[2],addr[1],addr[0]);
-}
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::Address_t& addr);
 
 /// convert Gap::ConnectionParams_t from CLI to structure
 bool connectionParamsFromCLI(const char* str, Gap::ConnectionParams_t& params);

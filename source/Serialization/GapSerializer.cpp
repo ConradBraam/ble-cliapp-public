@@ -23,6 +23,11 @@ MacAddressString_t macAddressToString(const Gap::Address_t& src) {
     return converted;
 }
 
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::Address_t& addr) {
+    return os.formatValue("\"%02X:%02X:%02X:%02X:%02X:%02X\"", addr[5], addr[4], addr[3],addr[2],addr[1],addr[0]);
+}
+
+
 // TODO : bidirectional way of serialization / deserialization
 
 /// convert Gap::ConnectionParams_t from CLI to structure
