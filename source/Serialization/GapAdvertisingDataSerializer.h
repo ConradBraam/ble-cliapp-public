@@ -92,6 +92,7 @@ struct SerializerDescription<GapAdvertisingData::DataType_t> {
             { GapAdvertisingData::COMPLETE_LIST_32BIT_SERVICE_IDS, "COMPLETE_LIST_32BIT_SERVICE_IDS" },
             { GapAdvertisingData::INCOMPLETE_LIST_128BIT_SERVICE_IDS, "INCOMPLETE_LIST_128BIT_SERVICE_IDS" },
             { GapAdvertisingData::COMPLETE_LIST_128BIT_SERVICE_IDS, "COMPLETE_LIST_128BIT_SERVICE_IDS" },
+            { GapAdvertisingData::LIST_128BIT_SOLICITATION_IDS, "LIST_128BIT_SOLICITATION_IDS" },
             { GapAdvertisingData::SHORTENED_LOCAL_NAME, "SHORTENED_LOCAL_NAME" },
             { GapAdvertisingData::COMPLETE_LOCAL_NAME, "COMPLETE_LOCAL_NAME" },
             { GapAdvertisingData::TX_POWER_LEVEL, "TX_POWER_LEVEL" },

@@ -93,6 +93,10 @@ serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSON
                 os << "";
                 break;
 
+            case GapAdvertisingData::LIST_128BIT_SOLICITATION_IDS:
+                os << "";
+                break;
+
             case GapAdvertisingData::SHORTENED_LOCAL_NAME:
             case GapAdvertisingData::COMPLETE_LOCAL_NAME:
                 if(dataLenght == 0) {
