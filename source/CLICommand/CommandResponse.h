@@ -8,7 +8,6 @@
 #include "CommandArgs.h"
 #include "Serialization/JSONOutputStream.h"
 
-
 /**
  * @brief A command response is the response to a command. It doesn't hold data
  * by itself but it provide functions to write the response.

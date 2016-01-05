@@ -14,7 +14,7 @@
 
 #include <iterator>
 
-#include <minar/minar.h>
+#include "CommandSuiteImplementation.h"
 
 
 /**
@@ -61,14 +61,12 @@
  *
  * private:
  *
- * static CommandResult doFoo(const CommandArgs& args) {
- *     cmd_printf("foo");
- *     return CMDLINE_RETCODE_SUCCESS;
+ * static void doFoo(const CommandArgs& args, const std::shared_ptr<CommandResponse>& resp) {
+ *     response->success("foo");
  * }
  *
- * static CommandResult doBar(const CommandArgs& args) {
- *     cmd_printf("bar");
- *     return CMDLINE_RETCODE_SUCCESS;
+ * static CommandResult doBar(const CommandArgs& args, const std::shared_ptr<CommandResponse>& resp) {
+ *     response->success("bar")
  * }
  *
  * }
@@ -101,58 +99,20 @@ public:
      * @return a command status code as described in mbed-client-cli/ns_cmdline.h.
      */
     static int commandHandler(int argc, char** argv) {
-        const CommandArgs args(argc, argv);
-        const char* commandName = args[1];
-        const CommandArgs commandArgs(args.drop(2));
-
-        return executeCommandHandler(commandName, commandArgs);
+        return CommandSuiteImplementation::commandHandler(
+            argc,
+            argv,
+            getBuiltinCommands(),
+            getModuleCommands()
+        );
     }
 
-    /**
-     * execute a command handler, return the status code
-     */
-    static int executeCommandHandler(const char* commandName, const CommandArgs commandArgs) {
-        std::shared_ptr<CommandResponse> response = std::make_shared<CommandResponse>();
-
-        response->setCommandName(commandName);
-        response->setArguments(commandArgs);
-
-        const Command* command = CommandSuite::getCommand(commandName);
-
-        if(command) {
-            // check arguments
-            if(commandArgs.count() < command->argsDescription.count()) {
-                response->invalidParameters("not enough arguments");
-                return response->getStatusCode();
-            }
-
-            if(commandArgs.count() > command->maximumArgsRequired) {
-                response->invalidParameters("too many arguments");
-                return response->getStatusCode();
-            }
-
-            // execute the handler
-            command->handler(commandArgs, response);
-
-            // if response is not referenced elsewhere, this means that the execution is done,
-            // just return the status code set
-            // otherwise, tell the system that the execution continue and install continuation
-            // callback
-            if(response.unique()) {
-                return response->getStatusCode();
-            } else {
-                response->setOnClose(whenAsyncCommandEnd);
-                return CMDLINE_RETCODE_EXCUTING_CONTINUE;
-            }
-
-        } else {
-            response->faillure("invalid command name, you can get all the command name for this module by using the command 'list'");
-            return response->getStatusCode();
-        }
+    static ConstArray<Command> getModuleCommands() {
+        return SuiteDescription::commands();
     }
 
-    static void whenAsyncCommandEnd(const CommandResponse* response) {
-        minar::Scheduler::postCallback(mbed::util::FunctionPointer1<void, int>(cmd_ready).bind(response->getStatusCode()));
+    static ConstArray<const Command*> getBuiltinCommands() {
+        return ConstArray<const Command*>(CommandSuite::builtinCommands);
     }
 
     // builtin commands
@@ -161,23 +121,8 @@ public:
     static const Command list;
     static const Command args;
 
-    static const Command* getCommand(const char* name) {
-        // builtin commands
-        for(size_t i = 0; i < sizeof(CommandSuite::builtinCommands) / sizeof(CommandSuite::builtinCommands[0]); ++i) {
-            if(strcmp(name, CommandSuite::builtinCommands[i]->name) == 0) {
-                return CommandSuite::builtinCommands[i];
-            }
-        }
+    static const Command foo[1];
 
-        const ConstArray<Command> commands = SuiteDescription::commands();
-        for(size_t i = 0; i < commands.count(); ++i) {
-            if(strcmp(name, commands[i].name) == 0) {
-                return &commands[i];
-            }
-        }
-
-        return nullptr;
-    }
 };
 
 template<typename SuiteDescription>
@@ -195,12 +140,12 @@ const Command CommandSuite<SuiteDescription>::help {
         { "<commandName>", "the name of a command you want help for, use the command 'list' to have a list of available commands" }
     },
     STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
-        const Command* command = CommandSuite::getCommand(args[0]);
-        if(!command) {
-            response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
-        } else {
-            response->success(command->help);
-        }
+        CommandSuiteImplementation::help(
+            args,
+            response,
+            getBuiltinCommands(),
+            getModuleCommands()
+        );
     }
 };
 
@@ -208,25 +153,13 @@ template<typename SuiteDescription>
 const Command CommandSuite<SuiteDescription>::list {
     "list",
     "list all the command in a module",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
-        using namespace serialization;
-
-        response->setStatusCode(CommandResponse::SUCCESS);
-
-        auto& os = response->getResultStream();
-
-        os << startArray;
-        // builtin commands
-        for(size_t i = 0; i < sizeof(CommandSuite::builtinCommands) / sizeof(CommandSuite::builtinCommands[0]); ++i) {
-            os << CommandSuite::builtinCommands[i]->name;
-        }
-
-        const ConstArray<Command> commands = SuiteDescription::commands();
-        for(size_t i = 0; i < commands.count(); ++i) {
-            os << commands[i].name;
-        }
-
-        os << endArray;
+    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+        CommandSuiteImplementation::list(
+            args,
+            response,
+            getBuiltinCommands(),
+            getModuleCommands()
+        );
     }
 };
 
@@ -238,21 +171,12 @@ const Command CommandSuite<SuiteDescription>::args {
         { "commandName", "The name of the the command you want the args" }
     },
     STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
-        using namespace serialization;
-
-        const Command* command = CommandSuite::getCommand(args[0]);
-        if(!command) {
-            response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
-            return;
-        }
-
-        auto& os = response->getResultStream();
-
-        os << startArray;
-        for(size_t i = 0; i < command->argsDescription.count(); ++i) {
-            os << startObject << key(command->argsDescription[i].name) << command->argsDescription[i].desc << endObject;
-        }
-        os << endArray;
+        CommandSuiteImplementation::args(
+            args,
+            response,
+            getBuiltinCommands(),
+            getModuleCommands()
+        );
     }
 };
 
