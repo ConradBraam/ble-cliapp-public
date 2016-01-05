@@ -1,6 +1,35 @@
+#include <stdint.h>
+#include <minar/minar.h>
+
+#include "util/StaticLambda.h"
 #include "CommandSuiteImplementation.h"
 
-int CommandSuiteImplementation::commandHandler(int argc, char** argv, const ConstArray<const Command*>& builtinCommands, const ConstArray<Command>& moduleCommands) {
+namespace {
+
+static void whenAsyncCommandEnd(const CommandResponse* response) {
+    minar::Scheduler::postCallback(mbed::util::FunctionPointer1<void, int>(cmd_ready).bind(response->getStatusCode()));
+}
+
+static const Command* getCommand(const char* name, const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands) {
+    // builtin commands
+    for(size_t i = 0; i < builtinCommands.count(); ++i) {
+        if(strcmp(name, builtinCommands[i].name) == 0) {
+            return &builtinCommands[i];
+        }
+    }
+
+    for(size_t i = 0; i < moduleCommands.count(); ++i) {
+        if(strcmp(name, moduleCommands[i].name) == 0) {
+            return &moduleCommands[i];
+        }
+    }
+
+    return nullptr;
+}
+
+}
+
+int CommandSuiteImplementation::commandHandler(int argc, char** argv, const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands) {
     const CommandArgs args(argc, argv);
     const char* commandName = args[1];
     const CommandArgs commandArgs(args.drop(2));
@@ -42,29 +71,8 @@ int CommandSuiteImplementation::commandHandler(int argc, char** argv, const Cons
     }
 }
 
-void CommandSuiteImplementation::whenAsyncCommandEnd(const CommandResponse* response) {
-    minar::Scheduler::postCallback(mbed::util::FunctionPointer1<void, int>(cmd_ready).bind(response->getStatusCode()));
-}
-
-const Command* CommandSuiteImplementation::getCommand(const char* name, const ConstArray<const Command*>& builtinCommands, const ConstArray<Command>& moduleCommands) {
-    // builtin commands
-    for(size_t i = 0; i < builtinCommands.count(); ++i) {
-        if(strcmp(name, builtinCommands[i]->name) == 0) {
-            return builtinCommands[i];
-        }
-    }
-
-    for(size_t i = 0; i < moduleCommands.count(); ++i) {
-        if(strcmp(name, moduleCommands[i].name) == 0) {
-            return &moduleCommands[i];
-        }
-    }
-
-    return nullptr;
-}
-
 void CommandSuiteImplementation::help(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response,
-    const ConstArray<const Command*>& builtinCommands, const ConstArray<Command>& moduleCommands) {
+    const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands) {
     const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
     if(!command) {
         response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
@@ -74,7 +82,7 @@ void CommandSuiteImplementation::help(const CommandArgs& args, const std::shared
 }
 
 void CommandSuiteImplementation::list(const CommandArgs&, const std::shared_ptr<CommandResponse>& response,
-    const ConstArray<const Command*>& builtinCommands, const ConstArray<Command>& moduleCommands) {
+    const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands) {
     using namespace serialization;
 
     response->setStatusCode(CommandResponse::SUCCESS);
@@ -84,7 +92,7 @@ void CommandSuiteImplementation::list(const CommandArgs&, const std::shared_ptr<
     os << startArray;
     // builtin commands
     for(size_t i = 0; i < builtinCommands.count(); ++i) {
-        os << builtinCommands[i]->name;
+        os << builtinCommands[i].name;
     }
 
     for(size_t i = 0; i < moduleCommands.count(); ++i) {
@@ -95,7 +103,7 @@ void CommandSuiteImplementation::list(const CommandArgs&, const std::shared_ptr<
 }
 
 void CommandSuiteImplementation::args(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response,
-    const ConstArray<const Command*>& builtinCommands, const ConstArray<Command>& moduleCommands) {
+    const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands) {
     using namespace serialization;
 
     const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
@@ -112,4 +120,3 @@ void CommandSuiteImplementation::args(const CommandArgs& args, const std::shared
     }
     os << endArray;
 }
-

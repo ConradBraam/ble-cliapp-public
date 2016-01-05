@@ -1,21 +1,11 @@
 #ifndef BLE_CLIAPP_COMMAND_SUITE_H_
 #define BLE_CLIAPP_COMMAND_SUITE_H_
 
-#include <stdint.h>
-
 #include "util/ConstArray.h"
 #include "util/StaticLambda.h"
 #include "CommandArgs.h"
 #include "Command.h"
-
-#include "mbed-client-cli/ns_cmdline.h"
-#include "mbed-client-cli/ns_types.h"
-#include "mbed-client-cli/ns_cmdline.h"
-
-#include <iterator>
-
 #include "CommandSuiteImplementation.h"
-
 
 /**
  * @brief Allow to easily group and add a suite of commands into the cli system.
@@ -78,7 +68,6 @@ template<typename SuiteDescription>
 class CommandSuite {
 
 public:
-
     /**
      * @brief Register this command suite into the cli system
      */
@@ -91,6 +80,7 @@ public:
         );
     }
 
+private:
     /**
      * @brief  Entry point for the command handler of the suite.
      * @details This function demultiplex command and args from CLI and execute the right comamnd.
@@ -111,72 +101,57 @@ public:
         return SuiteDescription::commands();
     }
 
-    static ConstArray<const Command*> getBuiltinCommands() {
-        return ConstArray<const Command*>(CommandSuite::builtinCommands);
+    static ConstArray<Command> getBuiltinCommands() {
+        return ConstArray<Command>(builtinCommands);
     }
 
     // builtin commands
-    static const Command* builtinCommands[3];
-    static const Command help;
-    static const Command list;
-    static const Command args;
-
-    static const Command foo[1];
-
+    static const Command builtinCommands[3];
 };
 
 template<typename SuiteDescription>
-const Command* CommandSuite<SuiteDescription>::builtinCommands[3] = {
-    &CommandSuite::help,
-    &CommandSuite::list,
-    &CommandSuite::args
-};
-
-template<typename SuiteDescription>
-const Command CommandSuite<SuiteDescription>::help {
-    "help",
-    "Print help about a command, you can list the command by using the command 'list'",
-    (const CommandArgDescription[]) {
-        { "<commandName>", "the name of a command you want help for, use the command 'list' to have a list of available commands" }
+const Command CommandSuite<SuiteDescription>::builtinCommands[3] = {
+    Command {
+        "help",
+        "Print help about a command, you can list the command by using the command 'list'",
+        (const CommandArgDescription[]) {
+            { "<commandName>", "the name of a command you want help for, use the command 'list' to have a list of available commands" }
+        },
+        STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+            CommandSuiteImplementation::help(
+                args,
+                response,
+                getBuiltinCommands(),
+                getModuleCommands()
+            );
+        }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
-        CommandSuiteImplementation::help(
-            args,
-            response,
-            getBuiltinCommands(),
-            getModuleCommands()
-        );
-    }
-};
-
-template<typename SuiteDescription>
-const Command CommandSuite<SuiteDescription>::list {
-    "list",
-    "list all the command in a module",
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
-        CommandSuiteImplementation::list(
-            args,
-            response,
-            getBuiltinCommands(),
-            getModuleCommands()
-        );
-    }
-};
-
-template<typename SuiteDescription>
-const Command CommandSuite<SuiteDescription>::args {
-    "args",
-    "print the args of a command",
-    (const CommandArgDescription[]) {
-        { "commandName", "The name of the the command you want the args" }
+    Command {
+        "list",
+        "list all the command in a module",
+        STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+            CommandSuiteImplementation::list(
+                args,
+                response,
+                getBuiltinCommands(),
+                getModuleCommands()
+            );
+        }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
-        CommandSuiteImplementation::args(
-            args,
-            response,
-            getBuiltinCommands(),
-            getModuleCommands()
-        );
+    Command {
+        "args",
+        "print the args of a command",
+        (const CommandArgDescription[]) {
+            { "commandName", "The name of the the command you want the args" }
+        },
+        STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+            CommandSuiteImplementation::args(
+                args,
+                response,
+                getBuiltinCommands(),
+                getModuleCommands()
+            );
+        }
     }
 };
 
