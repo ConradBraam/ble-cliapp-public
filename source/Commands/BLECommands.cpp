@@ -2,7 +2,7 @@
 #include "util/StaticLambda.h"
 #include "Serialization/BLECommonSerializer.h"
 #include "ble/FunctionPointerWithContext.h"
-#include "util/LambdaHelpers.h"
+#include "util/AsyncProcedure.h"
 
 // isolation
 namespace {
@@ -35,13 +35,27 @@ static constexpr const Command init {
             return;
         }
 
-        ble().init(makeOneShotCallbackFP([response](BLE::InitializationCompleteCallbackContext* initializationStatus) {
-            if(initializationStatus->error) {
-                response->faillure(initializationStatus->error);
-            } else {
-                response->success();
+        struct InitProcedure : public AsyncProcedure {
+            InitProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t procedureTimeout) :
+                AsyncProcedure(res, procedureTimeout) {
             }
-        }));
+
+            virtual bool doStart() {
+                ble().init(this, &InitProcedure::whenInit);
+                return true;
+            }
+
+            void whenInit(BLE::InitializationCompleteCallbackContext* initializationStatus) {
+                if(initializationStatus->error) {
+                    response->faillure(initializationStatus->error);
+                } else {
+                    response->success();
+                }
+                terminate();
+            }
+        };
+
+        startProcedure<InitProcedure>(response, /* timeout */ 100 * 1000);
     }
 };
 

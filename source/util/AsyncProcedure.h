@@ -1,57 +1,78 @@
 #ifndef BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
 #define BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
 
+#include <memory>
+#include <minar/minar.h>
+#include "CLICommand/CommandResponse.h"
 
 struct AsyncProcedure {
-    AsyncProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t t) :
-        response(res), timeoutHandle(nullptr), timeout(t) {
+
+    /**
+     * @brief start a new procedure, variadic args will be forwarded to
+     * ProcedureType constructor.
+     *
+     * @param args Args used to build the procedure
+     * @tparam ProcedureType The type of procedure to start
+     */
+    template<typename ProcedureType, typename... Ts>
+    friend void startProcedure(Ts&&... args) {
+        auto proc = new ProcedureType(std::forward<Ts>(args)...);
+        proc->start();
     }
 
-    virtual ~AsyncProcedure() {
-        if(timeoutHandle) {
-            minar::Scheduler::cancelCallback(timeoutHandle);
-        }
-    }
+protected:
+    /**
+     * @brief Construct an AsyncProcedure
+     *
+     * @param res The response wich will be written during the procedure life.
+     * @param timeout The maximum amount of time before the procedure termination
+     */
+    AsyncProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t timeout);
 
-    void start() {
-        if(doStart() == false) {
-            terminate();
-        }
+    /**
+     * @brief destructor for a procedure.
+     */
+    virtual ~AsyncProcedure();
 
-        // register the timeout callback
-        timeoutHandle = minar::Scheduler::postCallback(
-            this, &AsyncProcedure::whenTimeout
-        ).delay(minar::milliseconds(timeout)).getHandle();
-    }
+    /**
+     * @brief terminate the procedure any subsequent accedd to procedure member or
+     * call to procedure member function is undefined.
+     */
+    void terminate();
 
-    void terminate() {
-        delete this;
-    }
-
+    /**
+     * @brief Implementation of start, implementer should return true if the
+     * procedure was successfully launch and false otherwise
+     * @return true if the procedure was successfully launch and false otherwise
+     */
     virtual bool doStart() = 0;
 
-    void whenTimeout() {
-        doWhenTimeout();
-        terminate();
-    }
+    /**
+     * @brief Called when a timeout occur
+     */
+    virtual void doWhenTimeout();
 
-    virtual void doWhenTimeout() {
-        // detach whenConnected handle
-        timeoutHandle = nullptr;
-        response->faillure("timeout");
-    }
-
+    /**
+     * @brief response of the procedure
+     */
     std::shared_ptr<CommandResponse> response;
+
+private:
+    /**
+     * @brief start the procedure, it will call doStart. If doStart return false,
+     * it will terminate the procedure.
+     */
+    void start();
+
+    /**
+     * @brief [brief description]
+     * @details [long description]
+     */
+    void whenTimeout();
+
+
     minar::callback_handle_t timeoutHandle;
     uint32_t timeout;
 };
-
-
-template<typename ProcedureType, typename... Ts>
-void startProcedure(Ts&&... args) {
-    auto proc = new ProcedureType(std::forward<Ts>(args)...);
-    proc->start();
-}
-
 
 #endif //BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
