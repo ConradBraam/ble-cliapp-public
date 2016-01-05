@@ -134,6 +134,7 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
 
                 response->getResultStream() << "disconnection during discovery";
                 response->faillure();
+                terminate();
             }
 
             virtual void doWhenTimeout() {

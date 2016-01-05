@@ -12,20 +12,22 @@ AsyncProcedure::~AsyncProcedure() {
 }
 
 void AsyncProcedure::start() {
+    // register the timeout callback
+    timeoutHandle = minar::Scheduler::postCallback(
+        this, &AsyncProcedure::whenTimeout
+    ).delay(minar::milliseconds(timeout)).getHandle();
+
     if(doStart() == false) {
         terminate();
         return;
     }
 
-    // register the timeout callback
-    timeoutHandle = minar::Scheduler::postCallback(
-        this, &AsyncProcedure::whenTimeout
-    ).delay(minar::milliseconds(timeout)).getHandle();
 }
 
 void AsyncProcedure::terminate() {
     delete this;
 }
+
 
 void AsyncProcedure::whenTimeout() {
     // detach whenConnected handle
