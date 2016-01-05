@@ -14,6 +14,7 @@ AsyncProcedure::~AsyncProcedure() {
 void AsyncProcedure::start() {
     if(doStart() == false) {
         terminate();
+        return;
     }
 
     // register the timeout callback
@@ -26,14 +27,13 @@ void AsyncProcedure::terminate() {
     delete this;
 }
 
-
 void AsyncProcedure::whenTimeout() {
+    // detach whenConnected handle
+    timeoutHandle = nullptr;
     doWhenTimeout();
     terminate();
 }
 
 void AsyncProcedure::doWhenTimeout() {
-    // detach whenConnected handle
-    timeoutHandle = nullptr;
     response->faillure("timeout");
 }
