@@ -11,8 +11,6 @@
  * line. It receive args in input and a response object it has to fullfill.
  * \param args : array of arguments of the function. It does not contain the
  * command name at first argument.
- * \param args : array of arguments of the function. It does not contain the
- * command name at first argument.
  * \param res : response to the command. It is expected that the handler set the
  * status code then provide a result for the command. Command will be finmished
  * once the CommandResponse pointer will expire. This means that as long as the

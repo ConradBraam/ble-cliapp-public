@@ -3,12 +3,21 @@
 
 #include <mbed-client-cli/ns_cmdline.h>
 #include <mbed-client-cli/ns_types.h>
+#include <core-util/FunctionPointer.h>
 
 #include "CommandArgs.h"
 #include "Serialization/JSONOutputStream.h"
 
-#include <core-util/FunctionPointer.h>
 
+/**
+ * @brief A command response is the response to a command. It doesn't hold data
+ * by itself but it provide functions to write the response.
+ * @details A response has the following format, in a specific order:
+ *   - command name
+ *   - command args
+ *   - status code
+ *   - result
+ */
 class CommandResponse {
 
 public:
@@ -98,33 +107,101 @@ public:
      */
     bool isClosed();
 
-    // TODO DOC
+    /**
+     * @brief shorthand for:
+     * \code
+     * response.setStatusCode(INVALID_PARAMETERS);
+     * response.getResultStream() << msg;
+     * \code
+     *
+     * @param msg The message to set in the result stream
+     * @return true if it succeed and false otherwise
+     */
     bool invalidParameters(const char* msg = NULL);
 
+    /**
+     * @brief same as bool invalidParameters(const char*) but for any type which
+     * implement operator<<(JSONOutputStream&, const T&).
+     *
+     * @param val The value to put in the result stream.
+     * @return true if it succeed and false otherwise.
+     */
     template<typename T>
     bool invalidParameters(const T& val) {
         return setStatusCodeAndMessage(INVALID_PARAMETERS, val);
     }
 
+    /**
+     * @brief shorthand for:
+     * \code
+     * response.setStatusCode(COMMAND_NOT_IMPLEMENTED);
+     * response.getResultStream() << msg;
+     * \code
+     *
+     * @param msg The message to set in the result stream
+     * @return true if it succeed and false otherwise
+     */
     bool notImplemented(const char* msg = NULL);
-    bool faillure(const char* msg = NULL);
-    bool success(const char* msg = NULL);
 
+    /**
+     * @brief same as bool notImplemented(const char*) but for any type which
+     * implement operator<<(JSONOutputStream&, const T&).
+     *
+     * @param val The value to put in the result stream.
+     * @return true if it succeed and false otherwise.
+     */
     template<typename T>
     bool notImplemented(const T& val) {
         return setStatusCodeAndMessage(COMMAND_NOT_IMPLEMENTED, val);
     }
 
+    /**
+     * @brief shorthand for:
+     * \code
+     * response.setStatusCode(FAIL);
+     * response.getResultStream() << msg;
+     * \code
+     *
+     * @param msg The message to set in the result stream
+     * @return true if it succeed and false otherwise
+     */
+    bool faillure(const char* msg = NULL);
+
+    /**
+     * @brief same as bool faillure(const char*) but for any type which
+     * implement operator<<(JSONOutputStream&, const T&).
+     *
+     * @param val The value to put in the result stream.
+     * @return true if it succeed and false otherwise.
+     */
     template<typename T>
     bool faillure(const T& val) {
         return setStatusCodeAndMessage(FAIL, val);
     }
 
+    /**
+     * @brief shorthand for:
+     * \code
+     * response.setStatusCode(SUCCESS);
+     * response.getResultStream() << msg;
+     * \code
+     *
+     * @param msg The message to set in the result stream
+     * @return true if it succeed and false otherwise
+     */
+    bool success(const char* msg = NULL);
+
+    /**
+     * @brief same as bool success(const char*) but for any type which
+     * implement operator<<(JSONOutputStream&, const T&).
+     *
+     * @param val The value to put in the result stream.
+     * @return true if it succeed and false otherwise.
+     */
     template<typename T>
     bool success(const T& val) {
         return setStatusCodeAndMessage(SUCCESS, val);
     }
-
 
 private:
     bool setStatusCodeAndMessage(StatusCode_t sc, const char* msg);
