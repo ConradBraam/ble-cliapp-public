@@ -8,7 +8,7 @@
 /*
  * for more details, see : http://pfultz2.com/blog/2014/09/02/static-lambda/
  */
-namespace static_lambda { 
+namespace static_lambda {
 
 template<typename T>
 struct CallGenerator;
@@ -33,6 +33,17 @@ struct CallGenerator<R (F::*)(Arg0) const> {
     }
 };
 
+template<typename R, typename F, typename Arg0, typename Arg1>
+struct CallGenerator<R (F::*)(Arg0, Arg1) const> {
+    static_assert(std::is_empty<F>::value, "invalid, F should be empty");
+
+    static R call(Arg0 arg0, Arg1 arg1) {
+        F* f = nullptr;
+        return (*f)(arg0, arg1);
+    }
+};
+
+
 struct wrapper_factor
 {
     typedef void(*EmptyFunc_t)();
@@ -47,7 +58,7 @@ struct wrapper_factor
 struct addr_add
 {
     template<class T>
-    friend typename std::remove_reference<T>::type *operator+(addr_add, T &&t) 
+    friend typename std::remove_reference<T>::type *operator+(addr_add, T &&t)
     {
         return &t;
     }

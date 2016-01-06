@@ -8,12 +8,10 @@
 #include "GapAdvertisingDataSerializer.h"
 #include <cstring>
 
-dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size) {
-    using container::StaticString;
-    using container::DynamicString;
-    using dynamic::Value;
+serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSONOutputStream& os, const uint8_t* data, uint8_t size) {
+    using namespace serialization;
 
-    Value result;
+    os << startObject;
 
     for(size_t i = 0; i < size; i = (i + data[i] + 1)) {
         if(data[i] == 0) {
@@ -25,7 +23,7 @@ dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size) {
         const uint8_t* fieldData = (data[i] == 1) ? NULL : data + i + 2;
         uint8_t dataLenght = data[i] - 1;
 
-        Value fieldValue = "conversion not handled"_ss;
+        os << key(toString(dataType));
 
         // serialization
         switch(dataType) {
@@ -33,7 +31,7 @@ dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size) {
                 // if the flags are malformed, we signal the error
                 if(dataLenght != 1) {
                     // TODO : add the true value of the field
-                    fieldValue = "malformed"_ss;
+                    os << "malformed";
                     break;
                 }
 
@@ -41,11 +39,13 @@ dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size) {
                 const ConstArray<ValueToStringMapping<GapAdvertisingData::Flags_t> > mapping = SerializerDescription<GapAdvertisingData::Flags_t>::mapping();
                 GapAdvertisingData::Flags_t flags = (GapAdvertisingData::Flags_t) fieldData[0];
 
+                os << startArray;
                 for(size_t j = 0; j < mapping.count(); ++j) {
                     if(flags & mapping[j].value) {
-                        fieldValue.push_back(StaticString(mapping[j].str));
+                        os << mapping[j].str;
                     }
                 }
+                os << endArray;
 
                 break;
             }
@@ -55,18 +55,18 @@ dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size) {
                 // if the flags are malformed, we signal the error
                 if(dataLenght % sizeof(uint16_t)) {
                     // TODO : add the true value of the field
-                    fieldValue = "malformed"_ss;
+                    os << "malformed";
                     break;
                 }
 
                 // construct an array of the service ids
+                os << startArray;
                 for(size_t j = 0; j < dataLenght; j += sizeof(uint16_t)) {
                     uint16_t uuid = 0;
                     memcpy(&uuid, fieldData + j, sizeof(uuid));
-                    char uuidStr[2 + sizeof(uint16_t) * 2 + 1] = { 0 };
-                    snprintf(uuidStr, sizeof(uuidStr), "0x%04X", uuid);
-                    fieldValue.push_back(DynamicString(uuidStr));
+                    os.formatValue("\"0x%04X\"", uuid);
                 }
+                os << endArray;
                 break;
 
             case GapAdvertisingData::INCOMPLETE_LIST_32BIT_SERVICE_IDS:
@@ -74,79 +74,97 @@ dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size) {
                 // if the flags are malformed, we signal the error
                 if(dataLenght % sizeof(uint32_t)) {
                     // TODO : add the true value of the field
-                    fieldValue = "malformed"_ss;
+                    os << "malformed";
                     break;
                 }
 
                 // construct an array of the service ids
+                os << startArray;
                 for(size_t j = 0; j < dataLenght; j += sizeof(uint32_t)) {
                     uint32_t uuid = 0;
                     memcpy(&uuid, fieldData + j, sizeof(uuid));
-                    char uuidStr[2 + sizeof(uint32_t) * 2 + 1] = { 0 };
-                    snprintf(uuidStr, sizeof(uuidStr), "0x%08lX", uuid);
-                    fieldValue.push_back(DynamicString(uuidStr));
+                    os.format("\"0x%08lX\"", uuid);
                 }
+                os << endArray;
                 break;
 
             case GapAdvertisingData::INCOMPLETE_LIST_128BIT_SERVICE_IDS:
             case GapAdvertisingData::COMPLETE_LIST_128BIT_SERVICE_IDS:
+                os << "";
+                break;
+
+            case GapAdvertisingData::LIST_128BIT_SOLICITATION_IDS:
+                os << "";
                 break;
 
             case GapAdvertisingData::SHORTENED_LOCAL_NAME:
             case GapAdvertisingData::COMPLETE_LOCAL_NAME:
                 if(dataLenght == 0) {
                     // TODO : add the true value of the field
-                    fieldValue = ""_ss;
+                    os << "";
                     break;
                 }
 
-                fieldValue = DynamicString((const char*)fieldData, dataLenght);
+                os.put('"');
+                os.write((const char*)fieldData, dataLenght);
+                os.put('"');
+                os.commitValue();
                 break;
 
             case GapAdvertisingData::TX_POWER_LEVEL:
+                os << "";
                 break;
 
             case GapAdvertisingData::DEVICE_ID:
+                os << "";
                 break;
 
             case GapAdvertisingData::SLAVE_CONNECTION_INTERVAL_RANGE:
+                os << "";
                 break;
 
             case GapAdvertisingData::SERVICE_DATA:
+                os << "";
                 break;
 
             case GapAdvertisingData::APPEARANCE:
+                os << "";
                 break;
 
             case GapAdvertisingData::ADVERTISING_INTERVAL:
+                os << "";
                 break;
 
             case GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA: {
-                char hexData[(GAP_ADVERTISING_DATA_MAX_PAYLOAD * 2) + 1] = { 0 };
+                os.put('"');
                 for(size_t j = 0; j < dataLenght; ++j) {
-                    snprintf(hexData + (j * 2), 3, "%02X", fieldData[j]);
+                    os.format("%02X", fieldData[j]);
                 }
-                fieldValue = hexData;
+                os.put('"');
+                os.commitValue();
             } break;
         }
-
-        result[StaticString(toString(dataType))] = fieldValue;
     }
 
-    char rawData[(GAP_ADVERTISING_DATA_MAX_PAYLOAD * 2) + 1] = { 0 };
+    os << key("raw");
+    os.put('"');
     for(size_t i = 0; i < size; ++i) {
-        snprintf(rawData + (i * 2), 3, "%02X", data[i]);
+        os.format("%02X", data[i]);
     }
+    os.put('"');
+    os.commitValue();
 
-    result["raw"_ss] = DynamicString((const char*) rawData);
+    os << endObject;
 
-    return result;
+    return os;
 }
 
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GapAdvertisingData& advertisingData) {
+    return serializeGapAdvertisingData(os, advertisingData.getPayload(), advertisingData.getPayloadLen());
+}
 
-// TODO : data to string as hex ...
-dynamic::Value gapAdvertisingDataToJSON(const GapAdvertisingData& advertisingData) {
-    return gapAdvertisingDataToJSON(advertisingData.getPayload(), advertisingData.getPayloadLen());
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const AdvertisingDataSerializer& advertisingData) {
+    return serializeGapAdvertisingData(os, advertisingData.data, advertisingData.size);
 }
 
 /**

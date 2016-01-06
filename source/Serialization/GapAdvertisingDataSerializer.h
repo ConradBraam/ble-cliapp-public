@@ -8,8 +8,8 @@
 #include "UUID.h"
 #include "Hex.h"
 
-#include "dynamic/Value.h"
 #include "CLICommand/CommandArgs.h"
+#include "JSONOutputStream.h"
 
 template<>
 struct SerializerDescription<GapAdvertisingData::Appearance_t> {
@@ -75,6 +75,10 @@ struct SerializerDescription<GapAdvertisingData::Appearance_t> {
     }
 };
 
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, GapAdvertisingData::Appearance_t appearance) {
+    return os << toString(appearance);
+}
+
 template<>
 struct SerializerDescription<GapAdvertisingData::DataType_t> {
     typedef GapAdvertisingData::DataType_t type;
@@ -88,6 +92,7 @@ struct SerializerDescription<GapAdvertisingData::DataType_t> {
             { GapAdvertisingData::COMPLETE_LIST_32BIT_SERVICE_IDS, "COMPLETE_LIST_32BIT_SERVICE_IDS" },
             { GapAdvertisingData::INCOMPLETE_LIST_128BIT_SERVICE_IDS, "INCOMPLETE_LIST_128BIT_SERVICE_IDS" },
             { GapAdvertisingData::COMPLETE_LIST_128BIT_SERVICE_IDS, "COMPLETE_LIST_128BIT_SERVICE_IDS" },
+            { GapAdvertisingData::LIST_128BIT_SOLICITATION_IDS, "LIST_128BIT_SOLICITATION_IDS" },
             { GapAdvertisingData::SHORTENED_LOCAL_NAME, "SHORTENED_LOCAL_NAME" },
             { GapAdvertisingData::COMPLETE_LOCAL_NAME, "COMPLETE_LOCAL_NAME" },
             { GapAdvertisingData::TX_POWER_LEVEL, "TX_POWER_LEVEL" },
@@ -134,10 +139,13 @@ struct SerializerDescription<GapAdvertisingData::Flags_t> {
  * @param data The data to convert
  * @param size The length of the data
  */
-dynamic::Value gapAdvertisingDataToJSON(const uint8_t* data, uint8_t size);
-
-
-dynamic::Value gapAdvertisingDataToJSON(const GapAdvertisingData& advertisingData);
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GapAdvertisingData& advertisingData);
+struct AdvertisingDataSerializer {
+    AdvertisingDataSerializer(const uint8_t* _data, uint8_t _size) : data(_data), size(_size) {}
+    const uint8_t* data;
+    uint8_t size;
+};
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const AdvertisingDataSerializer& advertisingData);
 
 
 struct AdvertisingPayloadField_t {

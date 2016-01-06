@@ -1,8 +1,8 @@
 #ifndef BLE_CLIAPP_SERIALIZATION_HEX_H_
 #define BLE_CLIAPP_SERIALIZATION_HEX_H_
 
-#include "util/SimpleString.h"
 #include "util/Vector.h"
+#include "JSONOutputStream.h"
 
 /**
  * @brief Convert the string representation of a byte in asci hexadecimal
@@ -24,7 +24,7 @@ bool asciiHexByteToByte(char msb, char lsb, uint8_t& result);
  *
  * @return The data as an hexadecimal string
  */
-container::SimpleString rawDataToHexString(const uint8_t* data, size_t length);
+serialization::JSONOutputStream& serializeRawDataToHexString(serialization::JSONOutputStream& os, const uint8_t* data, size_t length);
 
 /**
  * @brief Convert the string representation of bytes in ascii hexadecimal to

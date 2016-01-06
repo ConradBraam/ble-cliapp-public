@@ -23,6 +23,10 @@ MacAddressString_t macAddressToString(const Gap::Address_t& src) {
     return converted;
 }
 
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::Address_t& addr) {
+    return os.formatValue("\"%02X:%02X:%02X:%02X:%02X:%02X\"", addr[5], addr[4], addr[3],addr[2],addr[1],addr[0]);
+}
+
 // TODO : bidirectional way of serialization / deserialization
 
 /// convert Gap::ConnectionParams_t from CLI to structure
@@ -43,29 +47,20 @@ bool connectionParamsFromCLI(const char* str, Gap::ConnectionParams_t& params) {
     return false;
 }
 
-dynamic::Value connectionParamsToJSON(const Gap::ConnectionParams_t& params) {
-    dynamic::Value res;
-    res["minConnectionInterval"_ss] = (int64_t) params.minConnectionInterval;
-    res["maxConnectionInterval"_ss] = (int64_t) params.maxConnectionInterval;
-    res["slaveLatency"_ss] = (int64_t) params.slaveLatency;
-    res["connectionSupervisionTimeout"_ss] = (int64_t) params.connectionSupervisionTimeout;
-    return res;
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os,const Gap::ConnectionParams_t& params) {
+    using namespace serialization;
+    return os << startObject <<
+        key("minConnectionInterval") << params.minConnectionInterval <<
+        key("maxConnectionInterval") << params.maxConnectionInterval <<
+        key("slaveLatency") << params.slaveLatency <<
+        key("connectionSupervisionTimeout") << params.connectionSupervisionTimeout <<
+    endObject;
 }
 
-// TODO better than that, this has to be generic !!!!
-dynamic::Value txPermittedValuesToJSON(const int8_t* permittedTxPowerValues, size_t permittedTxPowerValuesCount) {
-    dynamic::Value result;
-    for(size_t i = 0; i < permittedTxPowerValuesCount; ++i) {
-        result.push_back((int64_t) permittedTxPowerValues[i]);
-    }
-
-    return result;
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::GapState_t& state) {
+    using namespace serialization;
+    return os << startObject <<
+        key("advertising") << (state.advertising ? true : false) <<
+        key("connected") << (state.connected ? true : false) <<
+    endObject;
 }
-
-dynamic::Value gapStateToJSON(Gap::GapState_t state) {
-    dynamic::Value result;
-    result["advertising"_ss] = state.advertising ? true : false;
-    result["connected"_ss] = state.connected ? true : false;
-    return result;
-}
-

@@ -3,13 +3,14 @@
 
 #include "Serializer.h"
 #include "ble/blecommon.h"
+#include "JSONOutputStream.h"
 
 template<>
 struct SerializerDescription<ble_error_t> {
     typedef ble_error_t type;
 
     static const ConstArray<ValueToStringMapping<type> > mapping() {
-        static const ValueToStringMapping<type> map[] = { 
+        static const ValueToStringMapping<type> map[] = {
             { BLE_ERROR_NONE, "BLE_ERROR_NONE" },
             { BLE_ERROR_BUFFER_OVERFLOW, "BLE_ERROR_BUFFER_OVERFLOW" },
             { BLE_ERROR_NOT_IMPLEMENTED, "BLE_ERROR_NOT_IMPLEMENTED" },
@@ -27,9 +28,13 @@ struct SerializerDescription<ble_error_t> {
         return makeConstArray(map);
     }
 
-    static const char* errorMessage() { 
+    static const char* errorMessage() {
         return "unknown ble_error_t";
     }
 };
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, ble_error_t err) {
+    return os << toString(err);
+}
 
 #endif //BLE_CLIAPP_BLE_COMMON_SERIALIZER_H_

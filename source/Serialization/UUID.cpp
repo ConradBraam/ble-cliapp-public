@@ -5,7 +5,7 @@
 #include "Hex.h"
 #include "Serializer.h"
 
-using container::SimpleString;
+using namespace serialization;
 
 namespace {
 static bool longUUIDfromString(const char* str, UUID& uuid) {
@@ -31,15 +31,12 @@ static bool longUUIDfromString(const char* str, UUID& uuid) {
     return true;
 }
 
-static SimpleString toStringLongUUID(const uint8_t* data) {
-    char uuidStr[sizeof("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")];
-
-    snprintf(uuidStr, sizeof(uuidStr),
+static JSONOutputStream& serializeLongUUID(JSONOutputStream& os, const uint8_t* data) {
+    return os.formatValue(
         "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
         data[15], data[14], data[13], data[12], data[11], data[10], data[9], data[8],
-        data[7], data[6], data[5], data[4], data[3], data[2], data[1], data[0]);
-
-    return uuidStr;
+        data[7], data[6], data[5], data[4], data[3], data[2], data[1], data[0]
+    );
 }
 
 static bool shortUUIDFromString(const char* str, UUID& uuid) {
@@ -53,11 +50,10 @@ static bool shortUUIDFromString(const char* str, UUID& uuid) {
     return true;
 }
 
-static SimpleString toStringShortUUID(uint16_t uuid) {
-    char uuidStr[2 + sizeof(uint16_t) * 2 + 1] = { 0 };
-    snprintf(uuidStr, sizeof(uuidStr), "0x%04X", uuid);
-    return uuidStr;
+static JSONOutputStream& serializeShortUUID(JSONOutputStream& os, uint16_t uuid) {
+    return os.formatValue("\"0x%04X\"", uuid);
 }
+
 }
 
 bool fromString(const char* str, UUID& uuid) {
@@ -68,11 +64,12 @@ bool fromString(const char* str, UUID& uuid) {
     }
 }
 
-SimpleString toString(const UUID& uuid) {
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const UUID& uuid) {
     if(uuid.shortOrLong() == UUID::UUID_TYPE_SHORT) {
-        return toStringShortUUID(uuid.getShortUUID());
+        return serializeShortUUID(os, uuid.getShortUUID());
     } else {
-        return toStringLongUUID(uuid.getBaseUUID());
+        return serializeLongUUID(os, uuid.getBaseUUID());
     }
 }
+
 

@@ -1,42 +1,45 @@
 #include "DiscoveredCharacteristic.h"
 #include "UUID.h"
 
-dynamic::Value toDynamicValue(const DiscoveredCharacteristic* discoveredCharacteristic) {
-    dynamic::Value characteristic;
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const DiscoveredCharacteristic& characteristic) {
+    using namespace serialization;
 
-    characteristic["UUID"_ss] = toString(discoveredCharacteristic->getUUID());
-    characteristic["properties"_ss] = toDynamicValue(discoveredCharacteristic->getProperties());
-    characteristic["start_handle"_ss] = (int64_t) discoveredCharacteristic->getDeclHandle();
-    characteristic["value_handle"_ss] = (int64_t) discoveredCharacteristic->getValueHandle();
-    characteristic["end_handle"_ss] = "not yet implemented, require support from BLE API"_ss;
+    return os << startObject <<
+        key("UUID") << characteristic.getUUID() <<
+        key("properties") << characteristic.getProperties() <<
+        key("start_handle") << characteristic.getDeclHandle() <<
+        key("value_handle") << characteristic.getValueHandle() <<
+        key("end_handle") << "not yet implemented, require support from BLE API" <<
+    endObject;
 
-    return characteristic;
 }
 
-dynamic::Value toDynamicValue(const DiscoveredCharacteristic::Properties_t& properties) {
-    dynamic::Value result;
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const DiscoveredCharacteristic::Properties_t& properties) {
+    using namespace serialization;
+
+    os << startArray;
 
     if (properties.broadcast()) {
-        result.push_back("broadcast"_ss);
+        os << "broadcast";
     }
     if (properties.read()) {
-        result.push_back("read"_ss);
+        os << "read";
     }
     if (properties.writeWoResp()) {
-        result.push_back("writeWoResp"_ss);
+        os << "writeWoResp";
     }
     if (properties.write()) {
-        result.push_back("write"_ss);
+        os << "write";
     }
     if (properties.notify()) {
-        result.push_back("notify"_ss);
+        os << "notify";
     }
     if (properties.indicate()) {
-        result.push_back("indicate"_ss);
+        os << "indicate";
     }
     if (properties.authSignedWrite()) {
-        result.push_back("authSignedWrite"_ss);
+        os << "authSignedWrite";
     }
 
-    return result;
+    return os << endArray;
 }
