@@ -2,7 +2,6 @@
 #define BLE_CLIAPP_COMMAND_RESPONSE_H_
 
 #include <mbed-client-cli/ns_cmdline.h>
-#include <mbed-client-cli/ns_types.h>
 #include <core-util/FunctionPointer.h>
 
 #include "CommandArgs.h"
