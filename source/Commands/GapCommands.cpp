@@ -51,14 +51,14 @@ static constexpr const Command setAddress {
     "setAddress",
     "set the address of this device",
     (const CommandArgDescription[]) {
-        { "<addressType>", "The address type to set. It is a string representation of Gap::AddressType_t" },
+        { "<addressType>", "The address type to set. It is a string representation of BLEProtocol::AddressType_t" },
         { "<address>"    , "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" },
     },
     STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
         // extract first args
-        Gap::AddressType_t addressType;
+        BLEProtocol::AddressType_t addressType;
         if(!fromString(args[0], addressType)) {
-            response->invalidParameters("first argument should match Gap::AddressType_t");
+            response->invalidParameters("first argument should match BLEProtocol::AddressType_t");
             return;
         }
 
@@ -77,12 +77,12 @@ static constexpr const Command getAddress {
     "getAddress",
     "Get the address and the type of address of this device.\r\n"
     "The result will be a json object containing:\r\n"
-    "   * 'address_type': <type of the address. It is a string representation of Gap::AddressType_t>\r\n"
+    "   * 'address_type': <type of the address. It is a string representation of BLEProtocol::AddressType_t>\r\n"
     "   * 'address'     : <the address which is a string representation like 'XX:XX:XX:XX:XX:XX'>\r\n",
     STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
         using namespace serialization;
 
-        Gap::AddressType_t addressType;
+        BLEProtocol::AddressType_t addressType;
         Gap::Address_t address;
 
         ble_error_t err = gap().getAddress(&addressType, address);
@@ -158,7 +158,7 @@ static constexpr const Command connect {
     "\t\tconnectionSupervisionTimeout: supervision timeout for this connection",
     (const CommandArgDescription[]) {
         { "<addressType>", "The address type to of the peer device."\
-                           "It is a string representation of Gap::AddressType_t" },
+                           "It is a string representation of BLEProtocol::AddressType_t" },
         { "<address>", "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" },
         // connection parameters
         { "<minConnectionInterval>", "Minimum Connection Interval in 1.25 ms units" },
@@ -177,9 +177,9 @@ static constexpr const Command connect {
     // TODO DOC
     STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
         // extract Address and address type
-        Gap::AddressType_t addressType;
+        BLEProtocol::AddressType_t addressType;
         if (!fromString(args[0], addressType)) {
-            response->invalidParameters("first argument should match Gap::AddressType_t");
+            response->invalidParameters("first argument should match BLEProtocol::AddressType_t");
             return;
         }
 
@@ -276,7 +276,7 @@ static constexpr const Command connect {
         }
 
         struct ConnectionProcedure : public AsyncProcedure {
-            ConnectionProcedure(Gap::AddressType_t _addressType, const Gap::Address_t& _address,
+            ConnectionProcedure(BLEProtocol::AddressType_t _addressType, const Gap::Address_t& _address,
                 const std::shared_ptr<CommandResponse>& res, uint32_t procedureTimeout) :
                 AsyncProcedure(res, procedureTimeout), addressType(_addressType) {
                 memcpy(address, _address, sizeof(address));
@@ -322,7 +322,7 @@ static constexpr const Command connect {
                 terminate();
             }
 
-            Gap::AddressType_t addressType;
+            BLEProtocol::AddressType_t addressType;
             Gap::Address_t address;
         };
 

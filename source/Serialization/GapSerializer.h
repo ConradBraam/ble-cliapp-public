@@ -14,7 +14,11 @@ struct SerializerDescription<BLEProtocol::AddressType_t> {
             { BLEProtocol::AddressType::PUBLIC, "ADDR_TYPE_PUBLIC" },
             { BLEProtocol::AddressType::RANDOM_STATIC, "ADDR_TYPE_RANDOM_STATIC" },
             { BLEProtocol::AddressType::RANDOM_PRIVATE_RESOLVABLE, "ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE" },
-            { BLEProtocol::AddressType::RANDOM_PRIVATE_NON_RESOLVABLE, "ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE" }
+            { BLEProtocol::AddressType::RANDOM_PRIVATE_NON_RESOLVABLE, "ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE" },
+            { BLEProtocol::AddressType::PUBLIC, "PUBLIC" },
+            { BLEProtocol::AddressType::RANDOM_STATIC, "RANDOM_STATIC" },
+            { BLEProtocol::AddressType::RANDOM_PRIVATE_RESOLVABLE, "RANDOM_PRIVATE_RESOLVABLE" },
+            { BLEProtocol::AddressType::RANDOM_PRIVATE_NON_RESOLVABLE, "RANDOM_PRIVATE_NON_RESOLVABLE" }
         };
 
         return makeConstArray(map);
