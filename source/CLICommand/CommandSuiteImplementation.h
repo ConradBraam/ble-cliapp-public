@@ -15,19 +15,19 @@ struct CommandSuiteImplementation {
     /**
      * @brief builtin help command implementation
      */
-    static void help(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response,
+    static void help(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response,
         const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands);
 
     /**
      * @brief builtin list command implementation
      */
-    static void list(const CommandArgs&, const std::shared_ptr<CommandResponse>& response,
+    static void list(const CommandArgs&, const mbed::util::SharedPointer<CommandResponse>& response,
         const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands);
 
     /**
      * @brief builtin args command implementation
      */
-    static void args(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response,
+    static void args(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response,
         const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands);
 };
 

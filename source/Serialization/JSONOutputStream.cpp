@@ -15,35 +15,35 @@ JSONOutputStream& JSONOutputStream::operator<<(bool value) {
     return *this;
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(int8_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(std::int8_t value) {
     return formatValue("%" PRId8, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(uint8_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(std::uint8_t value) {
     return formatValue("%" PRIu8, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(int16_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(std::int16_t value) {
     return formatValue("%" PRId16, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(uint16_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(std::uint16_t value) {
     return formatValue("%" PRIu16, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(int32_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(std::int32_t value) {
     return formatValue("%" PRId32, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(uint32_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(std::uint32_t value) {
     return formatValue("%" PRIu32, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(int64_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(std::int64_t value) {
     return formatValue("%" PRId64, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(uint64_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(std::uint64_t value) {
     return formatValue("%" PRIu64, value);
 }
 
@@ -82,14 +82,14 @@ JSONOutputStream& nil(JSONOutputStream& os) {
  }
 
 JSONOutputStream& JSONOutputStream::format(const char *fmt, ...) {
-    va_list args;
+    std::va_list args;
     va_start(args, fmt);
     vformat(fmt, args);
     va_end(args);
     return *this;
 }
 
-JSONOutputStream& JSONOutputStream::vformat(const char *fmt, va_list list) {
+JSONOutputStream& JSONOutputStream::vformat(const char *fmt, std::va_list list) {
     handleNewValue();
     vfprintf(out, fmt, list);
     return *this;
@@ -100,7 +100,7 @@ void JSONOutputStream::put(char c) {
     fputc(c, out);
 }
 
-void JSONOutputStream::write(const char* data, size_t count) {
+void JSONOutputStream::write(const char* data, std::size_t count) {
     handleNewValue();
     fwrite(data, 1, count, out);
 }
@@ -119,14 +119,14 @@ void JSONOutputStream::commitValue() {
 }
 
 JSONOutputStream& JSONOutputStream::formatValue(const char *fmt, ...) {
-    va_list args;
+    std::va_list args;
     va_start(args, fmt);
     vformatValue(fmt, args);
     va_end(args);
     return *this;
 }
 
-JSONOutputStream& JSONOutputStream::vformatValue(const char *fmt, va_list list) {
+JSONOutputStream& JSONOutputStream::vformatValue(const char *fmt, std::va_list list) {
     vformat(fmt, list);
     commitValue();
     return *this;

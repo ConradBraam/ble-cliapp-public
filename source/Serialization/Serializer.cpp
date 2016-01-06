@@ -1,7 +1,18 @@
 #include <cstdlib>
-#include <string.h>
+#include <cstring>
+#include <limits>
 
 #include "Serializer.h"
+
+using std::int8_t;
+using std::uint16_t;
+using std::uint32_t;
+using std::strtoul;
+using std::strtol;
+using std::strcmp;
+
+template<typename T>
+using numeric_limits = std::numeric_limits<T>;
 
 bool fromString(const char* str, int8_t& val) {
     char* end;
@@ -10,7 +21,7 @@ bool fromString(const char* str, int8_t& val) {
         return false;
     }
 
-    if(tmp < INT8_MIN || tmp > INT8_MAX) {
+    if(tmp < numeric_limits<int8_t>::min() || tmp > numeric_limits<int8_t>::max()) {
         return false;
     }
 
@@ -25,7 +36,7 @@ bool fromString(const char* str, uint16_t& val) {
         return false;
     }
 
-    if(tmp > UINT16_MAX) {
+    if(tmp > numeric_limits<uint16_t>::max()) {
         return false;
     }
 

@@ -4,7 +4,7 @@
 /**
  * @brief simple description of an argument of a command
  */
-struct CommandArgDescription { 
+struct CommandArgDescription {
     const char* name;                                /// The name of the argument
     const char* desc;                                /// The description of the argument
 };

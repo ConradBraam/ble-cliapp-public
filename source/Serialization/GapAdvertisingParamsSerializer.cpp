@@ -1,4 +1,5 @@
 #include "Serializer.h"
+#include <stdint.h>
 #include "ble/GapAdvertisingParams.h"
 
 #include "GapAdvertisingParamsSerializer.h"

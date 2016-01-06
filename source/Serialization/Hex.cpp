@@ -4,6 +4,11 @@
 
 #include "Hex.h"
 
+using std::uint8_t;
+using std::size_t;
+using std::strtol;
+using std::strlen;
+
 bool asciiHexByteToByte(char msb, char lsb, uint8_t& result) {
     char hexStr[] = { msb, lsb, 0 };
     char* end;

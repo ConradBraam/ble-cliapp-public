@@ -1,10 +1,10 @@
 #ifndef BLE_CLIAPP_DYNAMIC_ARRAY_H_
 #define BLE_CLIAPP_DYNAMIC_ARRAY_H_
 
-#include <memory>
 #include <cstring>
 #include <algorithm>
 #include <utility>
+#include "StandardLibraryPolyfill.h"
 
 namespace container {
 
@@ -19,7 +19,7 @@ public:
     Vector() : _data(0), _size(0), _capacity(0) { }
 
     Vector(const Vector& that) : std::allocator<T>(that), _data(Vector<T>::allocate(that._size)), _size(that._size), _capacity(that._size) {
-        for(size_t i = 0; i < _size; ++i) {
+        for(std::size_t i = 0; i < _size; ++i) {
             new(_data + i) T(that._data[i]);
         }
     }
@@ -31,13 +31,13 @@ public:
     }
 
     ~Vector() {
-        for(size_t i = 0; i < _size; ++i) {
+        for(std::size_t i = 0; i < _size; ++i) {
             (_data + i)->~T();
         }
         std::allocator<T>::deallocate(_data, _capacity);
     }
 
-    Vector& operator=(Vector that) { 
+    Vector& operator=(Vector that) {
         std::swap(this->_data, that._data);
         std::swap(this->_size, that._size);
         std::swap(this->_capacity, that._capacity);
@@ -52,24 +52,24 @@ public:
         return _capacity;
     }
 
-    typename Allocator::reference operator[](size_t index) {
+    typename Allocator::reference operator[](std::size_t index) {
         return _data[index];
     }
 
-    typename Allocator::const_reference operator[](size_t index) const {
+    typename Allocator::const_reference operator[](std::size_t index) const {
         return _data[index];
     }
 
     void push_back(const T& value) {
         if(_size == _capacity) {
-            size_t newCapacity = ((_capacity * 1618) / 1000) + 1;
+            std::size_t newCapacity = ((_capacity * 1618) / 1000) + 1;
             typename Allocator::pointer newData = std::allocator<T>::allocate(newCapacity);
-            for(size_t i = 0; i < _size; ++i) {
-                new (newData + i) T(std::move(_data[i]));
-                (_data + i)->~T();              
+            for(std::size_t i = 0; i < _size; ++i) {
+                new (newData + i) T(util::move(_data[i]));
+                (_data + i)->~T();
             }
             if(_data) {
-                std::allocator<T>::deallocate(_data, _capacity);                
+                std::allocator<T>::deallocate(_data, _capacity);
             }
             _capacity = newCapacity;
             _data = newData;
@@ -81,21 +81,21 @@ public:
 
     void push_back(T&& value) {
         if(_size == _capacity) {
-            size_t newCapacity = ((_capacity * 1618) / 1000) + 1;
+            std::size_t newCapacity = ((_capacity * 1618) / 1000) + 1;
             typename Allocator::pointer newData = std::allocator<T>::allocate(newCapacity);
-            for(size_t i = 0; i < _size; ++i) {
-                T foo(std::move(_data[i]));
+            for(std::size_t i = 0; i < _size; ++i) {
+                T foo(util::move(_data[i]));
                 new (newData + i) T(foo);
-                (_data + i)->~T();              
+                (_data + i)->~T();
             }
             if(_data) {
-                std::allocator<T>::deallocate(_data, _capacity);                
+                std::allocator<T>::deallocate(_data, _capacity);
             }
             _capacity = newCapacity;
             _data = newData;
         }
 
-        new (_data + _size) T(std::move(value));
+        new (_data + _size) T(util::move(value));
         ++_size;
     }
 
@@ -115,12 +115,12 @@ public:
         return _data + _size;
     }
 
-    friend bool operator==(const Vector& lhs, const Vector& rhs) { 
-        if(lhs._size != rhs._size) { 
+    friend bool operator==(const Vector& lhs, const Vector& rhs) {
+        if(lhs._size != rhs._size) {
             return false;
         }
 
-        for(size_t i = 0; i < lhs._size; ++i) {
+        for(std::size_t i = 0; i < lhs._size; ++i) {
             if(lhs._data[i] != rhs._data[i]) {
                 return false;
             }

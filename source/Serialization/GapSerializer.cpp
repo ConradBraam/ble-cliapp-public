@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "GapSerializer.h"
 
 // MAC address serializer/deserializer
@@ -5,7 +6,7 @@ bool macAddressFromString(const char* str, Gap::Address_t& val) {
     // since nano libc does not properly handle all format flags, we rely on integers for sscanf
     int tmp[Gap::ADDR_LEN];
 
-    int count = sscanf(str, "%x:%x:%x:%x:%x:%x", &tmp[5], &tmp[4], &tmp[3], &tmp[2], &tmp[1], &tmp[0]);
+    int count = std::sscanf(str, "%x:%x:%x:%x:%x:%x", &tmp[5], &tmp[4], &tmp[3], &tmp[2], &tmp[1], &tmp[0]);
 
     if(count == Gap::ADDR_LEN) {
         for(size_t i = 0; i < Gap::ADDR_LEN; ++i) {
@@ -34,7 +35,7 @@ bool connectionParamsFromCLI(const char* str, Gap::ConnectionParams_t& params) {
     // since nano libc does not properly handle all format flags, we rely on integers for sscanf
     unsigned int tmp[4];
 
-    int count = sscanf(str, "%u,%u,%u,%u", &tmp[0], &tmp[1], &tmp[2], &tmp[3]);
+    int count = std::sscanf(str, "%u,%u,%u,%u", &tmp[0], &tmp[1], &tmp[2], &tmp[3]);
 
     if(count == 4) {
         params.minConnectionInterval = tmp[0];
