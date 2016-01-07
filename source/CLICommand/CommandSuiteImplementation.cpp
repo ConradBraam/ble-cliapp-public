@@ -1,8 +1,11 @@
-#include <stdint.h>
+#include <cstdint>
 #include <minar/minar.h>
 
 #include "util/StaticLambda.h"
 #include "CommandSuiteImplementation.h"
+
+template<typename T>
+using SharedPointer = mbed::util::SharedPointer<T>;
 
 namespace {
 
@@ -34,7 +37,7 @@ int CommandSuiteImplementation::commandHandler(int argc, char** argv, const Cons
     const char* commandName = args[1];
     const CommandArgs commandArgs(args.drop(2));
 
-    std::shared_ptr<CommandResponse> response = std::make_shared<CommandResponse>();
+    SharedPointer<CommandResponse> response(new CommandResponse());
 
     response->setCommandName(commandName);
     response->setArguments(commandArgs);
@@ -63,7 +66,7 @@ int CommandSuiteImplementation::commandHandler(int argc, char** argv, const Cons
     // just return the status code set
     // otherwise, tell the system that the execution continue and install continuation
     // callback
-    if(response.unique()) {
+    if(response.use_count() == 1) {
         return response->getStatusCode();
     } else {
         response->setOnClose(whenAsyncCommandEnd);
@@ -71,7 +74,7 @@ int CommandSuiteImplementation::commandHandler(int argc, char** argv, const Cons
     }
 }
 
-void CommandSuiteImplementation::help(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response,
+void CommandSuiteImplementation::help(const CommandArgs& args, const SharedPointer<CommandResponse>& response,
     const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands) {
     const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
     if(!command) {
@@ -81,7 +84,7 @@ void CommandSuiteImplementation::help(const CommandArgs& args, const std::shared
     }
 }
 
-void CommandSuiteImplementation::list(const CommandArgs&, const std::shared_ptr<CommandResponse>& response,
+void CommandSuiteImplementation::list(const CommandArgs&, const SharedPointer<CommandResponse>& response,
     const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands) {
     using namespace serialization;
 
@@ -102,7 +105,7 @@ void CommandSuiteImplementation::list(const CommandArgs&, const std::shared_ptr<
     os << endArray;
 }
 
-void CommandSuiteImplementation::args(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response,
+void CommandSuiteImplementation::args(const CommandArgs& args, const SharedPointer<CommandResponse>& response,
     const ConstArray<Command>& builtinCommands, const ConstArray<Command>& moduleCommands) {
     using namespace serialization;
 

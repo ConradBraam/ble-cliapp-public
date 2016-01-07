@@ -14,7 +14,7 @@
  * conversion succeed.
  * @return true if the conversion has been made and false otherwise.
  */
-bool asciiHexByteToByte(char msb, char lsb, uint8_t& result);
+bool asciiHexByteToByte(char msb, char lsb, std::uint8_t& result);
 
 /**
  * @brief convert an arary of bytes to its representation as an hexadecimal string
@@ -24,7 +24,7 @@ bool asciiHexByteToByte(char msb, char lsb, uint8_t& result);
  *
  * @return The data as an hexadecimal string
  */
-serialization::JSONOutputStream& serializeRawDataToHexString(serialization::JSONOutputStream& os, const uint8_t* data, size_t length);
+serialization::JSONOutputStream& serializeRawDataToHexString(serialization::JSONOutputStream& os, const std::uint8_t* data, std::size_t length);
 
 /**
  * @brief Convert the string representation of bytes in ascii hexadecimal to
@@ -35,6 +35,6 @@ serialization::JSONOutputStream& serializeRawDataToHexString(serialization::JSON
  * @return The converted data, if input data were invalid, the returned Vector is
  * invalid.
  */
-container::Vector<uint8_t> hexStringToRawData(const char* data);
+container::Vector<std::uint8_t> hexStringToRawData(const char* data);
 
 #endif //BLE_CLIAPP_SERIALIZATION_HEX_H_

@@ -2,7 +2,7 @@
 #define BLE_CLIAPP_CONST_ARRAY_H_
 
 #include <cstddef>
-#include <stdint.h>
+#include <cstdint>
 
 template<typename T>
 struct ConstArray {
@@ -19,35 +19,35 @@ public:
         _count(count), _elements(elements) {
     }
 
-    template<size_t Elementscount>
+    template<std::size_t Elementscount>
     constexpr ConstArray(const T (&elements)[Elementscount]) :
         _count(Elementscount), _elements(elements) {
-    }   
+    }
 
     /**
      * return the count of arguments available
-     */ 
-    constexpr size_t count() const {
+     */
+    constexpr std::size_t count() const {
         return _count;
-    } 
+    }
 
     /**
      * return the element at the given index
      */
-    constexpr const T& operator[](size_t index) const {
+    constexpr const T& operator[](std::size_t index) const {
         return _elements[index];
     }
 
-    constexpr ConstArray drop(size_t countTodrop) const {
+    constexpr ConstArray drop(std::size_t countTodrop) const {
         return (countTodrop < _count) ? ConstArray(_count - countTodrop, _elements + countTodrop) : ConstArray();
     }
 
-private:    
-    const size_t _count;
+private:
+    const std::size_t _count;
     const T* _elements;
 };
 
-template<typename T, size_t Elementscount>
+template<typename T, std::size_t Elementscount>
 constexpr ConstArray<T> makeConstArray(const T (&elements)[Elementscount]) {
     return ConstArray<T>(elements);
 }

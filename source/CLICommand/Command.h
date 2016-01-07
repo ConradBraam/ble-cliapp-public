@@ -1,10 +1,11 @@
 #ifndef BLE_CLIAPP_CLICOMMAND_COMMAND_H_
 #define BLE_CLIAPP_CLICOMMAND_COMMAND_H_
 
-#include <memory>
+#include <core-util/SharedPointer.h>
 #include "CommandResponse.h"
 #include "CommandArgs.h"
 #include "CommandArgDescription.h"
+
 
 /**
  * A command handler is a function which handle commands from the command
@@ -18,7 +19,7 @@
  * It is not expected that the user will close manually the response everytime,
  * please just let the destructor handle this task.
  */
-typedef void (*CommandHandler_t)(const CommandArgs& args, const std::shared_ptr<CommandResponse>& res);
+typedef void (*CommandHandler_t)(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& res);
 
 /**
  * @brief Simple POD describing a command

@@ -50,7 +50,7 @@ struct Serializer {
 
 private:
     static const char* toString(serialized_type value, const ConstArray<ValueToStringMapping<serialized_type> >& map, const char* error_message) {
-        for(size_t i = 0; i < map.count(); ++i) {
+        for(std::size_t i = 0; i < map.count(); ++i) {
             if(map[i].value == value) {
                 return map[i].str;
             }
@@ -59,8 +59,8 @@ private:
     }
 
     static bool fromString(const char* str, serialized_type& value, const ConstArray<ValueToStringMapping<serialized_type> >& map) {
-        for(size_t i = 0; i < map.count(); ++i) {
-            if(strcmp(map[i].str, str) == 0) {
+        for(std::size_t i = 0; i < map.count(); ++i) {
+            if(std::strcmp(map[i].str, str) == 0) {
                 value = map[i].value;
                 return true;
             }
@@ -93,7 +93,7 @@ static inline bool fromString(const char* str, T& value) {
  *
  * @return true if the conversion succeed and false otherwise
  */
-bool fromString(const char* str, int8_t& val);
+bool fromString(const char* str, std::int8_t& val);
 
 /**
  * @brief Convert a string to an uint16_t
@@ -103,7 +103,7 @@ bool fromString(const char* str, int8_t& val);
  *
  * @return true if the conversion succeed and false otherwise
  */
-bool fromString(const char* str, uint16_t& val);
+bool fromString(const char* str, std::uint16_t& val);
 
 /**
  * @brief Convert a string to an uint32_t
@@ -113,7 +113,7 @@ bool fromString(const char* str, uint16_t& val);
  *
  * @return true if the conversion succeed and false otherwise
  */
-bool fromString(const char* str, uint32_t& val);
+bool fromString(const char* str, std::uint32_t& val);
 
 /**
  * @brief Convert a string to a bool

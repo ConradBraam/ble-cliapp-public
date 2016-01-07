@@ -4,6 +4,8 @@
 #include "ble/services/HeartRateService.h"
 #include "Serialization/Serializer.h"
 
+template<typename T>
+using SharedPointer = mbed::util::SharedPointer<T>;
 
 // isolation
 namespace {
@@ -20,7 +22,7 @@ static constexpr const Command instantiateHRM {
     (const CommandArgDescription[]) {
         { "<value>", "The hrm sensor value (uint16_t)" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         if(HRMService) {
             response->faillure("The service has already been instantiated");
             return;
@@ -44,7 +46,7 @@ static constexpr const Command updateHRMSensorValue {
     (const CommandArgDescription[]) {
         { "<value>", "The new sensor value (uint16_t)" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         if(!HRMService) {
             response->faillure("The HRM service has not been instantiated");
             return;

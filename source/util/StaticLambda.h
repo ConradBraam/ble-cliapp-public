@@ -1,9 +1,9 @@
 #ifndef BLE_CLIAPP_UTIL_STATIC_LAMBDA_H_
 #define BLE_CLIAPP_UTIL_STATIC_LAMBDA_H_
 
-#include <type_traits>
+#include "StandardLibraryPolyfill.h"
 #include <cstddef>
-#include <stdint.h>
+#include <cstdint>
 
 /*
  * for more details, see : http://pfultz2.com/blog/2014/09/02/static-lambda/
@@ -15,7 +15,7 @@ struct CallGenerator;
 
 template<typename R, typename F>
 struct CallGenerator<R (F::*)() const> {
-    static_assert(std::is_empty<F>::value, "invalid, F should be empty");
+    static_assert(::util::is_empty<F>::value, "invalid, F should be empty");
 
     static R call() {
         F* f = nullptr;
@@ -25,7 +25,7 @@ struct CallGenerator<R (F::*)() const> {
 
 template<typename R, typename F, typename Arg0>
 struct CallGenerator<R (F::*)(Arg0) const> {
-    static_assert(std::is_empty<F>::value, "invalid, F should be empty");
+    static_assert(::util::is_empty<F>::value, "invalid, F should be empty");
 
     static R call(Arg0 arg0) {
         F* f = nullptr;
@@ -35,7 +35,7 @@ struct CallGenerator<R (F::*)(Arg0) const> {
 
 template<typename R, typename F, typename Arg0, typename Arg1>
 struct CallGenerator<R (F::*)(Arg0, Arg1) const> {
-    static_assert(std::is_empty<F>::value, "invalid, F should be empty");
+    static_assert(::util::is_empty<F>::value, "invalid, F should be empty");
 
     static R call(Arg0 arg0, Arg1 arg1) {
         F* f = nullptr;
@@ -58,7 +58,7 @@ struct wrapper_factor
 struct addr_add
 {
     template<class T>
-    friend typename std::remove_reference<T>::type *operator+(addr_add, T &&t)
+    friend typename ::util::remove_reference<T>::type *operator+(addr_add, T &&t)
     {
         return &t;
     }

@@ -1,9 +1,10 @@
 #ifndef BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
 #define BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
 
-#include <memory>
+#include <core-util/SharedPointer.h>
 #include <minar/minar.h>
 #include "CLICommand/CommandResponse.h"
+#include "StandardLibraryPolyfill.h"
 
 struct AsyncProcedure {
 
@@ -16,18 +17,19 @@ struct AsyncProcedure {
      */
     template<typename ProcedureType, typename... Ts>
     friend void startProcedure(Ts&&... args) {
-        auto proc = new ProcedureType(std::forward<Ts>(args)...);
+        auto proc = new ProcedureType(util::forward<Ts>(args)...);
         proc->start();
     }
 
 protected:
+
     /**
      * @brief Construct an AsyncProcedure
      *
      * @param res The response wich will be written during the procedure life.
      * @param timeout The maximum amount of time before the procedure termination
      */
-    AsyncProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t timeout);
+    AsyncProcedure(const mbed::util::SharedPointer<CommandResponse>& res, uint32_t timeout);
 
     /**
      * @brief destructor for a procedure.
@@ -55,7 +57,7 @@ protected:
     /**
      * @brief response of the procedure
      */
-    std::shared_ptr<CommandResponse> response;
+    mbed::util::SharedPointer<CommandResponse> response;
 
 private:
     /**
@@ -72,7 +74,7 @@ private:
 
 
     minar::callback_handle_t timeoutHandle;
-    uint32_t timeout;
+    std::uint32_t timeout;
 };
 
 #endif //BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_

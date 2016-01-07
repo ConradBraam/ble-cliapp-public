@@ -6,6 +6,6 @@
 /**
  * typedef for Arguments which are just a constant array of strings
  */
-typedef ConstArray<const char*> CommandArgs; 
+typedef ConstArray<const char*> CommandArgs;
 
 #endif //BLE_CLIAPP_COMMANDARGSE_H_

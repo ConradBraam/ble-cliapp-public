@@ -51,11 +51,11 @@
  *
  * private:
  *
- * static void doFoo(const CommandArgs& args, const std::shared_ptr<CommandResponse>& resp) {
+ * static void doFoo(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& resp) {
  *     response->success("foo");
  * }
  *
- * static CommandResult doBar(const CommandArgs& args, const std::shared_ptr<CommandResponse>& resp) {
+ * static CommandResult doBar(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& resp) {
  *     response->success("bar")
  * }
  *
@@ -117,7 +117,7 @@ const Command CommandSuite<SuiteDescription>::builtinCommands[3] = {
         (const CommandArgDescription[]) {
             { "<commandName>", "the name of a command you want help for, use the command 'list' to have a list of available commands" }
         },
-        STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+        STATIC_LAMBDA(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::help(
                 args,
                 response,
@@ -129,7 +129,7 @@ const Command CommandSuite<SuiteDescription>::builtinCommands[3] = {
     Command {
         "list",
         "list all the command in a module",
-        STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+        STATIC_LAMBDA(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::list(
                 args,
                 response,
@@ -144,7 +144,7 @@ const Command CommandSuite<SuiteDescription>::builtinCommands[3] = {
         (const CommandArgDescription[]) {
             { "commandName", "The name of the the command you want the args" }
         },
-        STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+        STATIC_LAMBDA(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::args(
                 args,
                 response,

@@ -1,8 +1,7 @@
 #ifndef BLE_CLIAPP_UTIL_JSON_OUTPUT_STREAM_H_
 #define BLE_CLIAPP_UTIL_JSON_OUTPUT_STREAM_H_
 
-#include <type_traits>
-#include <stdint.h>
+#include <cstdint>
 #include <cstdarg>
 #include <cstdio>
 #include <memory>
@@ -58,56 +57,56 @@ public:
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(int8_t value);
+    JSONOutputStream& operator<<(std::int8_t value);
 
     /**
      * @brief insert a uint8_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(uint8_t value);
+    JSONOutputStream& operator<<(std::uint8_t value);
 
     /**
      * @brief insert a int16_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(int16_t value);
+    JSONOutputStream& operator<<(std::int16_t value);
 
     /**
      * @brief insert a uint16_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(uint16_t value);
+    JSONOutputStream& operator<<(std::uint16_t value);
 
     /**
      * @brief insert a int32_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(int32_t value);
+    JSONOutputStream& operator<<(std::int32_t value);
 
     /**
      * @brief insert a uint32_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(uint32_t value);
+    JSONOutputStream& operator<<(std::uint32_t value);
 
     /**
      * @brief insert a int64_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(int64_t value);
+    JSONOutputStream& operator<<(std::int64_t value);
 
     /**
      * @brief insert a uint64_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(uint64_t value);
+    JSONOutputStream& operator<<(std::uint64_t value);
 
     /**
      * @brief insert a byte string value value into the stream
@@ -145,7 +144,7 @@ public:
      * @param args The arguments which will be applied through fmt
      * @return *this
      */
-    JSONOutputStream& vformat(const char *fmt, va_list args);
+    JSONOutputStream& vformat(const char *fmt, std::va_list args);
 
     /**
      * @brief put a character into the stream
@@ -165,7 +164,7 @@ public:
      * have to explicitly call commitValue once all the data of the value has been
      * written.
      */
-    void write(const char* data, size_t count);
+    void write(const char* data, std::size_t count);
 
     /**
      * @brief write an array of character into the stream
@@ -203,7 +202,7 @@ public:
      * @param args The arguments which will be applied through fmt
      * @return *this
      */
-    JSONOutputStream& vformatValue(const char *fmt, va_list list);
+    JSONOutputStream& vformatValue(const char *fmt, std::va_list list);
 
 private:
     void handleNewValue();

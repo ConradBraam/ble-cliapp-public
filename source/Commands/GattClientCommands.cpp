@@ -14,11 +14,10 @@
 #include "Serialization/GattCallbackParamTypes.h"
 #include "util/AsyncProcedure.h"
 
-
-
+template<typename T>
+using SharedPointer = mbed::util::SharedPointer<T>;
 
 // TODO: description of returned results
-
 
 // isolation
 namespace {
@@ -40,7 +39,7 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
     (const CommandArgDescription[]) {
         { "<connectionHandle>", "The connection used by this procedure" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         // get the connection handle
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
@@ -49,11 +48,11 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
         }
 
         struct DiscoverAllServicesAndCharacteristicsProcedure : public AsyncProcedure {
-            DiscoverAllServicesAndCharacteristicsProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t timeout, uint16_t handle) :
+            DiscoverAllServicesAndCharacteristicsProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, uint16_t handle) :
                 AsyncProcedure(res, timeout), connectionHandle(handle), isFirstServiceDiscovered(true) {
             }
 
-            ~DiscoverAllServicesAndCharacteristicsProcedure() {
+            virtual ~DiscoverAllServicesAndCharacteristicsProcedure() {
                 client().onServiceDiscoveryTermination(nullptr);
                 gap().onDisconnection().detach(makeFunctionPointer(
                     this, &DiscoverAllServicesAndCharacteristicsProcedure::whenDisconnected
@@ -166,7 +165,7 @@ static constexpr const Command discoverAllServices {
     (const CommandArgDescription[]) {
         { "<connectionHandle>", "The connection used by this procedure" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -178,7 +177,7 @@ static constexpr const Command discoverPrimaryServicesByUUID {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<serviceUUID>", "The UUID of the services to discover" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -191,7 +190,7 @@ static constexpr const Command findIncludedServices {
         { "<serviceStartHandle>", "The starting handle of the service" },
         { "<serviceEndHandle>", "The ending handle of the service" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -205,7 +204,7 @@ static constexpr const Command discoverCharacteristicsOfService {
         { "<serviceStartHandle>", "The starting handle of the service" },
         { "<serviceEndHandle>", "The ending handle of the service" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -219,7 +218,7 @@ static constexpr const Command discoverCharacteristicsByUUID {
         { "<serviceEndHandle>", "The ending handle of the service" },
         { "<serviceUUID>", "The UUID of the characteristics to discover" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -235,7 +234,7 @@ static constexpr const Command discoverAllCharacteristicsDescriptors {
           "The starting handle of the descriptors for this characteristic" },
         { "<endHandle>", "The ending handle of the characteristic definition" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -246,16 +245,16 @@ struct ReadProcedure : public AsyncProcedure {
     /**
      * @brief Construct a read procedure, this will also attach all callbacks
      */
-    ReadProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t timeout, uint16_t _connectionHandle, uint16_t _valueHandle) :
+    ReadProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, uint16_t _connectionHandle, uint16_t _valueHandle) :
         AsyncProcedure(res, timeout), connectionHandle(_connectionHandle), valueHandle(_valueHandle) {
     }
 
-    ~ReadProcedure() {
+    virtual ~ReadProcedure() {
         // detach callbacks
         client().onDataRead().detach(makeFunctionPointer(this, &ReadProcedure::whenDataRead));
     }
 
-    bool doStart() {
+    virtual bool doStart() {
         ble_error_t err = client().read(connectionHandle, valueHandle, /* offset */ 0);
         if (err) {
             response->faillure(err);
@@ -288,7 +287,7 @@ static constexpr const Command readCharacteristicValue {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicValuehandle>", "The handle of characteristic value" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
 
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
@@ -317,7 +316,7 @@ static constexpr const Command readUsingCharacteristicUUID {
         { "<serviceEndHandle>", "The ending handle of the service" },
         { "<characteristicUUID>", "The UUID of the characteristic" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -331,7 +330,7 @@ static constexpr const Command readLongCharacteristicValue {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicValuehandle>", "The handle of characteristic value" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -344,23 +343,23 @@ static constexpr const Command readMultipleCharacteristicValues {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicValuehandles...>", "Handles of characteristics values to read" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 struct WriteProcedure : public AsyncProcedure {
-    WriteProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t timeout,
+    WriteProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout,
         GattClient::WriteOp_t _cmd, uint16_t _connectionHandle, uint16_t _valueHandle, container::Vector<uint8_t> _dataToWrite) :
         AsyncProcedure(res, timeout), cmd(_cmd), connectionHandle(_connectionHandle),
         valueHandle(_valueHandle), dataToWrite(_dataToWrite) {
     }
 
-    ~WriteProcedure() {
+    virtual ~WriteProcedure() {
         client().onDataWritten().detach(makeFunctionPointer(this, &WriteProcedure::whenDataWritten));
     }
 
-    bool doStart() {
+    virtual bool doStart() {
         ble_error_t err = client().write(
             cmd, connectionHandle, valueHandle, dataToWrite.size(), dataToWrite.begin()
         );
@@ -407,7 +406,7 @@ static constexpr const Command writeWithoutResponse {
         { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
             response->faillure("connection handle is ill formed");
@@ -443,7 +442,7 @@ static constexpr const Command signedWriteWithoutResponse {
         { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -456,7 +455,7 @@ static constexpr const Command write {
         { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
             response->faillure("connection handle is ill formed");
@@ -493,7 +492,7 @@ static constexpr const Command writeLong {
         { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -511,7 +510,7 @@ static constexpr const Command reliableWrite {
         { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -523,7 +522,7 @@ static constexpr const Command readCharacteristicDescriptor {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -537,7 +536,7 @@ static constexpr const Command readLongCharacteristicDescriptor {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -550,7 +549,7 @@ static constexpr const Command writeCharacteristicDescriptor {
         { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -565,7 +564,7 @@ static constexpr const Command writeLongCharacteristicDescriptor {
         { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -576,6 +575,7 @@ ConstArray<Command> GattClientCommandSuiteDescription::commands() {
     static constexpr const Command commandHandlers[] = {
         discoverAllServicesAndCharacteristics,
         discoverAllServices,
+        discoverPrimaryServicesByUUID,
         //discoverServices,
         findIncludedServices,
         discoverCharacteristicsOfService,

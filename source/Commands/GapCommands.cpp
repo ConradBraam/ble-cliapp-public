@@ -11,6 +11,9 @@
 #include "CLICommand/CommandSuite.h"
 #include "util/AsyncProcedure.h"
 
+template<typename T>
+using SharedPointer = mbed::util::SharedPointer<T>;
+
 // isolation ...
 namespace {
 
@@ -29,7 +32,7 @@ static Gap& gap() {
 }
 
 
-static void reportErrorOrSuccess(const std::shared_ptr<CommandResponse>& response, ble_error_t err) {
+static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err) {
     if(err) {
         response->faillure(err);
     } else {
@@ -38,7 +41,7 @@ static void reportErrorOrSuccess(const std::shared_ptr<CommandResponse>& respons
 }
 
 template<typename T>
-static void reportErrorOrSuccess(const std::shared_ptr<CommandResponse>& response, ble_error_t err, const T& res) {
+static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err, const T& res) {
     if(err) {
         response->faillure(err);
     } else {
@@ -54,7 +57,7 @@ static constexpr const Command setAddress {
         { "<addressType>", "The address type to set. It is a string representation of BLEProtocol::AddressType_t" },
         { "<address>"    , "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" },
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         // extract first args
         BLEProtocol::AddressType_t addressType;
         if(!fromString(args[0], addressType)) {
@@ -79,7 +82,7 @@ static constexpr const Command getAddress {
     "The result will be a json object containing:\r\n"
     "   * 'address_type': <type of the address. It is a string representation of BLEProtocol::AddressType_t>\r\n"
     "   * 'address'     : <the address which is a string representation like 'XX:XX:XX:XX:XX:XX'>\r\n",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         using namespace serialization;
 
         BLEProtocol::AddressType_t addressType;
@@ -103,7 +106,7 @@ static constexpr const Command getAddress {
 static constexpr const Command getMinAdvertisingInterval {
     "getMinAdvertisingInterval",
     "Return the minimum advertising interval",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->success(gap().getMinAdvertisingInterval());
     }
 };
@@ -111,7 +114,7 @@ static constexpr const Command getMinAdvertisingInterval {
 static constexpr const Command getMinNonConnectableAdvertisingInterval {
     "getMinNonConnectableAdvertisingInterval",
     // TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->success(gap().getMinNonConnectableAdvertisingInterval());
     }
 };
@@ -119,7 +122,7 @@ static constexpr const Command getMinNonConnectableAdvertisingInterval {
 static constexpr const Command getMaxAdvertisingInterval {
     "getMaxAdvertisingInterval",
     //TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->success(gap().getMaxAdvertisingInterval());
     }
 };
@@ -127,7 +130,7 @@ static constexpr const Command getMaxAdvertisingInterval {
 static constexpr const Command stopAdvertising {
     "stopAdvertising",
     //TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         ble_error_t err = gap().stopAdvertising();
         reportErrorOrSuccess(response, err);
     }
@@ -136,7 +139,7 @@ static constexpr const Command stopAdvertising {
 static constexpr const Command stopScan {
     "stopScan",
     //TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         ble_error_t err = gap().stopScan();
         reportErrorOrSuccess(response, err);
     }
@@ -175,7 +178,7 @@ static constexpr const Command connect {
     },
 
     // TODO DOC
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         // extract Address and address type
         BLEProtocol::AddressType_t addressType;
         if (!fromString(args[0], addressType)) {
@@ -277,7 +280,7 @@ static constexpr const Command connect {
 
         struct ConnectionProcedure : public AsyncProcedure {
             ConnectionProcedure(BLEProtocol::AddressType_t _addressType, const Gap::Address_t& _address,
-                const std::shared_ptr<CommandResponse>& res, uint32_t procedureTimeout) :
+                const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout) :
                 AsyncProcedure(res, procedureTimeout), addressType(_addressType) {
                 memcpy(address, _address, sizeof(address));
                 gap().onConnection(makeFunctionPointer(this, &ConnectionProcedure::whenConnected));
@@ -341,7 +344,7 @@ static constexpr const Command disconnect {
         { "<connectionHandle>", "The id of the connection to terminate." },
         { "<reason>", "The reason of the termination (see Gap::DisconnectionReason_t)" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         static Gap::Handle_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
             response->invalidParameters("the connection handle is ill formed");
@@ -356,7 +359,7 @@ static constexpr const Command disconnect {
 
         struct DisconnectionProcedure : public AsyncProcedure {
             DisconnectionProcedure(Gap::Handle_t handle, Gap::DisconnectionReason_t disconnectionReason,
-                const std::shared_ptr<CommandResponse>& res, uint16_t procedureTimeout) :
+                const SharedPointer<CommandResponse>& res, uint16_t procedureTimeout) :
                 AsyncProcedure(res, procedureTimeout), connectionHandle(handle), reason(disconnectionReason) {
                 gap().onDisconnection(this, &DisconnectionProcedure::whenDisconnected);
             }
@@ -402,7 +405,7 @@ static constexpr const Command disconnect {
 static constexpr const Command getPreferredConnectionParams {
     "getPreferredConnectionParams",
     // TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         Gap::ConnectionParams_t connectionParameters;
         ble_error_t err = gap().getPreferredConnectionParams(&connectionParameters);
         reportErrorOrSuccess(response, err, connectionParameters);
@@ -416,7 +419,7 @@ static constexpr const Command setPreferredConnectionParams {
         { "<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>", "all the parameters, coma separated" }
     },
     //TODO: betrer args
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         Gap::ConnectionParams_t connectionParameters;
         if(!connectionParamsFromCLI(args[0], connectionParameters)) {
             response->invalidParameters("malformed connection parameters, should be like"\
@@ -432,7 +435,7 @@ static constexpr const Command setPreferredConnectionParams {
 static constexpr const Command updateConnectionParams {
     "updateConnectionParams",
     // TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         // TODO
         //ble_error_t updateConnectionParams(Handle_t handle, const ConnectionParams_t *params)
         response->notImplemented();
@@ -445,7 +448,7 @@ static constexpr const Command setDeviceName {
     (const CommandArgDescription[]) {
         { "<name>", "the name of the device, it should not have space" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         ble_error_t err = gap().setDeviceName((const uint8_t*) args[0]);
         reportErrorOrSuccess(response, err);
     }
@@ -454,7 +457,7 @@ static constexpr const Command setDeviceName {
 static constexpr const Command getDeviceName {
     "getDeviceName",
     "return the device name as a string",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         // first : collect the size of the name
         unsigned deviceNameLength = 0;
         ble_error_t err = gap().getDeviceName(NULL, &deviceNameLength);
@@ -466,18 +469,18 @@ static constexpr const Command getDeviceName {
 
         // acquire the name
         ++deviceNameLength;  // add null terminator to the length
-        uint8_t* deviceName = static_cast<uint8_t*>(malloc(deviceNameLength));
+        uint8_t* deviceName = static_cast<uint8_t*>(std::malloc(deviceNameLength));
         memset(deviceName, 0, deviceNameLength);
         err = gap().getDeviceName(deviceName, &deviceNameLength);
 
         if(err) {
-            free(deviceName);
+            std::free(deviceName);
             response->faillure(err);
             return;
         }
 
         response->success((const char*) deviceName);
-        free(deviceName);
+        std::free(deviceName);
     }
 };
 
@@ -487,7 +490,7 @@ static constexpr const  Command setAppearance {
     (const CommandArgDescription[]) {
         { "<appearance>", "the appearance to set (see GapAdvertisingData::Appearance_t)" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
         if(!fromString(args[0], appearance)) {
             response->invalidParameters("the appearance to set is illformed (see GapAdvertisingData::Appearance_t)");
@@ -502,7 +505,7 @@ static constexpr const  Command setAppearance {
 static constexpr const Command getAppearance {
     "getAppearance",
     "get the appearance of the device",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
         ble_error_t err = gap().getAppearance(&appearance);
         reportErrorOrSuccess(response, err, appearance);
@@ -515,7 +518,7 @@ static constexpr const Command setTxPower {
     (const CommandArgDescription[]) {
         { "<TxPower>", "The transmission power, it is an integer between [-128:127]"}
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         int8_t txPower = 0;
         if(!fromString(args[0], txPower)) {
             response->invalidParameters("the txPower is malformed (should be between [-127:128])");
@@ -530,7 +533,7 @@ static constexpr const Command setTxPower {
 static constexpr const Command getPermittedTxPowerValues {
     "getPermittedTxPowerValues",
     "return an array of the authorized Tx power values",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         using namespace serialization;
         const int8_t* permittedTxPowerValues = NULL;
         size_t permittedTxPowerValuesCount = 0;
@@ -550,7 +553,7 @@ static constexpr const Command getPermittedTxPowerValues {
 static constexpr const Command getState {
     "getState",
     "return the state of the device as defined in Gap::GapState_t",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->success(gap().getState());
     }
 };
@@ -561,7 +564,7 @@ static constexpr const Command setAdvertisingType {
     (const CommandArgDescription[]) {
         { "<advertisingType>", "The advertising type as defined in GapAdvertisingParams::AdvertisingType_t" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         GapAdvertisingParams::AdvertisingType_t advType;
 
         if(!fromString(args[0], advType)) {
@@ -580,7 +583,7 @@ static constexpr const Command setAdvertisingInterval {
     (const CommandArgDescription[]) {
         { "<interval>", "The interval in ms, if 0, the advertising is disabled" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t interval = 0;
         if(!fromString(args[0], interval)) {
             response->invalidParameters("the advertising interval is ill formed");
@@ -598,7 +601,7 @@ static constexpr const Command setAdvertisingTimeout {
     (const CommandArgDescription[]) {
         { "<timeout>", "An integer wich represent the advertising timeout in seconds [0x1 : 0x3FFF]. 0 disable the timeout" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t timeout = 0;
         if(!fromString(args[0], timeout)) {
             response->invalidParameters("the advertising timeout is ill formed");
@@ -613,7 +616,7 @@ static constexpr const Command setAdvertisingTimeout {
 static constexpr const Command startAdvertising {
     "startAdvertising",
     "start the advertising",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         ble_error_t err = gap().startAdvertising();
         reportErrorOrSuccess(response, err);
     }
@@ -622,7 +625,7 @@ static constexpr const Command startAdvertising {
 static constexpr const Command clearAdvertisingPayload {
     "clearAdvertisingPayload",
     "clear the advertising payload",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         gap().clearAdvertisingPayload();
         response->success();
     }
@@ -636,7 +639,7 @@ static constexpr const Command accumulateAdvertisingPayload {
         { "<data>", "the value of the field, please see GapAdvertisingData" }
     },
     /* maximum args counts is undefined */ 0xFF,
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         AdvertisingPayloadField_t payloadField;
         const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -659,7 +662,7 @@ static constexpr const Command updateAdvertisingPayload {
         { "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData" }
     },
     /* maximum args counts is undefined */ 0xFF,
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         AdvertisingPayloadField_t payloadField;
         const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -676,7 +679,7 @@ static constexpr const Command updateAdvertisingPayload {
 static constexpr const Command setAdvertisingPayload {
     "setAdvertisingPayload",
     "set the advertising payload",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         // TODO
         //ble_error_t setAdvertisingPayload(const GapAdvertisingData &payload)
         response->notImplemented();
@@ -686,7 +689,7 @@ static constexpr const Command setAdvertisingPayload {
 static constexpr const Command getAdvertisingPayload {
     "getAdvertisingPayload",
     "get the current advertising payload",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->success(gap().getAdvertisingPayload());
     }
 };
@@ -699,7 +702,7 @@ static constexpr const Command accumulateScanResponse {
         { "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData" }
     },
     /* maximum args counts is undefined */ 0xFF,
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         AdvertisingPayloadField_t payloadField;
         const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -716,7 +719,7 @@ static constexpr const Command accumulateScanResponse {
 static constexpr const Command clearScanResponse {
     "clearScanResponse",
     "clear the scan response",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         gap().clearScanResponse();
         response->success();
     }
@@ -731,7 +734,7 @@ static constexpr const Command setScanParams {
         { "<timeout>", "The scan timeout, it should be a number between 0 and 65534 " },
         { "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t interval = 0xFFFF;
         if(!fromString(args[0], interval)) {
             response->invalidParameters("invalid interval, it should be a number between 3 and 10240ms");
@@ -767,7 +770,7 @@ static constexpr const Command setScanInterval {
     (const CommandArgDescription[]) {
         { "<interval>", "The interval between each scan, it should be a number between 3 and 10240ms" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t interval = 0;
         if(!fromString(args[0], interval)) {
             response->invalidParameters("the interval is ill formed");
@@ -785,7 +788,7 @@ static constexpr const Command setScanWindow {
     (const CommandArgDescription[]) {
         { "<window>", "The interval between each scan, it should be a number between 3 and 10240ms" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t window = 0;
         if(!fromString(args[0], window)) {
             response->invalidParameters("the window is ill formed");
@@ -803,7 +806,7 @@ static constexpr const Command setScanTimeout {
     (const CommandArgDescription[]) {
         { "<timeout>", "The scan timeout, it should be a number between 0 and 65534 " }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t timeout = 0;
         if(!fromString(args[0], timeout)) {
             response->invalidParameters("the timeout is ill formed");
@@ -821,7 +824,7 @@ static constexpr const Command setActiveScanning {
     (const CommandArgDescription[]) {
         { "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         bool activeScanning = 0;
         if(!fromString(args[0], activeScanning)) {
             response->invalidParameters("the active scanning state is ill formed");
@@ -840,7 +843,7 @@ static constexpr const Command startScan {
         { "<duration>", "The duration of the scan" },
         { "<address>", "The address to scan for" }
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t duration = 0;
         if(!fromString(args[0], duration)) {
             response->invalidParameters("first argument should be the duration of the scan in milliseconds");
@@ -854,7 +857,7 @@ static constexpr const Command startScan {
         }
 
         struct ScanProcedure : public AsyncProcedure {
-            ScanProcedure(const std::shared_ptr<CommandResponse>& res, uint32_t timeout, const Gap::Address_t& addr) :
+            ScanProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, const Gap::Address_t& addr) :
                 AsyncProcedure(res, timeout) {
                     memcpy(address, addr, sizeof(address));
             }
@@ -913,7 +916,7 @@ static constexpr const Command startScan {
 static constexpr const Command initRadioNotification {
     "initRadioNotification",
     "initialize radio notifications",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         // TODO (maybe)
         //ble_error_t initRadioNotification(void)
         response->notImplemented();
@@ -923,7 +926,7 @@ static constexpr const Command initRadioNotification {
 static constexpr const Command getAdvertisingParams {
     "getAdvertisingParams",
     "return the current advertising params",
-    STATIC_LAMBDA(const CommandArgs&, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->success(gap().getAdvertisingParams());
     }
 };
@@ -936,7 +939,7 @@ static constexpr const Command setAdvertisingParams {
         { "<interval>", "The advertising interval, it should be a number between 0 and 65534" },
         { "<timeout>", "The timeout, it should be a number between 0 and 65534" },
     },
-    STATIC_LAMBDA(const CommandArgs& args, const std::shared_ptr<CommandResponse>& response) {
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         GapAdvertisingParams::AdvertisingType_t advertisingType;
         if(!fromString(args[0], advertisingType)) {
             response->invalidParameters("Advertising type is malformed, please refer to GapAdvertisingParams::AdvertisingType_t");
