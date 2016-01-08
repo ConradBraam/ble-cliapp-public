@@ -963,6 +963,174 @@ static constexpr const Command setAdvertisingParams {
     }
 };
 
+static constexpr const Command getMaxWhitelistSize {
+    "getMaxWhitelistSize",
+    "get the maximum size the whitelist can take",
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+        response->success(gap().getMaxWhitelistSize());
+    }
+};
+
+static constexpr const Command getWhiteList {
+    "getWhitelist",
+    "Get the internal whitelist to be used by the Link Layer when scanning,"
+    "advertising or initiating a connection depending on the filter policies.",
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+        using namespace serialization;
+
+        BLEProtocol::Address_t* addresses = new BLEProtocol::Address_t[gap().getMaxWhitelistSize()]();
+        Gap::Whitelist_t whiteList = {
+            addresses,
+            /* size */ 0,
+            /* capacity */ gap().getMaxWhitelistSize()
+        };
+
+        ble_error_t err = gap().getWhitelist(whiteList);
+        if(err) {
+            response->faillure(err);
+            delete[] addresses;
+            return;
+        }
+
+        response->success();
+        auto& os = response->getResultStream();
+
+        os << startArray;
+        for(std::size_t i = 0; i < whiteList.size; ++i) {
+            os << startObject <<
+                key("address_type") << whiteList.addresses[i].type <<
+                key("address") << whiteList.addresses[i].address <<
+            endObject;
+        }
+        os << endArray;
+
+        delete[] addresses;
+    }
+};
+
+static constexpr const Command setWhitelist {
+    "setWhitelist",
+    "Set the internal whitelist to be used by the Link Layer when scanning,"
+    "advertising or initiating a connection depending on the filter policies.",
+/*    (const CommandArgDescription[]) {
+        { "<addressType>", "address type" },
+        { "<address>", "address" }
+    },*/
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        if(args.count() % 2) {
+            response->invalidParameters("[ <addressType> <address> ] expected");
+            return;
+        }
+
+        std::uint8_t addressCount = args.count() / 2;
+        BLEProtocol::Address_t* addresses = new BLEProtocol::Address_t[addressCount]();
+
+        // fill the input
+        for(std::uint8_t i = 0; i < addressCount; ++i) {
+            if(!fromString(args[i * 2], addresses[i].type)) {
+                response->invalidParameters("invalid address type");
+                delete[] addresses;
+                return;
+            }
+
+            if(!macAddressFromString(args[(i * 2) + 1], addresses[i].address)) {
+                response->invalidParameters("invalid address");
+                delete[] addresses;
+                return;
+            }
+        }
+
+        Gap::Whitelist_t whiteList = {
+            addresses,
+            /* size */ addressCount,
+            /* capacity */ addressCount
+        };
+        ble_error_t err = gap().setWhitelist(whiteList);
+        delete[] addresses;
+
+        reportErrorOrSuccess(response, err);
+    }
+};
+
+static constexpr const Command setAdvertisingPolicyMode {
+    "setAdvertisingPolicyMode",
+    "Set the advertising policy filter mode to be used in the next call"
+    "to startAdvertising().",
+    (const CommandArgDescription[]) {
+        { "<AdvertisingPolicyMode_t>", "The advertising policy mode to set" }
+    },
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        Gap::AdvertisingPolicyMode_t mode;
+        if(!fromString(args[0], mode)) {
+            response->invalidParameters("The policy mode in input is ill formed");
+            return;
+        }
+
+        reportErrorOrSuccess(response, gap().setAdvertisingPolicyMode(mode));
+    }
+};
+
+static constexpr const Command setScanningPolicyMode {
+    "setScanningPolicyMode",
+    "Set the scan policy filter mode to be used in the next call to startScan().",
+    (const CommandArgDescription[]) {
+        { "<ScanningPolicyMode_t>", "The scanning policy mode to set" }
+    },
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        Gap::ScanningPolicyMode_t mode;
+        if(!fromString(args[0], mode)) {
+            response->invalidParameters("The policy mode in input is ill formed");
+            return;
+        }
+
+        reportErrorOrSuccess(response, gap().setScanningPolicyMode(mode));
+    }
+};
+
+static constexpr const Command setInitiatorPolicyMode {
+    "setInitiatorPolicyMode",
+    "Set the initiator policy filter mode to be used.",
+    (const CommandArgDescription[]) {
+        { "<InitiatorPolicyMode_t>", "The scanning policy mode to set" }
+    },
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        Gap::InitiatorPolicyMode_t mode;
+        if(!fromString(args[0], mode)) {
+            response->invalidParameters("The policy mode in input is ill formed");
+            return;
+        }
+
+        reportErrorOrSuccess(response, gap().setInitiatorPolicyMode(mode));
+    }
+};
+
+static constexpr const Command getAdvertisingPolicyMode {
+    "getAdvertisingPolicyMode",
+    "Get the advertising policy filter mode that will be used in the next"
+    "call to startAdvertising()",
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+        response->success(gap().getAdvertisingPolicyMode());
+    }
+};
+
+static constexpr const Command getScanningPolicyMode {
+    "getScanningPolicyMode",
+    "Get the scan policy filter mode that will be used in the next"
+    "call to startScan().",
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+        response->success(gap().getScanningPolicyMode());
+    }
+};
+
+
+static constexpr const Command getInitiatorPolicyMode {
+    "getInitiatorPolicyMode",
+    "Get the initiator policy filter mode that will be used.",
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+        response->success(gap().getInitiatorPolicyMode());
+    }
+};
+
 } // end of annonymous namespace
 
 ConstArray<Command> GapCommandSuiteDescription::commands() {
@@ -1005,7 +1173,16 @@ ConstArray<Command> GapCommandSuiteDescription::commands() {
         startScan,
         initRadioNotification,
         getAdvertisingParams,
-        setAdvertisingParams
+        setAdvertisingParams,
+        getMaxWhitelistSize,
+        getWhiteList,
+        setWhitelist,
+        setAdvertisingPolicyMode,
+        setScanningPolicyMode,
+        setInitiatorPolicyMode,
+        getAdvertisingPolicyMode,
+        getScanningPolicyMode,
+        getInitiatorPolicyMode
     };
 
     return ConstArray<Command>(commandHandlers);
