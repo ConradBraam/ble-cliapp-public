@@ -29,6 +29,22 @@ bool fromString(const char* str, int8_t& val) {
     return true;
 }
 
+bool fromString(const char* str, uint8_t& val) {
+    char* end;
+    long tmp = strtol(str, &end, 0);
+    if(str == end) {
+        return false;
+    }
+
+    if(tmp < numeric_limits<uint8_t>::min() || tmp > numeric_limits<uint8_t>::max()) {
+        return false;
+    }
+
+    val = (uint8_t) tmp;
+    return true;
+}
+
+
 bool fromString(const char* str, uint16_t& val) {
     char* end;
     unsigned long tmp = strtoul(str, &end, 0);

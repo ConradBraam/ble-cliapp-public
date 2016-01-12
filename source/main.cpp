@@ -9,6 +9,7 @@
 #include "Commands/GapCommands.h"
 #include "Commands/GattServerCommands.h"
 #include "Commands/GattClientCommands.h"
+#include "Commands/SecurityManagerCommands.h"
 
 // mbed::util::CriticalSectionLock is broken on nordic platform.
 // This is a temporary workaround which should be removed as soon as
@@ -103,6 +104,7 @@ void initialize_app_commands(void) {
     registerCommandSuite<GapCommandSuiteDescription>();
     registerCommandSuite<GattServerCommandSuiteDescription>();
     registerCommandSuite<GattClientCommandSuiteDescription>();
+    registerCommandSuite<SecurityManagerCommandSuiteDescription>();
 }
 
 void app_start(int, char*[])
