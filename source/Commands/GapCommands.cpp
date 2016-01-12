@@ -864,7 +864,6 @@ static constexpr const Command startScan {
 
             virtual ~ScanProcedure() {
                 // close the array of scan
-                response->getResultStream() << serialization::endArray;
                 gap().stopScan();
                 // note : there should be a way to detach this function pointer in the BLE API
             }
@@ -902,6 +901,7 @@ static constexpr const Command startScan {
             }
 
             virtual void doWhenTimeout() {
+                response->getResultStream() << serialization::endArray;
                 // nothing to do jere, timeout is not an error in this case
             }
 
