@@ -5,6 +5,7 @@
 #include "Serializer.h"
 
 using std::int8_t;
+using std::uint8_t;
 using std::uint16_t;
 using std::uint32_t;
 using std::strtoul;
@@ -28,6 +29,22 @@ bool fromString(const char* str, int8_t& val) {
     val = (int8_t) tmp;
     return true;
 }
+
+bool fromString(const char* str, uint8_t& val) {
+    char* end;
+    long tmp = strtol(str, &end, 0);
+    if(str == end) {
+        return false;
+    }
+
+    if(tmp < numeric_limits<uint8_t>::min() || tmp > numeric_limits<uint8_t>::max()) {
+        return false;
+    }
+
+    val = (uint8_t) tmp;
+    return true;
+}
+
 
 bool fromString(const char* str, uint16_t& val) {
     char* end;
