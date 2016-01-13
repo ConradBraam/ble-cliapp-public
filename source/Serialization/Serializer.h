@@ -86,7 +86,7 @@ static inline bool fromString(const char* str, T& value) {
 }
 
 /**
- * @brief Convert a string to an in8_t
+ * @brief Convert a string to an int8_t
  *
  * @param[in] str The string to convert
  * @param[out] val The result of the conversion
@@ -96,7 +96,7 @@ static inline bool fromString(const char* str, T& value) {
 bool fromString(const char* str, std::int8_t& val);
 
 /**
- * @brief Convert a string to an uin8_t
+ * @brief Convert a string to an uint8_t
  *
  * @param[in] str The string to convert
  * @param[out] val The result of the conversion
