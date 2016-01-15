@@ -56,7 +56,7 @@ static constexpr const Command init {
 
         SecurityManager::Passkey_t passkey;
         if(std::strlen(args[3]) != sizeof(passkey) ||
-           std::all_of(args[3] + 0, args[3] + sizeof(passkey), [](uint8_t v) { return (bool) std::isdigit(v); }) == false) {
+           std::count_if(args[3], args[3] + sizeof(passkey), [](std::uint8_t v) { return (bool) std::isdigit(v); }) == sizeof(passkey)) {
             response->invalidParameters("passkey should be a SecurityManager::Passkey_t");
             return;
         }
