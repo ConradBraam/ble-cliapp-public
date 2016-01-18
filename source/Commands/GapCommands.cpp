@@ -398,7 +398,8 @@ static constexpr const Command disconnect {
             Gap::DisconnectionReason_t reason;
         };
 
-        startProcedure<DisconnectionProcedure>(connectionHandle, reason, response, 3000);
+        // Set the timeout to the maximum supervision timeout allowed in BLE
+        startProcedure<DisconnectionProcedure>(connectionHandle, reason, response, 10240);
     }
 };
 
