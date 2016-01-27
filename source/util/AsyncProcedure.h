@@ -8,18 +8,8 @@
 
 struct AsyncProcedure {
 
-    /**
-     * @brief start a new procedure, variadic args will be forwarded to
-     * ProcedureType constructor.
-     *
-     * @param args Args used to build the procedure
-     * @tparam ProcedureType The type of procedure to start
-     */
     template<typename ProcedureType, typename... Ts>
-    friend void startProcedure(Ts&&... args) {
-        auto proc = new ProcedureType(util::forward<Ts>(args)...);
-        proc->start();
-    }
+    friend void startProcedure(Ts&&... args);
 
 protected:
 
@@ -76,5 +66,19 @@ private:
     minar::callback_handle_t timeoutHandle;
     std::uint32_t timeout;
 };
+
+/**
+ * @brief start a new procedure, variadic args will be forwarded to
+ * ProcedureType constructor.
+ *
+ * @param args Args used to build the procedure
+ * @tparam ProcedureType The type of procedure to start
+ */
+template<typename ProcedureType, typename... Ts>
+void startProcedure(Ts&&... args) {
+    auto proc = new ProcedureType(util::forward<Ts>(args)...);
+    proc->start();
+}
+
 
 #endif //BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
