@@ -26,6 +26,23 @@ static SecurityManager& sm() {
     return ble().securityManager();
 }
 
+static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err) {
+    if(err) {
+        response->faillure(err);
+    } else {
+        response->success();
+    }
+}
+
+template<typename T>
+static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err, const T& res) {
+    if(err) {
+        response->faillure(err);
+    } else {
+        response->success(res);
+    }
+}
+
 static constexpr const Command init {
     "init",
     "Enable the BLE stack's Security Manager.",
@@ -64,11 +81,7 @@ static constexpr const Command init {
 
 
         ble_error_t err = sm().init(enableBonding, requireMITM, iocaps, passkey);
-        if(err) {
-            response->faillure(err);
-        } else {
-            response->success();
-        }
+        reportErrorOrSuccess(response, err);
     }
 };
 
@@ -115,12 +128,25 @@ static constexpr const Command getAddressesFromBondTable {
     }
 };
 
+
+static constexpr const Command purgeAllBondingState {
+    "purgeAllBondingState",
+    "Delete all peer device context and all related bonding information from "
+    "the database within the security manager.",
+    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+        ble_error_t err = sm().purgeAllBondingState();
+        reportErrorOrSuccess(response, err);
+    }
+};
+
+
 } // end of annonymous namespace
 
 ConstArray<Command> SecurityManagerCommandSuiteDescription::commands() {
     static constexpr const Command commandHandlers[] = {
         init,
-        getAddressesFromBondTable
+        getAddressesFromBondTable,
+        purgeAllBondingState
     };
 
     return ConstArray<Command>(commandHandlers);
