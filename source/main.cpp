@@ -34,9 +34,6 @@ static void consumeSerialBytes(void);
 static const size_t CIRCULAR_BUFFER_LENGTH = 768;
 static const size_t CONSUMER_BUFFER_LENGTH = 32;
 
-// variables
-static Serial pc(USBTX, USBRX);
-
 // circular buffer used by serial port interrupt to store characters
 // It will be use in a single producer, single consumer setup:
 // producer => RX interrupt
@@ -48,7 +45,7 @@ static ::util::CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
 static void whenRxInterrupt(void)
 {
     bool startConsumer = rxBuffer.empty();
-    if(rxBuffer.push((uint8_t) pc.getc()) == false) {
+    if(rxBuffer.push((uint8_t) get_stdio_serial().getc()) == false) {
         error("error, serial buffer is full\r\n");
     }
 
@@ -81,7 +78,7 @@ static void consumeSerialBytes(void) {
 
 void trace_printer(const char* str)
 {
-	pc.printf("%s\r\n", str);
+	get_stdio_serial().printf("%s\r\n", str);
 	cmd_output();
 }
 
@@ -110,8 +107,8 @@ void initialize_app_commands(void) {
 void app_start(int, char*[])
 {
     //configure serial port
-    pc.baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
-    pc.attach(whenRxInterrupt);
+    get_stdio_serial().baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
+    get_stdio_serial().attach(whenRxInterrupt);
 
     // initialize trace libary
     mbed_client_trace_init();
