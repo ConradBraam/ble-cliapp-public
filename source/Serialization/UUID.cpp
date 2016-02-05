@@ -25,7 +25,6 @@ static bool longUUIDfromString(const char* str, UUID& uuid) {
         }
     }
 
-    std::reverse(uuidData, uuidData + sizeof(uuidData));
     uuid = UUID(uuidData);
 
     return true;
@@ -33,7 +32,7 @@ static bool longUUIDfromString(const char* str, UUID& uuid) {
 
 static JSONOutputStream& serializeLongUUID(JSONOutputStream& os, const uint8_t* data) {
     return os.formatValue(
-        "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+        "\"%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\"",
         data[15], data[14], data[13], data[12], data[11], data[10], data[9], data[8],
         data[7], data[6], data[5], data[4], data[3], data[2], data[1], data[0]
     );
@@ -51,7 +50,7 @@ static bool shortUUIDFromString(const char* str, UUID& uuid) {
 }
 
 static JSONOutputStream& serializeShortUUID(JSONOutputStream& os, uint16_t uuid) {
-    return os.formatValue("\"0x%04X\"", uuid);
+    return os << uuid;
 }
 
 }
