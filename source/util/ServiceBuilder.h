@@ -14,11 +14,17 @@ class ServiceBuilder {
 
 public:
     ServiceBuilder(const UUID& uuid) :
-        service(uuid), currentCharacteristic(nullptr), currentDescriptor(nullptr) {
+        service(new detail::RAIIGattService(uuid)), currentCharacteristic(nullptr), currentDescriptor(nullptr) {
     }
 
     ServiceBuilder(const ServiceBuilder&) = delete;
     ServiceBuilder& operator=(const ServiceBuilder&) = delete;
+
+    ~ServiceBuilder() {
+        delete service;
+        delete currentCharacteristic;
+        delete currentDescriptor;
+    }
 
     void declareCharacteristic(const UUID& characteristicUUID) {
         commit();
@@ -95,8 +101,10 @@ public:
         return currentDescriptor->setMaxLength(maxLen);
     }
 
-    GattService* getService() {
-        return &service;
+    detail::RAIIGattService* release() {
+        auto* toReturn = service;
+        service = nullptr;
+        return toReturn;
     }
 
     void commit() {
@@ -105,13 +113,13 @@ public:
                 currentCharacteristic->addDescriptor(currentDescriptor);
                 currentDescriptor = nullptr;
             }
-            service.addCharacteristic(currentCharacteristic);
+            service->addCharacteristic(currentCharacteristic);
             currentCharacteristic = nullptr;
         }
     }
 
 private:
-    detail::RAIIGattService service;
+    detail::RAIIGattService* service;
     detail::RAIIGattCharacteristic* currentCharacteristic;
     detail::RAIIGattAttribute* currentDescriptor;
 

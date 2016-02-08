@@ -19,6 +19,10 @@ namespace {
 static ServiceBuilder* serviceBuilder = nullptr;
 static HeartRateService *HRMService = nullptr;
 
+static detail::RAIIGattService** gattServices = nullptr;
+static size_t gattServicesCount = 0;
+static bool cleanupRegistered = false;
+
 static BLE& ble() {
     return BLE::Instance();
 }
@@ -31,6 +35,14 @@ static void cleanupServiceBuilder();
 
 static void whenShutdown(const GattServer *) {
     cleanupServiceBuilder();
+    for(size_t i = 0; i < gattServicesCount; ++i) {
+        delete gattServices[i];
+    }
+    std::free(gattServices);
+    gattServices = nullptr;
+    gattServicesCount = 0;
+    gattServer().onShutdown().detach(whenShutdown);
+    cleanupRegistered = false;
 }
 
 static void cleanupServiceBuilder() {
@@ -39,7 +51,6 @@ static void cleanupServiceBuilder() {
     }
 
     delete serviceBuilder;
-    gattServer().onShutdown().detach(whenShutdown);
     serviceBuilder = nullptr;
 }
 
@@ -48,7 +59,10 @@ static bool initServiceBuilder(const UUID& uuid) {
         return false;
     }
     serviceBuilder = new ServiceBuilder(uuid);
-    gattServer().onShutdown(whenShutdown);
+    if(cleanupRegistered == false) {
+        gattServer().onShutdown(whenShutdown);
+        cleanupRegistered = true;
+    }
     return true;
 }
 
@@ -375,7 +389,7 @@ static constexpr const Command commitService {
         }
 
         serviceBuilder->commit();
-        GattService* service = serviceBuilder->getService();
+        detail::RAIIGattService* service = serviceBuilder->release();
 
         ble_error_t err = gattServer().addService(*service);
         if(err) {
@@ -439,6 +453,10 @@ static constexpr const Command commitService {
             os << endArray;
             os << endObject;
         }
+
+        gattServices = static_cast<detail::RAIIGattService**>(std::realloc(gattServices, sizeof(*gattServices) * (gattServicesCount + 1)));
+        gattServices[gattServicesCount] = service;
+        gattServicesCount += 1;
 
         // anyway, everything is cleaned up
         cleanupServiceBuilder();
