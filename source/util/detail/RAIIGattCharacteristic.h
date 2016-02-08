@@ -16,8 +16,6 @@ public:
     RAIIGattCharacteristic(const UUID& uuid);
     RAIIGattCharacteristic(const RAIIGattCharacteristic&) = delete;
     RAIIGattCharacteristic& operator=(const RAIIGattCharacteristic&) = delete;
-    RAIIGattCharacteristic(RAIIGattCharacteristic&&) = default;
-    RAIIGattCharacteristic& operator=(RAIIGattCharacteristic&&) = default;
 
     ~RAIIGattCharacteristic();
 

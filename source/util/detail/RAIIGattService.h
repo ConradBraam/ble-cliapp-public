@@ -16,8 +16,6 @@ public:
     RAIIGattService(const UUID& uuid);
     RAIIGattService(const RAIIGattService&) = delete;
     RAIIGattService& operator=(const RAIIGattService&) = delete;
-    RAIIGattService(RAIIGattService&&) = default;
-    RAIIGattService& operator=(RAIIGattService&&) = default;
 
     ~RAIIGattService();
 

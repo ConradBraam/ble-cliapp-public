@@ -15,8 +15,6 @@ public:
     RAIIGattAttribute(const UUID& uuid);
     RAIIGattAttribute(const RAIIGattAttribute&) = delete;
     RAIIGattAttribute& operator=(const RAIIGattAttribute&) = delete;
-    RAIIGattAttribute(RAIIGattAttribute&&) = default;
-    RAIIGattAttribute& operator=(RAIIGattAttribute&&) = default;
 
     ~RAIIGattAttribute();
 
