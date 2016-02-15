@@ -23,6 +23,8 @@ public:
     bool setMaxLength(std::uint16_t max);
 
     void setVariableLength(bool hasVariableLen);
+
+    void releaseAttributeValue();
 };
 
 }

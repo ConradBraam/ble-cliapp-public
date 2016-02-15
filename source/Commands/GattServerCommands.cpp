@@ -394,6 +394,7 @@ static constexpr const Command commitService {
         ble_error_t err = gattServer().addService(*service);
         if(err) {
             response->faillure(err);
+            delete service;
         } else {
             response->success();
             // iterate over all handles
@@ -452,11 +453,17 @@ static constexpr const Command commitService {
             }
             os << endArray;
             os << endObject;
+
+            // add the service inside the list of instantiated services
+            gattServices = static_cast<detail::RAIIGattService**>(std::realloc(gattServices, sizeof(*gattServices) * (gattServicesCount + 1)));
+            gattServices[gattServicesCount] = service;
+            gattServicesCount += 1;
+
+            // release unused memory
+            service->releaseAttributesValue();
         }
 
-        gattServices = static_cast<detail::RAIIGattService**>(std::realloc(gattServices, sizeof(*gattServices) * (gattServicesCount + 1)));
-        gattServices[gattServicesCount] = service;
-        gattServicesCount += 1;
+
 
         // anyway, everything is cleaned up
         cleanupServiceBuilder();

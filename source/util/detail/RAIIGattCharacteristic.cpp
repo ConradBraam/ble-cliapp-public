@@ -84,4 +84,24 @@ void RAIIGattCharacteristic::addDescriptor(RAIIGattAttribute* descriptor) {
     descriptorsCount += 1;
 }
 
+
+void RAIIGattCharacteristic::releaseAttributesValue() {
+    uint8_t*& valuePtr = (this->getValueAttribute()).*_valuePtr_accessor;
+    uint16_t& len = (this->getValueAttribute()).*_len_accessor;
+
+    if(valuePtr) {
+        delete[] valuePtr;
+        valuePtr = nullptr;
+        len = 0;
+    }
+
+
+    RAIIGattAttribute** descriptors = reinterpret_cast<RAIIGattAttribute**>(this->*_descriptors_accessor);
+    uint8_t descriptorsCount = this->*_descriptorCount_accessor;
+
+    for(uint8_t i = 0; i < descriptorsCount; ++i) {
+        descriptors[i]->releaseAttributeValue();
+    }
+}
+
 } // namespace detail

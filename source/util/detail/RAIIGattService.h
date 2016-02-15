@@ -21,6 +21,8 @@ public:
 
     // note: the characteristic will be moved and owned by this data structure ...
     void addCharacteristic(RAIIGattCharacteristic* characteristic);
+
+    void releaseAttributesValue();
 };
 
 }

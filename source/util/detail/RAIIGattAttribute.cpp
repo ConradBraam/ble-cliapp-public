@@ -53,4 +53,15 @@ void RAIIGattAttribute::setVariableLength(bool hasVariableLen) {
     this->*_hasVariableLen_accessor = hasVariableLen;
 }
 
+void RAIIGattAttribute::releaseAttributeValue() {
+    uint8_t*& valuePtr = (this->*_valuePtr_accessor);
+    uint16_t& len = this->*_len_accessor;
+
+    if(valuePtr) {
+        delete[] valuePtr;
+        valuePtr = nullptr;
+        len = 0;
+    }
+}
+
 }

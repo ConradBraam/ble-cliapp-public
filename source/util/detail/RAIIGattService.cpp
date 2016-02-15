@@ -34,4 +34,14 @@ void RAIIGattService::addCharacteristic(RAIIGattCharacteristic* characteristic) 
     characteristicCount += 1;
 }
 
+
+void RAIIGattService::releaseAttributesValue() {
+    RAIIGattCharacteristic** characteristics = reinterpret_cast<RAIIGattCharacteristic**>(this->*_characteristics_accessor);
+    uint8_t characteristicCount = this->*_characteristicCount_accessor;
+
+    for(uint8_t i = 0; i < characteristicCount; ++i) {
+        characteristics[i]->releaseAttributesValue();
+    }
+}
+
 } // namespace detail

@@ -29,6 +29,8 @@ public:
 
     // note: the attribute will be moved and owned by this data structure ...
     void addDescriptor(RAIIGattAttribute* descriptor);
+
+    void releaseAttributesValue();
 };
 
 }
