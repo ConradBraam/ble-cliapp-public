@@ -54,6 +54,7 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
 
             virtual ~DiscoverAllServicesAndCharacteristicsProcedure() {
                 client().onServiceDiscoveryTermination(nullptr);
+                client().terminateServiceDiscovery();
                 gap().onDisconnection().detach(makeFunctionPointer(
                     this, &DiscoverAllServicesAndCharacteristicsProcedure::whenDisconnected
                 ));
@@ -133,6 +134,7 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
 
                 response->getResultStream() << "disconnection during discovery";
                 response->faillure();
+
                 terminate();
             }
 
@@ -153,7 +155,7 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
 
 
         startProcedure<DiscoverAllServicesAndCharacteristicsProcedure>(
-            response, /* timeout */ 100 * 1000, connectionHandle
+            response, /* timeout */ 10 * 1000, connectionHandle
         );
 
     }
