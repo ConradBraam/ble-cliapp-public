@@ -9,7 +9,7 @@ serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os,
         key("properties") << characteristic.getProperties() <<
         key("start_handle") << characteristic.getDeclHandle() <<
         key("value_handle") << characteristic.getValueHandle() <<
-        key("end_handle") << "not yet implemented, require support from BLE API" <<
+        key("end_handle") << characteristic.getLastHandle() <<
     endObject;
 
 }
