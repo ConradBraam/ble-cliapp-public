@@ -54,6 +54,7 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
 
             virtual ~DiscoverAllServicesAndCharacteristicsProcedure() {
                 client().onServiceDiscoveryTermination(nullptr);
+                client().terminateServiceDiscovery();
                 gap().onDisconnection().detach(makeFunctionPointer(
                     this, &DiscoverAllServicesAndCharacteristicsProcedure::whenDisconnected
                 ));
@@ -133,6 +134,7 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
 
                 response->getResultStream() << "disconnection during discovery";
                 response->faillure();
+
                 terminate();
             }
 
@@ -153,7 +155,7 @@ static constexpr const Command discoverAllServicesAndCharacteristics {
 
 
         startProcedure<DiscoverAllServicesAndCharacteristicsProcedure>(
-            response, /* timeout */ 100 * 1000, connectionHandle
+            response, /* timeout */ 10 * 1000, connectionHandle
         );
 
     }
@@ -165,8 +167,93 @@ static constexpr const Command discoverAllServices {
     (const CommandArgDescription[]) {
         { "<connectionHandle>", "The connection used by this procedure" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
-        response->notImplemented();
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        // get the connection handle
+        uint16_t connectionHandle;
+        if (!fromString(args[0], connectionHandle)) {
+            response->invalidParameters("the connection handle is ill formed");
+            return;
+        }
+
+        struct DiscoverAllServicesProcedure : public AsyncProcedure {
+            DiscoverAllServicesProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, uint16_t handle) :
+                AsyncProcedure(res, timeout), connectionHandle(handle) {
+            }
+
+            virtual ~DiscoverAllServicesProcedure() {
+                client().onServiceDiscoveryTermination(nullptr);
+                gap().onDisconnection().detach(makeFunctionPointer(
+                    this, &DiscoverAllServicesProcedure::whenDisconnected
+                ));
+            }
+
+            virtual bool doStart() {
+                ble_error_t err = client().discoverServices(
+                    connectionHandle,
+                    makeFunctionPointer(this, &DiscoverAllServicesProcedure::whenServiceDiscovered)
+                );
+
+                if(err) {
+                    response->faillure(err);
+                    return false;
+                }
+
+                client().onServiceDiscoveryTermination(makeFunctionPointer(
+                    this, &DiscoverAllServicesProcedure::whenServiceDiscoveryTerminated
+                ));
+
+                gap().onDisconnection(makeFunctionPointer(
+                    this, &DiscoverAllServicesProcedure::whenDisconnected
+                ));
+
+                response->getResultStream() << serialization::startArray;
+                return true;
+            }
+
+            void whenServiceDiscovered(const DiscoveredService * discoveredService) {
+                using namespace serialization;
+
+                response->getResultStream() <<  startObject <<
+                    key("UUID") << discoveredService->getUUID() <<
+                    key("start_handle") << discoveredService->getStartHandle() <<
+                    key("end_handle") << discoveredService->getEndHandle() <<
+                endObject;
+            }
+
+            void whenServiceDiscoveryTerminated(Gap::Handle_t handle) {
+                using namespace serialization;
+
+                if(connectionHandle != handle) {
+                    return;
+                };
+
+                response->getResultStream() << endArray;
+                response->success();
+                terminate();
+            }
+
+            void whenDisconnected(const Gap::DisconnectionCallbackParams_t* params) {
+                if(connectionHandle != params->handle) {
+                    return;
+                };
+
+                response->getResultStream() << "disconnection during discovery";
+                response->faillure();
+                terminate();
+            }
+
+            virtual void doWhenTimeout() {
+                response->getResultStream() << "discovery timeout";
+                response->faillure();
+            }
+
+            uint16_t connectionHandle;
+        };
+
+
+        startProcedure<DiscoverAllServicesProcedure>(
+            response, /* timeout */ 100 * 1000, connectionHandle
+        );
     }
 };
 
@@ -177,8 +264,100 @@ static constexpr const Command discoverPrimaryServicesByUUID {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<serviceUUID>", "The UUID of the services to discover" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
-        response->notImplemented();
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        // get the connection handle
+        uint16_t connectionHandle;
+        if (!fromString(args[0], connectionHandle)) {
+            response->invalidParameters("the connection handle is ill formed");
+            return;
+        }
+
+        UUID serviceUUID;
+        if (!fromString(args[1], serviceUUID)) {
+            response->invalidParameters("the UUID is ill formed");
+            return;
+        }
+
+        struct DiscoverServicesByUUIDProcedure : public AsyncProcedure {
+            DiscoverServicesByUUIDProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, uint16_t handle, const UUID& uuid) :
+                AsyncProcedure(res, timeout), connectionHandle(handle), serviceUUID(uuid) {
+            }
+
+            virtual ~DiscoverServicesByUUIDProcedure() {
+                client().onServiceDiscoveryTermination(nullptr);
+                gap().onDisconnection().detach(makeFunctionPointer(
+                    this, &DiscoverServicesByUUIDProcedure::whenDisconnected
+                ));
+            }
+
+            virtual bool doStart() {
+                ble_error_t err = client().discoverServices(
+                    connectionHandle,
+                    makeFunctionPointer(this, &DiscoverServicesByUUIDProcedure::whenServiceDiscovered),
+                    serviceUUID
+                );
+
+                if(err) {
+                    response->faillure(err);
+                    return false;
+                }
+
+                client().onServiceDiscoveryTermination(makeFunctionPointer(
+                    this, &DiscoverServicesByUUIDProcedure::whenServiceDiscoveryTerminated
+                ));
+
+                gap().onDisconnection(makeFunctionPointer(
+                    this, &DiscoverServicesByUUIDProcedure::whenDisconnected
+                ));
+
+                response->getResultStream() << serialization::startArray;
+                return true;
+            }
+
+            void whenServiceDiscovered(const DiscoveredService * discoveredService) {
+                using namespace serialization;
+
+                response->getResultStream() <<  startObject <<
+                    key("UUID") << discoveredService->getUUID() <<
+                    key("start_handle") << discoveredService->getStartHandle() <<
+                    key("end_handle") << discoveredService->getEndHandle() <<
+                endObject;
+            }
+
+            void whenServiceDiscoveryTerminated(Gap::Handle_t handle) {
+                using namespace serialization;
+
+                if(connectionHandle != handle) {
+                    return;
+                };
+
+                response->getResultStream() << endArray;
+                response->success();
+                terminate();
+            }
+
+            void whenDisconnected(const Gap::DisconnectionCallbackParams_t* params) {
+                if(connectionHandle != params->handle) {
+                    return;
+                };
+
+                response->getResultStream() << "disconnection during discovery";
+                response->faillure();
+                terminate();
+            }
+
+            virtual void doWhenTimeout() {
+                response->getResultStream() << "discovery timeout";
+                response->faillure();
+            }
+
+            uint16_t connectionHandle;
+            UUID serviceUUID;
+        };
+
+        startProcedure<DiscoverServicesByUUIDProcedure>(
+            response, /* timeout */ 100 * 1000, connectionHandle, serviceUUID
+        );
     }
 };
 
@@ -223,6 +402,7 @@ static constexpr const Command discoverCharacteristicsByUUID {
     }
 };
 
+
 static constexpr const Command discoverAllCharacteristicsDescriptors {
     "discoverAllCharacteristicsDescriptors",
     "Find all the characteristic descriptor’s Attribute Handles and Attribute "
@@ -230,12 +410,142 @@ static constexpr const Command discoverAllCharacteristicsDescriptors {
     "identified by the characteristic handle range.",
     (const CommandArgDescription[]) {
         { "<connectionHandle>", "The connection used by this procedure" },
-        { "<characteristicValuehandle + 1 >",
-          "The starting handle of the descriptors for this characteristic" },
+        { "<characteristicStartHandle>",
+          "The start handle of of the characteristic" },
         { "<endHandle>", "The ending handle of the characteristic definition" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
-        response->notImplemented();
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        uint16_t connectionHandle;
+        if (!fromString(args[0], connectionHandle)) {
+            response->invalidParameters("the connection handle is ill formed");
+            return;
+        }
+
+        uint16_t startHandle;
+        if (!fromString(args[1], startHandle)) {
+            response->invalidParameters("The value handle is ill formed");
+            return;
+        }
+
+        uint16_t lastHandle;
+        if (!fromString(args[2], lastHandle)) {
+            response->invalidParameters("The end handle for descriptors is ill formed");
+            return;
+        }
+
+
+        struct DiscoverAllCharacteristicsDescriptorsProcedure : public AsyncProcedure {
+            DiscoverAllCharacteristicsDescriptorsProcedure(
+                const SharedPointer<CommandResponse>& res,
+                uint32_t timeout,
+                uint16_t connectionHandle,
+                uint16_t startHandle,
+                uint16_t lastHandle
+            ) : AsyncProcedure(res, timeout),
+                characteristic(
+                    build_discovered_characteristic(connectionHandle, startHandle, lastHandle)
+                ) {
+            }
+
+            virtual ~DiscoverAllCharacteristicsDescriptorsProcedure() {
+                client().terminateCharacteristicDescriptorDiscovery(characteristic);
+                gap().onDisconnection().detach(makeFunctionPointer(
+                    this, &DiscoverAllCharacteristicsDescriptorsProcedure::whenDisconnected
+                ));
+            }
+
+            virtual bool doStart() {
+                ble_error_t err = client().discoverCharacteristicDescriptors(
+                    characteristic,
+                    makeFunctionPointer(this, &DiscoverAllCharacteristicsDescriptorsProcedure::whenDescriptorDiscovered),
+                    makeFunctionPointer(this, &DiscoverAllCharacteristicsDescriptorsProcedure::whenServiceDiscoveryTerminated)
+                );
+
+                if(err) {
+                    response->faillure(err);
+                    return false;
+                }
+
+                gap().onDisconnection(makeFunctionPointer(
+                    this, &DiscoverAllCharacteristicsDescriptorsProcedure::whenDisconnected
+                ));
+
+                response->getResultStream() << serialization::startArray;
+                return true;
+            }
+
+            void whenDescriptorDiscovered(const CharacteristicDescriptorDiscovery::DiscoveryCallbackParams_t* result) {
+                using namespace serialization;
+
+                response->getResultStream() <<  startObject <<
+                    key("handle") << result->descriptor.getAttributeHandle() <<
+                    key("UUID") << result->descriptor.getUUID() <<
+                endObject;
+            }
+
+            void whenServiceDiscoveryTerminated(const CharacteristicDescriptorDiscovery::TerminationCallbackParams_t* params) {
+                using namespace serialization;
+
+                if(params->status) {
+                    response->getResultStream() << params->status << endArray;
+                    response->faillure();
+                } else {
+                    response->getResultStream() << endArray;
+                    response->success();
+                }
+
+                terminate();
+            }
+
+            void whenDisconnected(const Gap::DisconnectionCallbackParams_t* params) {
+                using namespace serialization;
+
+                if(characteristic.getConnectionHandle() != params->handle) {
+                    return;
+                };
+
+                response->getResultStream() << "disconnection" << endArray;
+                response->faillure();
+
+                terminate();
+            }
+
+            virtual void doWhenTimeout() {
+                using namespace serialization;
+
+                response->getResultStream() << "discovery timeout" << endArray;
+                response->faillure();
+            }
+
+
+            static DiscoveredCharacteristic build_discovered_characteristic(
+                Gap::Handle_t conn,
+                GattAttribute::Handle_t decl,
+                GattAttribute::Handle_t last
+            ) {
+                struct DummyDiscoveredCharacteristic : public DiscoveredCharacteristic {
+                    DummyDiscoveredCharacteristic(
+                        Gap::Handle_t conn,
+                        GattAttribute::Handle_t decl,
+                        GattAttribute::Handle_t last
+                    )  {
+                        gattc = &client();
+                        declHandle = decl;
+                        lastHandle = last;
+                        connHandle = conn;
+                    }
+                };
+
+                return DummyDiscoveredCharacteristic(conn, decl, last);
+            }
+
+            DiscoveredCharacteristic characteristic;
+        };
+
+
+        startProcedure<DiscoverAllCharacteristicsDescriptorsProcedure>(
+            response, /* timeout */ 10 * 1000, connectionHandle, startHandle, lastHandle
+        );
     }
 };
 
