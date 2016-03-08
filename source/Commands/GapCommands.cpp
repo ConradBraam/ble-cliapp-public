@@ -333,6 +333,65 @@ static constexpr const Command connect {
     }
 };
 
+
+static constexpr const Command waitForConnection {
+    "waitForConnection",
+    "Wait for a connection to occur",
+    (const CommandArgDescription[]) {
+        { "<timeout>", "Maximum time allowed for this procedure" },
+    },
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        // timeout for this procedure
+        uint16_t procedureTimeout;
+        if (!fromString(args[0], procedureTimeout)) {
+            response->invalidParameters("the procedure timeout is ill formed");
+            return;
+        }
+
+        struct ConnectionProcedure : public AsyncProcedure {
+            ConnectionProcedure(const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout) :
+                AsyncProcedure(res, procedureTimeout) {
+                gap().onConnection(makeFunctionPointer(this, &ConnectionProcedure::whenConnected));
+            }
+
+            virtual ~ConnectionProcedure() {
+                gap().onConnection().detach(makeFunctionPointer(this, &ConnectionProcedure::whenConnected));
+            }
+
+            virtual bool doStart() {
+                // nothing to do here, already started ...
+                return true;
+            }
+
+            void whenConnected(const Gap::ConnectionCallbackParams_t* params) {
+                using namespace serialization;
+
+                response->success();
+                auto& os = response->getResultStream();
+
+                os << startObject <<
+                    key("handle") << params->handle <<
+                    key("role") << toString(params->role) <<
+                    key("peerAddrType") << toString(params->peerAddrType) <<
+                    key("peerAddr") << macAddressToString(params->peerAddr).str <<
+                    key("ownAddrType") << toString(params->ownAddrType) <<
+                    key("ownAddr") << macAddressToString(params->ownAddr).str <<
+                    key("connectionParams") << startObject <<
+                        key("minConnectionInterval") << params->connectionParams->minConnectionInterval <<
+                        key("maxConnectionInterval") << params->connectionParams->maxConnectionInterval <<
+                        key("slaveLatency") << params->connectionParams->slaveLatency <<
+                        key("connectionSupervisionTimeout") << params->connectionParams->connectionSupervisionTimeout <<
+                    endObject <<
+                endObject;
+
+                terminate();
+            }
+        };
+
+        startProcedure<ConnectionProcedure>(response, procedureTimeout);
+    }
+};
+
 static constexpr const Command disconnect {
     "disconnect",
     "disconnect the device from a specific connection.\r\n"\
@@ -1144,6 +1203,7 @@ ConstArray<Command> GapCommandSuiteDescription::commands() {
         stopAdvertising,
         stopScan,
         connect,
+        waitForConnection,
         disconnect,
         getPreferredConnectionParams,
         setPreferredConnectionParams,
