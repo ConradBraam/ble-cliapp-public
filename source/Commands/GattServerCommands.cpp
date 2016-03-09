@@ -1,14 +1,17 @@
 #include "GattServerCommands.h"
 #include "util/StaticLambda.h"
 #include "ble/BLE.h"
+#include "ble/Gap.h"
 #include "ble/services/HeartRateService.h"
 #include "Serialization/Serializer.h"
 #include "Serialization/UUID.h"
 #include "Serialization/Hex.h"
 #include "Serialization/CharacteristicProperties.h"
 #include "Serialization/BLECommonSerializer.h"
+#include "Serialization/GattCallbackParamTypes.h"
 
 #include "util/ServiceBuilder.h"
+#include "util/AsyncProcedure.h"
 
 template<typename T>
 using SharedPointer = mbed::util::SharedPointer<T>;
@@ -483,6 +486,196 @@ static constexpr const Command cancelServiceDeclaration {
     }
 };
 
+static constexpr const Command read {
+    "read",
+    "read the value of an attribute of the GATT server, this function take the"
+    "attribute of the handle to read as first parameter. It is also possible to"
+    "supply a connection handle has second parameter.",
+    (const CommandArgDescription[]) {
+        { "<uint16_t>", "The handle of the attribute to read" }
+    },
+    /* maximum args counts is two */ 2,
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        GattServer& server = gattServer();
+
+        if(args.count() > 2) {
+            response->invalidParameters("Too many arguments");
+            return;
+        }
+
+        GattAttribute::Handle_t attributeHandle;
+        if(!fromString(args[0], attributeHandle)) {
+            response->invalidParameters("The attribute handle is ill formed");
+            return;
+        }
+
+        if(args.count() == 2) {
+            Gap::Handle_t connectionHandle;
+            if(!fromString(args[1], connectionHandle)) {
+                response->invalidParameters("The connection handle is ill formed");
+                return;
+            }
+
+            uint16_t length = 0;
+            ble_error_t err = server.read(connectionHandle, attributeHandle, nullptr, &length);
+            if(err) {
+                response->faillure(err);
+                return;
+            }
+
+            uint8_t* buffer = new uint8_t[length];
+            err = server.read(connectionHandle, attributeHandle, buffer, &length);
+            if(err) {
+                response->faillure(err);
+            } else {
+                serializeRawDataToHexString(response->getResultStream(), buffer, length);
+                response->success();
+            }
+            delete[] buffer;
+        } else {
+            uint16_t length = 0;
+            ble_error_t err = server.read(attributeHandle, nullptr, &length);
+            if(err) {
+                response->faillure(err);
+                return;
+            }
+
+            uint8_t* buffer = new uint8_t[length];
+            err = server.read(attributeHandle, buffer, &length);
+            if(err) {
+                response->faillure(err);
+            } else {
+                serializeRawDataToHexString(response->getResultStream(), buffer, length);
+                response->success();
+            }
+            delete[] buffer;
+        }
+    }
+};
+
+
+static constexpr const Command write {
+    "write",
+    "write the value of an attribute of the GATT server, this function take the"
+    "attribute of the handle to write as first parameter and the value to write "
+    "as second parameter. It is also possible to supply a connection handle has "
+    "third parameter.",
+    (const CommandArgDescription[]) {
+        { "<uint16_t>", "The handle of the attribute to write" },
+        { "<HexString>", "The value to write" }
+    },
+    /* maximum args counts is two */ 3,
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        GattServer& server = gattServer();
+
+        if(args.count() > 3) {
+            response->invalidParameters("Too many arguments");
+            return;
+        }
+
+        GattAttribute::Handle_t attributeHandle;
+        if(!fromString(args[0], attributeHandle)) {
+            response->invalidParameters("The attribute handle is ill formed");
+            return;
+        }
+
+        auto value = hexStringToRawData(args[1]);
+        if(value.size() == 0) {
+            response->invalidParameters("The value to write is ill formed");
+            return;
+        }
+
+        ble_error_t err = BLE_ERROR_UNSPECIFIED;
+
+        if(args.count() == 3) {
+            Gap::Handle_t connectionHandle;
+            if(!fromString(args[2], connectionHandle)) {
+                response->invalidParameters("The connection handle is ill formed");
+                return;
+            }
+
+            err = server.write(connectionHandle, attributeHandle, value.begin(), value.size());
+        } else {
+            err = server.write(attributeHandle, value.begin(), value.size());
+        }
+
+        if(err) {
+            response->faillure(err);
+        } else {
+            response->success();
+        }
+    }
+};
+
+
+static constexpr const Command waitForDataWritten {
+    "waitForDataWritten",
+    "Wait for a data to be written on a given characteristic from a given connection.",
+    (const CommandArgDescription[]) {
+        { "<uint16_t>", "The connection ID with the client supposed to write data" },
+        { "<uint16_t>", "The attribute handle which will be written" },
+        { "<timeout>", "Maximum time allowed for this procedure" },
+    },
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        Gap::Handle_t connectionHandle;
+        if(!fromString(args[0], connectionHandle)) {
+            response->invalidParameters("The connection handle is ill formed");
+            return;
+        }
+
+        GattAttribute::Handle_t attributeHandle;
+        if(!fromString(args[1], attributeHandle)) {
+            response->invalidParameters("The attribute handle is ill formed");
+            return;
+        }
+
+        uint16_t procedureTimeout;
+        if (!fromString(args[2], procedureTimeout)) {
+            response->invalidParameters("the procedure timeout is ill formed");
+            return;
+        }
+
+        struct WaitForDataWrittenProcedure : public AsyncProcedure {
+            WaitForDataWrittenProcedure(const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout,
+                Gap::Handle_t connectionHandle, GattAttribute::Handle_t attributeHandle) :
+                AsyncProcedure(res, procedureTimeout),
+                connection(connectionHandle),
+                attribute(attributeHandle) {
+            }
+
+            virtual ~WaitForDataWrittenProcedure() {
+                gattServer().onDataWritten().detach(makeFunctionPointer(this, &WaitForDataWrittenProcedure::whenDataWritten));
+            }
+
+            virtual bool doStart() {
+                gattServer().onDataWritten(this, &WaitForDataWrittenProcedure::whenDataWritten);
+                return true;
+            }
+
+            void whenDataWritten(const GattWriteCallbackParams* params) {
+                // filter events not relevant
+                if(params->connHandle != connection || params->handle != attribute) {
+                    return;
+                }
+
+                response->success(*params);
+                terminate();
+            }
+
+            Gap::Handle_t connection;
+            GattAttribute::Handle_t attribute;
+        };
+
+        startProcedure<WaitForDataWrittenProcedure>(
+            response,
+            procedureTimeout,
+            connectionHandle,
+            attributeHandle
+        );
+
+    }
+};
+
 } // end of annonymous namespace
 
 ConstArray<Command> GattServerCommandSuiteDescription::commands() {
@@ -500,8 +693,10 @@ ConstArray<Command> GattServerCommandSuiteDescription::commands() {
         setDescriptorVariableLength,
         setDescriptorMaxLength,
         commitService,
-        cancelServiceDeclaration
-
+        cancelServiceDeclaration,
+        read,
+        write,
+        waitForDataWritten
     };
 
     return ConstArray<Command>(commandHandlers);
