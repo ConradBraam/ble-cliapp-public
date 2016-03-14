@@ -433,6 +433,17 @@ static constexpr const Command discoverAllCharacteristicsDescriptors {
             return;
         }
 
+        if(startHandle >= lastHandle) {
+            response->invalidParameters("start handle should not be greater or equal to last handle");
+            return;
+        }
+
+        // if there is no descriptors to discover, just return an empty array
+        if ((startHandle + 1) == lastHandle) {
+            response->getResultStream() << serialization::startArray << serialization::endArray;
+            response->success();
+            return;
+        }
 
         struct DiscoverAllCharacteristicsDescriptorsProcedure : public AsyncProcedure {
             DiscoverAllCharacteristicsDescriptorsProcedure(
