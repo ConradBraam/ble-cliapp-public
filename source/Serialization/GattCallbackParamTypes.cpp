@@ -15,13 +15,14 @@ serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os,
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GattWriteCallbackParams& writeResult) {
     using namespace serialization;
 
-    return os << startObject <<
+    os << startObject <<
         key("connection_handle") << writeResult.connHandle <<
         key("attribute_handle") << writeResult.handle <<
         key("offset") << writeResult.offset <<
         key("length") << writeResult.len <<
         key("write_operation_type") << writeResult.writeOp <<
-    endObject;
+        key("data");
+    return serializeRawDataToHexString(os, writeResult.data, writeResult.len) << endObject;
 }
 
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, GattWriteCallbackParams::WriteOp_t writeOperation) {
