@@ -843,8 +843,20 @@ static constexpr const Command readCharacteristicDescriptor {
         { "<connectionHandle>", "The connection used by this procedure" },
         { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
-        response->notImplemented();
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        uint16_t connectionHandle;
+        if (!fromString(args[0], connectionHandle)) {
+            response->invalidParameters("the connection handle is ill formed");
+            return;
+        }
+
+        uint16_t characteristicDescriptorHandle;
+        if (!fromString(args[1], characteristicDescriptorHandle)) {
+            response->invalidParameters("the characteristic value handle is ill formed");
+            return;
+        }
+
+        startProcedure<ReadProcedure>(response, /* timeout */ 100 * 1000, connectionHandle, characteristicDescriptorHandle);
     }
 };
 
@@ -870,8 +882,29 @@ static constexpr const Command writeCharacteristicDescriptor {
         { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" },
         { "<value>", "Hexadecimal string representation of the value to write" }
     },
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
-        response->notImplemented();
+    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+        uint16_t connectionHandle;
+        if (!fromString(args[0], connectionHandle)) {
+            response->faillure("connection handle is ill formed");
+            return;
+        }
+
+        uint16_t characteristicDescriptorhandle;
+        if (!fromString(args[1], characteristicDescriptorhandle)) {
+            response->faillure("characteristic value handle is ill formed");
+            return;
+        }
+
+        auto dataToWrite = hexStringToRawData(args[2]);
+        if(dataToWrite.size() == 0) {
+            response->faillure("data to write provided are invalids");
+            return;
+        }
+
+        startProcedure<WriteProcedure>(
+            response, 100 * 1000,
+            GattClient::GATT_OP_WRITE_REQ, connectionHandle, characteristicDescriptorhandle, dataToWrite
+        );
     }
 };
 
