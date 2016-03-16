@@ -23,10 +23,6 @@ bool asciiHexByteToByte(char msb, char lsb, uint8_t& result) {
 }
 
 serialization::JSONOutputStream& serializeRawDataToHexString(serialization::JSONOutputStream& os, const uint8_t* data, size_t length) {
-    if(!length) {
-        return os;
-    }
-
     os.put('"');
     for (size_t i = 0; i < length; ++i) {
         os.format("%02X", data[i]);
