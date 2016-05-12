@@ -24,7 +24,7 @@
 #ifndef BLE_CLIAPP_UTIL_NORDIC_CRITICAL_SECTION_LOCK_H__
 #define BLE_CLIAPP_UTIL_NORDIC_CRITICAL_SECTION_LOCK_H__
 
-#include <cstdint>
+#include <stdint.h>
 #include "cmsis-core/core_generic.h"
 #include "nrf_soc.h"
 #include "nrf_sdm.h"

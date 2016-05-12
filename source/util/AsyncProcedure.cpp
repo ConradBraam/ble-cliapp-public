@@ -1,7 +1,7 @@
 #include "AsyncProcedure.h"
 
-AsyncProcedure::AsyncProcedure(const mbed::util::SharedPointer<CommandResponse>& res, std::uint32_t t) :
-    response(res), timeoutHandle(nullptr), timeout(t) {
+AsyncProcedure::AsyncProcedure(const mbed::util::SharedPointer<CommandResponse>& res, uint32_t t) :
+    response(res), timeoutHandle(NULL), timeout(t) {
 }
 
 AsyncProcedure::~AsyncProcedure() {
@@ -29,7 +29,7 @@ void AsyncProcedure::terminate() {
 
 void AsyncProcedure::whenTimeout() {
     // detach whenConnected handle
-    timeoutHandle = nullptr;
+    timeoutHandle = NULL;
     doWhenTimeout();
     terminate();
 }

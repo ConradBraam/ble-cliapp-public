@@ -2,10 +2,10 @@
 #define BLE_CLIAPP_COMMAND_SUITE_H_
 
 #include "util/ConstArray.h"
-#include "util/StaticLambda.h"
 #include "CommandArgs.h"
 #include "Command.h"
 #include "CommandSuiteImplementation.h"
+#include "CommandAccessor.h"
 
 /**
  * @brief Allow to easily group and add a suite of commands into the cli system.
@@ -13,7 +13,7 @@
  *
  * @tparam SuiteDescription The class describing the command suite. The class should
  * provide the following static methods :
- *    - static const char* name() : The name of the suite. Each commands present in the suite
+ *    - static const char* name() const : The name of the suite. Each commands present in the suite
  *    will be available through this entry point.
  *    - static const char* info() : Informations about this command suite
  *    - static const char* man() : The manual of this command suite
@@ -25,7 +25,7 @@
  *
  * public:
  *
- * static const char* name() {
+ * static const char* name() const {
  *    return "dummy";
  * }
  *
@@ -39,27 +39,16 @@
  *            "    * dummy bar : print bar\r\n";
  * }
  *
- * static ConstArray<Command> commands() {
- *    static const Command commandHandlers[] = {
- *        { "foo", doFoo },
- *        { "bar", doBar }
- *    }
+ * static ConstArray<CommandAccessor_t> commands() {
+ *  	static const CommandAccessor_t commandHandlers[] = {
+ *      	&getCommand<FooCommand>,
+ *          &getCommand<BarCommand>
+ *      };
  *
- *    return ConstArray<Command>(commandHandlers);
+ *      return ConstArray<CommandAccessor_t>(commandHandlers);
  * }
  *
- *
- * private:
- *
- * static void doFoo(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& resp) {
- *     response->success("foo");
- * }
- *
- * static CommandResult doBar(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& resp) {
- *     response->success("bar")
- * }
- *
- * }
+ * };
  *
  * \endcode
  *
@@ -97,27 +86,40 @@ private:
         );
     }
 
-    static ConstArray<Command> getModuleCommands() {
+    static ConstArray<CommandAccessor_t> getModuleCommands() {
         return SuiteDescription::commands();
     }
 
-    static ConstArray<Command> getBuiltinCommands() {
-        return ConstArray<Command>(builtinCommands);
+    static ConstArray<CommandAccessor_t> getBuiltinCommands() {
+        static const CommandAccessor_t builtinCommands[] = {
+            getCommand<HelpCommand>,
+            getCommand<ListCommand>,
+            getCommand<ArgsCommand>
+        };
+        return ConstArray<CommandAccessor_t>(builtinCommands);
     }
 
-    // builtin commands
-    static const Command builtinCommands[3];
-};
 
-template<typename SuiteDescription>
-const Command CommandSuite<SuiteDescription>::builtinCommands[3] = {
-    Command {
-        "help",
-        "Print help about a command, you can list the command by using the command 'list'",
-        (const CommandArgDescription[]) {
-            { "<commandName>", "the name of a command you want help for, use the command 'list' to have a list of available commands" }
-        },
-        STATIC_LAMBDA(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
+    struct HelpCommand : public Command {
+        virtual const char* name() const {
+            return "help";
+        }
+
+        virtual const char* help() const {
+            return "Print help about a command, you can list the command by using the command 'list'";
+        }
+
+        virtual ConstArray<CommandArgDescription> argsDescription() const {
+            static const CommandArgDescription argsDescription[] = {
+                {
+                    "<commandName>",
+                    "the name of a command you want help for, use the command 'list' to have a list of available commands"
+                }
+            };
+            return ConstArray<CommandArgDescription>(argsDescription);
+        }
+
+        virtual void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) const {
             CommandSuiteImplementation::help(
                 args,
                 response,
@@ -125,11 +127,19 @@ const Command CommandSuite<SuiteDescription>::builtinCommands[3] = {
                 getModuleCommands()
             );
         }
-    },
-    Command {
-        "list",
-        "list all the command in a module",
-        STATIC_LAMBDA(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
+    };
+
+
+    struct ListCommand : public Command {
+        virtual const char* name() const {
+            return "list";
+        }
+
+        virtual const char* help() const {
+            return "list all the command in a module";
+        }
+
+        virtual void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) const {
             CommandSuiteImplementation::list(
                 args,
                 response,
@@ -137,14 +147,26 @@ const Command CommandSuite<SuiteDescription>::builtinCommands[3] = {
                 getModuleCommands()
             );
         }
-    },
-    Command {
-        "args",
-        "print the args of a command",
-        (const CommandArgDescription[]) {
-            { "commandName", "The name of the the command you want the args" }
-        },
-        STATIC_LAMBDA(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
+    };
+
+
+    struct ArgsCommand : public Command {
+        virtual const char* name() const {
+            return "args";
+        }
+
+        virtual const char* help() const {
+            return "print the args of a command";
+        }
+
+        virtual ConstArray<CommandArgDescription> argsDescription() const {
+            static const CommandArgDescription argsDescription[] = {
+                { "commandName", "The name of the the command you want the args" }
+            };
+            return ConstArray<CommandArgDescription>(argsDescription);
+        }
+
+        virtual void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) const {
             CommandSuiteImplementation::args(
                 args,
                 response,
@@ -152,7 +174,7 @@ const Command CommandSuite<SuiteDescription>::builtinCommands[3] = {
                 getModuleCommands()
             );
         }
-    }
+    };
 };
 
 /**

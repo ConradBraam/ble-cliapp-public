@@ -1,7 +1,7 @@
 #ifndef BLE_CLIAPP_UTIL_JSON_OUTPUT_STREAM_H_
 #define BLE_CLIAPP_UTIL_JSON_OUTPUT_STREAM_H_
 
-#include <cstdint>
+#include <stdint.h>
 #include <cstdarg>
 #include <cstdio>
 #include <memory>
@@ -38,13 +38,6 @@ public:
         flush();
     }
 
-    // disable all copy operation and move assignment (delete of move operations
-    // is more questionable here)
-    JSONOutputStream(const JSONOutputStream&) = delete;
-    JSONOutputStream& operator=(const JSONOutputStream&) = delete;
-    JSONOutputStream(JSONOutputStream&&) = delete;
-    JSONOutputStream& operator=(JSONOutputStream&&) = delete;
-
     /**
      * @brief insert a boolean value into the stream
      * @param value The value to insert
@@ -57,56 +50,56 @@ public:
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(std::int8_t value);
+    JSONOutputStream& operator<<(int8_t value);
 
     /**
      * @brief insert a uint8_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(std::uint8_t value);
+    JSONOutputStream& operator<<(uint8_t value);
 
     /**
      * @brief insert a int16_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(std::int16_t value);
+    JSONOutputStream& operator<<(int16_t value);
 
     /**
      * @brief insert a uint16_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(std::uint16_t value);
+    JSONOutputStream& operator<<(uint16_t value);
 
     /**
      * @brief insert a int32_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(std::int32_t value);
+    JSONOutputStream& operator<<(int32_t value);
 
     /**
      * @brief insert a uint32_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(std::uint32_t value);
+    JSONOutputStream& operator<<(uint32_t value);
 
     /**
      * @brief insert a int64_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(std::int64_t value);
+    JSONOutputStream& operator<<(int64_t value);
 
     /**
      * @brief insert a uint64_t value into the stream
      * @param value The value to insert
      * @return *this
      */
-    JSONOutputStream& operator<<(std::uint64_t value);
+    JSONOutputStream& operator<<(uint64_t value);
 
     /**
      * @brief insert a byte string value value into the stream
@@ -205,6 +198,11 @@ public:
     JSONOutputStream& vformatValue(const char *fmt, std::va_list list);
 
 private:
+    // disable all copy operation and move assignment (delete of move operations
+    // is more questionable here)
+    JSONOutputStream(const JSONOutputStream&);
+    JSONOutputStream& operator=(const JSONOutputStream&);
+
     void handleNewValue();
 
     std::FILE* out;

@@ -1,5 +1,4 @@
 #include "GattServerCommands.h"
-#include "util/StaticLambda.h"
 #include "ble/BLE.h"
 #include "ble/Gap.h"
 #include "ble/services/HeartRateService.h"
@@ -13,16 +12,15 @@
 #include "util/ServiceBuilder.h"
 #include "util/AsyncProcedure.h"
 
-template<typename T>
-using SharedPointer = mbed::util::SharedPointer<T>;
+using mbed::util::SharedPointer;
 
 // isolation
 namespace {
 
-static ServiceBuilder* serviceBuilder = nullptr;
-static HeartRateService *HRMService = nullptr;
+static ServiceBuilder* serviceBuilder = NULL;
+static HeartRateService *HRMService = NULL;
 
-static detail::RAIIGattService** gattServices = nullptr;
+static detail::RAIIGattService** gattServices = NULL;
 static size_t gattServicesCount = 0;
 static bool cleanupRegistered = false;
 
@@ -42,7 +40,7 @@ static void whenShutdown(const GattServer *) {
         delete gattServices[i];
     }
     std::free(gattServices);
-    gattServices = nullptr;
+    gattServices = NULL;
     gattServicesCount = 0;
     gattServer().onShutdown().detach(whenShutdown);
     cleanupRegistered = false;
@@ -54,7 +52,7 @@ static void cleanupServiceBuilder() {
     }
 
     delete serviceBuilder;
-    serviceBuilder = nullptr;
+    serviceBuilder = NULL;
 }
 
 static bool initServiceBuilder(const UUID& uuid) {
@@ -69,13 +67,24 @@ static bool initServiceBuilder(const UUID& uuid) {
     return true;
 }
 
-static constexpr const Command instantiateHRM {
-    "instantiateHRM",
-    "instantiate an HRM service, this command will be removed in the future",
-    (const CommandArgDescription[]) {
-        { "<value>", "The hrm sensor value (uint16_t)" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct InstantiateHRMCommand : public Command {
+    virtual const char* name() const {
+        return "instantiateHRM";
+    }
+
+    virtual const char* help() const {
+        return "instantiate an HRM service, this command will be removed in the future";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<value>", "The hrm sensor value (uint16_t)" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         if(HRMService) {
             response->faillure("The service has already been instantiated");
             return;
@@ -93,13 +102,24 @@ static constexpr const Command instantiateHRM {
     }
 };
 
-static constexpr const Command updateHRMSensorValue {
-    "updateHRMSensorValue",
-    "update the sensor value of the HRM service, this command will be removed in the future",
-    (const CommandArgDescription[]) {
-        { "<value>", "The new sensor value (uint16_t)" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct UpdateHRMSensorValueCommand : public Command {
+    virtual const char* name() const {
+        return "updateHRMSensorValue";
+    }
+
+    virtual const char* help() const {
+        return "update the sensor value of the HRM service, this command will be removed in the future";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<value>", "The new sensor value (uint16_t)" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         if(!HRMService) {
             response->faillure("The HRM service has not been instantiated");
             return;
@@ -117,15 +137,26 @@ static constexpr const Command updateHRMSensorValue {
     }
 };
 
-static constexpr const Command declareService {
-    "declareService",
-    "Start the declaration of a service, after this call, user can call declareCharacteristic to declare "
-    "a characteristic inside the service, commitService to commit the service or cancelServiceDeclaration "
-    "to cancel the service declaration",
-    (const CommandArgDescription[]) {
-        { "<UUID>", "The UUID of the service" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct DeclareServiceCommand : public Command {
+    virtual const char* name() const {
+        return "declareService";
+    }
+
+    virtual const char* help() const {
+        return "Start the declaration of a service, after this call, user can call declareCharacteristic to declare "
+               "a characteristic inside the service, commitService to commit the service or cancelServiceDeclaration "
+               "to cancel the service declaration";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<UUID>", "The UUID of the service" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         UUID serviceUUID;
 
         if(!fromString(args[0], serviceUUID)) {
@@ -141,15 +172,26 @@ static constexpr const Command declareService {
     }
 };
 
-static constexpr const Command declareCharacteristic {
-    "declareCharacteristic",
-    "Start the declaration of a characteristic, after this call, user can call declareCharacteristic to declare "
-    "another characteristic inside the service, declareDescriptor to add a descriptor inside this characteristic, "
-    "commitService to commit the service or cancelServiceDeclaration to cancel the service declaration",
-    (const CommandArgDescription[]) {
-        { "<UUID>", "The UUID of the characteristic" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct DeclareCharacteristicCommand : public Command {
+    virtual const char* name() const {
+        return "declareCharacteristic";
+    }
+
+    virtual const char* help() const {
+        return "Start the declaration of a characteristic, after this call, user can call declareCharacteristic to declare "
+               "another characteristic inside the service, declareDescriptor to add a descriptor inside this characteristic, "
+               "commitService to commit the service or cancelServiceDeclaration to cancel the service declaration";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<UUID>", "The UUID of the characteristic" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         UUID characteristicUUID;
 
         if(!fromString(args[0], characteristicUUID)) {
@@ -164,17 +206,29 @@ static constexpr const Command declareCharacteristic {
 
         serviceBuilder->declareCharacteristic(characteristicUUID);
         response->success();
+
     }
 };
 
-static constexpr const Command setCharacteristicValue {
-    "setCharacteristicValue",
-    "Set the value of the characteristic being declared",
-    (const CommandArgDescription[]) {
-        { "<HexString>", "The value of the characteristic" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        container::Vector<std::uint8_t> characteristicValue = hexStringToRawData(args[0]);
+
+struct SetCharacteristicValueCommand : public Command {
+    virtual const char* name() const {
+        return "setCharacteristicValue";
+    }
+
+    virtual const char* help() const {
+        return "Set the value of the characteristic being declared";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<HexString>", "The value of the characteristic" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+        container::Vector<uint8_t> characteristicValue = hexStringToRawData(args[0]);
 
         if(characteristicValue.size() == 0) {
             response->invalidParameters("The characteristic value is ill formed");
@@ -194,12 +248,23 @@ static constexpr const Command setCharacteristicValue {
     }
 };
 
-static constexpr const Command setCharacteristicProperties {
-    "setCharacteristicProperties",
-    "Set the properties of a characteristic being declared, this function expect a list of "
-    "properties such as 'broadcast', 'read', 'writeWoResp', 'write', 'notify', 'indicate' and "
-    "'authSignedWrite'",
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetCharacteristicPropertiesCommand : public Command {
+    virtual const char* name() const {
+        return "setCharacteristicProperties";
+    }
+
+    virtual const char* help() const {
+        return "Set the properties of a characteristic being declared, this function expect a list of "
+               "properties such as 'broadcast', 'read', 'writeWoResp', 'write', 'notify', 'indicate' and "
+               "'authSignedWrite'";
+    }
+
+    virtual std::size_t maximumArgsRequired() const {
+        return 0xFF;
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         uint8_t properties;
         if(!characteristicPropertiesFromStrings(args, properties)) {
             response->invalidParameters("Properties are ill formed");
@@ -219,14 +284,25 @@ static constexpr const Command setCharacteristicProperties {
     }
 };
 
-static constexpr const Command setCharacteristicVariableLength {
-    "setCharacteristicVariableLength",
-    "Set a boolean value which indicate if the characteristic has a variable len. If the "
-    "characteristic has a variable len, max len could be set to bound the length to a maximum",
-    (const CommandArgDescription[]) {
-        { "<bool>", "The value of the variable length property" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetCharacteristicVariableLengthCommand : public Command {
+    virtual const char* name() const {
+        return "setCharacteristicVariableLength";
+    }
+
+    virtual const char* help() const {
+        return "Set a boolean value which indicate if the characteristic has a variable len. If the "
+               "characteristic has a variable len, max len could be set to bound the length to a maximum";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<bool>", "The value of the variable length property" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         bool variableLen;
         if(!fromString(args[0], variableLen)) {
             response->invalidParameters("Variable len is ill formed");
@@ -246,13 +322,24 @@ static constexpr const Command setCharacteristicVariableLength {
     }
 };
 
-static constexpr const Command setCharacteristicMaxLength {
-    "setCharacteristicMaxLength",
-    "Set the maximum lenght that is allowed for the value of the characteristic being declared",
-    (const CommandArgDescription[]) {
-        { "<uint16_t>", "Maximum length of the value of the characteristic being declared" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetCharacteristicMaxLengthCommand : public Command {
+    virtual const char* name() const {
+        return "setCharacteristicMaxLength";
+    }
+
+    virtual const char* help() const {
+        return "Set the maximum lenght that is allowed for the value of the characteristic being declared";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<uint16_t>", "Maximum length of the value of the characteristic being declared" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         uint16_t maxLen;
         if(!fromString(args[0], maxLen)) {
             response->invalidParameters("Max len is ill formed");
@@ -269,16 +356,28 @@ static constexpr const Command setCharacteristicMaxLength {
         } else {
             response->faillure("Impossible to set the characteristic maximum length");
         }
+
     }
 };
 
-static constexpr const Command declareDescriptor {
-    "declareDescriptor",
-    "Start the declaration of a descriptor which will be attached to the characteristic being declared",
-    (const CommandArgDescription[]) {
-        { "<UUID>", "The UUID of the descriptor" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct DeclareDescriptorCommand : public Command {
+    virtual const char* name() const {
+        return "declareDescriptor";
+    }
+
+    virtual const char* help() const {
+        return "Start the declaration of a descriptor which will be attached to the characteristic being declared";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<UUID>", "The UUID of the descriptor" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         UUID descriptorUUID;
 
         if(!fromString(args[0], descriptorUUID)) {
@@ -300,14 +399,25 @@ static constexpr const Command declareDescriptor {
     }
 };
 
-static constexpr const Command setDescriptorValue {
-    "setDescriptorValue",
-    "Set the value of the descriptor being declared",
-    (const CommandArgDescription[]) {
-        { "<HexString>", "The value of the descriptor" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        container::Vector<std::uint8_t> descriptorValue = hexStringToRawData(args[0]);
+
+struct SetDescriptorValueCommand : public Command {
+    virtual const char* name() const {
+        return "setDescriptorValue";
+    }
+
+    virtual const char* help() const {
+        return "Set the value of the descriptor being declared";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<HexString>", "The value of the descriptor" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+        container::Vector<uint8_t> descriptorValue = hexStringToRawData(args[0]);
 
         if(descriptorValue.size() == 0) {
             response->invalidParameters("The descriptor value is ill formed");
@@ -327,14 +437,25 @@ static constexpr const Command setDescriptorValue {
     }
 };
 
-static constexpr const Command setDescriptorVariableLength {
-    "setDescriptorVariableLength",
-    "Set a boolean value which indicate if the descriptor has a variable len. If the "
-    "descriptor has a variable len, max len could be set to bound the length to a maximum",
-    (const CommandArgDescription[]) {
-        { "<bool>", "The value of the variable length property" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetDescriptorVariableLengthCommand : public Command {
+    virtual const char* name() const {
+        return "setDescriptorVariableLength";
+    }
+
+    virtual const char* help() const {
+        return "Set a boolean value which indicate if the descriptor has a variable len. If the "
+               "descriptor has a variable len, max len could be set to bound the length to a maximum";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<bool>", "The value of the variable length property" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         bool variableLen;
         if(!fromString(args[0], variableLen)) {
             response->invalidParameters("Variable len is ill formed");
@@ -354,13 +475,24 @@ static constexpr const Command setDescriptorVariableLength {
     }
 };
 
-static constexpr const Command setDescriptorMaxLength {
-    "setDescriptorMaxLength",
-    "Set the maximum lenght that is allowed for the value of the descriptor being declared",
-    (const CommandArgDescription[]) {
-        { "<uint16_t>", "Maximum length of the value of the descriptor being declared" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetDescriptorMaxLengthCommand : public Command {
+    virtual const char* name() const {
+        return "setDescriptorMaxLength";
+    }
+
+    virtual const char* help() const {
+        return "Set the maximum lenght that is allowed for the value of the descriptor being declared";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<uint16_t>", "Maximum length of the value of the descriptor being declared" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         uint16_t maxLen;
         if(!fromString(args[0], maxLen)) {
             response->invalidParameters("Max len is ill formed");
@@ -380,10 +512,17 @@ static constexpr const Command setDescriptorMaxLength {
     }
 };
 
-static constexpr const Command commitService {
-    "commitService",
-    "commit the service declaration",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct CommitServiceCommand : public Command {
+    virtual const char* name() const {
+        return "commitService";
+    }
+
+    virtual const char* help() const {
+        return "commit the service declaration";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         using namespace serialization;
 
         if(!serviceBuilder) {
@@ -401,7 +540,7 @@ static constexpr const Command commitService {
         } else {
             response->success();
             // iterate over all handles
-            auto& os = response->getResultStream() << startObject <<
+            serialization::JSONOutputStream& os = response->getResultStream() << startObject <<
                 key("UUID") << service->getUUID() <<
                 key("handle") << service->getHandle() <<
                 key("characteristics") << startArray;
@@ -466,17 +605,22 @@ static constexpr const Command commitService {
             service->releaseAttributesValue();
         }
 
-
-
         // anyway, everything is cleaned up
         cleanupServiceBuilder();
     }
 };
 
-static constexpr const Command cancelServiceDeclaration {
-    "cancelServiceDeclaration",
-    "cancel the service declaration",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct CancelServiceDeclarationCommand : public Command {
+    virtual const char* name() const {
+        return "cancelServiceDeclaration";
+    }
+
+    virtual const char* help() const {
+        return "cancel the service declaration";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         if(!serviceBuilder) {
             response->faillure("Their is no service being declared");
             return;
@@ -486,16 +630,30 @@ static constexpr const Command cancelServiceDeclaration {
     }
 };
 
-static constexpr const Command read {
-    "read",
-    "read the value of an attribute of the GATT server, this function take the"
-    "attribute of the handle to read as first parameter. It is also possible to"
-    "supply a connection handle has second parameter.",
-    (const CommandArgDescription[]) {
-        { "<uint16_t>", "The handle of the attribute to read" }
-    },
-    /* maximum args counts is two */ 2,
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct ReadCommand : public Command {
+    virtual const char* name() const {
+        return "read";
+    }
+
+    virtual const char* help() const {
+        return "read the value of an attribute of the GATT server, this function take the"
+               "attribute of the handle to read as first parameter. It is also possible to"
+               "supply a connection handle has second parameter.";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<uint16_t>", "The handle of the attribute to read" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual std::size_t maximumArgsRequired() const {
+        return 2;
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         GattServer& server = gattServer();
 
         if(args.count() > 2) {
@@ -517,7 +675,7 @@ static constexpr const Command read {
             }
 
             uint16_t length = 0;
-            ble_error_t err = server.read(connectionHandle, attributeHandle, nullptr, &length);
+            ble_error_t err = server.read(connectionHandle, attributeHandle, NULL, &length);
             if(err) {
                 response->faillure(err);
                 return;
@@ -534,7 +692,7 @@ static constexpr const Command read {
             delete[] buffer;
         } else {
             uint16_t length = 0;
-            ble_error_t err = server.read(attributeHandle, nullptr, &length);
+            ble_error_t err = server.read(attributeHandle, NULL, &length);
             if(err) {
                 response->faillure(err);
                 return;
@@ -554,18 +712,31 @@ static constexpr const Command read {
 };
 
 
-static constexpr const Command write {
-    "write",
-    "write the value of an attribute of the GATT server, this function take the"
-    "attribute of the handle to write as first parameter and the value to write "
-    "as second parameter. It is also possible to supply a connection handle has "
-    "third parameter.",
-    (const CommandArgDescription[]) {
-        { "<uint16_t>", "The handle of the attribute to write" },
-        { "<HexString>", "The value to write" }
-    },
-    /* maximum args counts is two */ 3,
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+struct WriteCommand : public Command {
+    virtual const char* name() const {
+        return "write";
+    }
+
+    virtual const char* help() const {
+        return "write the value of an attribute of the GATT server, this function take the"
+               "attribute of the handle to write as first parameter and the value to write "
+               "as second parameter. It is also possible to supply a connection handle has "
+               "third parameter.";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<uint16_t>", "The handle of the attribute to write" },
+            { "<HexString>", "The value to write" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual std::size_t maximumArgsRequired() const {
+        return 3;
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         GattServer& server = gattServer();
 
         if(args.count() > 3) {
@@ -579,7 +750,7 @@ static constexpr const Command write {
             return;
         }
 
-        auto value = hexStringToRawData(args[1]);
+        container::Vector<uint8_t> value = hexStringToRawData(args[1]);
         if(value.size() == 0) {
             response->invalidParameters("The value to write is ill formed");
             return;
@@ -608,15 +779,25 @@ static constexpr const Command write {
 };
 
 
-static constexpr const Command waitForDataWritten {
-    "waitForDataWritten",
-    "Wait for a data to be written on a given characteristic from a given connection.",
-    (const CommandArgDescription[]) {
-        { "<uint16_t>", "The connection ID with the client supposed to write data" },
-        { "<uint16_t>", "The attribute handle which will be written" },
-        { "<timeout>", "Maximum time allowed for this procedure" },
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+struct WaitForDataWrittenCommand : public Command {
+    virtual const char* name() const {
+        return "waitForDataWritten";
+    }
+
+    virtual const char* help() const {
+        return "Wait for a data to be written on a given characteristic from a given connection.";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<uint16_t>", "The connection ID with the client supposed to write data" },
+            { "<uint16_t>", "The attribute handle which will be written" },
+            { "<timeout>", "Maximum time allowed for this procedure" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         Gap::Handle_t connectionHandle;
         if(!fromString(args[0], connectionHandle)) {
             response->invalidParameters("The connection handle is ill formed");
@@ -635,69 +816,68 @@ static constexpr const Command waitForDataWritten {
             return;
         }
 
-        struct WaitForDataWrittenProcedure : public AsyncProcedure {
-            WaitForDataWrittenProcedure(const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout,
-                Gap::Handle_t connectionHandle, GattAttribute::Handle_t attributeHandle) :
-                AsyncProcedure(res, procedureTimeout),
-                connection(connectionHandle),
-                attribute(attributeHandle) {
-            }
-
-            virtual ~WaitForDataWrittenProcedure() {
-                gattServer().onDataWritten().detach(makeFunctionPointer(this, &WaitForDataWrittenProcedure::whenDataWritten));
-            }
-
-            virtual bool doStart() {
-                gattServer().onDataWritten(this, &WaitForDataWrittenProcedure::whenDataWritten);
-                return true;
-            }
-
-            void whenDataWritten(const GattWriteCallbackParams* params) {
-                // filter events not relevant
-                if(params->connHandle != connection || params->handle != attribute) {
-                    return;
-                }
-
-                response->success(*params);
-                terminate();
-            }
-
-            Gap::Handle_t connection;
-            GattAttribute::Handle_t attribute;
-        };
-
         startProcedure<WaitForDataWrittenProcedure>(
             response,
             procedureTimeout,
             connectionHandle,
             attributeHandle
         );
-
     }
+
+    struct WaitForDataWrittenProcedure : public AsyncProcedure {
+        WaitForDataWrittenProcedure(const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout,
+            Gap::Handle_t connectionHandle, GattAttribute::Handle_t attributeHandle) :
+            AsyncProcedure(res, procedureTimeout),
+            connection(connectionHandle),
+            attribute(attributeHandle) {
+        }
+
+        virtual ~WaitForDataWrittenProcedure() {
+            gattServer().onDataWritten().detach(makeFunctionPointer(this, &WaitForDataWrittenProcedure::whenDataWritten));
+        }
+
+        virtual bool doStart() {
+            gattServer().onDataWritten(this, &WaitForDataWrittenProcedure::whenDataWritten);
+            return true;
+        }
+
+        void whenDataWritten(const GattWriteCallbackParams* params) {
+            // filter events not relevant
+            if(params->connHandle != connection || params->handle != attribute) {
+                return;
+            }
+
+            response->success(*params);
+            terminate();
+        }
+
+        Gap::Handle_t connection;
+        GattAttribute::Handle_t attribute;
+    };
 };
 
 } // end of annonymous namespace
 
-ConstArray<Command> GattServerCommandSuiteDescription::commands() {
-    static constexpr const Command commandHandlers[] = {
-        instantiateHRM,
-        updateHRMSensorValue,
-        declareService,
-        declareCharacteristic,
-        setCharacteristicValue,
-        setCharacteristicProperties,
-        setCharacteristicVariableLength,
-        setCharacteristicMaxLength,
-        declareDescriptor,
-        setDescriptorValue,
-        setDescriptorVariableLength,
-        setDescriptorMaxLength,
-        commitService,
-        cancelServiceDeclaration,
-        read,
-        write,
-        waitForDataWritten
+ConstArray<CommandAccessor_t> GattServerCommandSuiteDescription::commands() {
+    static const CommandAccessor_t commandHandlers[] = {
+        &getCommand<InstantiateHRMCommand>,
+        &getCommand<UpdateHRMSensorValueCommand>,
+        &getCommand<DeclareServiceCommand>,
+        &getCommand<DeclareCharacteristicCommand>,
+        &getCommand<SetCharacteristicValueCommand>,
+        &getCommand<SetCharacteristicPropertiesCommand>,
+        &getCommand<SetCharacteristicVariableLengthCommand>,
+        &getCommand<SetCharacteristicMaxLengthCommand>,
+        &getCommand<DeclareDescriptorCommand>,
+        &getCommand<SetDescriptorValueCommand>,
+        &getCommand<SetDescriptorVariableLengthCommand>,
+        &getCommand<SetDescriptorMaxLengthCommand>,
+        &getCommand<CommitServiceCommand>,
+        &getCommand<CancelServiceDeclarationCommand>,
+        &getCommand<ReadCommand>,
+        &getCommand<WriteCommand>,
+        &getCommand<WaitForDataWrittenCommand>
     };
 
-    return ConstArray<Command>(commandHandlers);
+    return ConstArray<CommandAccessor_t>(commandHandlers);
 }

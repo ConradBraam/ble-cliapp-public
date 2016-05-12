@@ -14,7 +14,7 @@
  */
 template<typename MemberAccessor, typename MemberType, MemberType Member>
 struct hijacked_member_accessor {
-    friend constexpr MemberType getMember(MemberAccessor) {
+    friend MemberType getMember(MemberAccessor) {
         return Member;
     }
 };
@@ -28,11 +28,11 @@ struct hijacked_member_accessor {
  */
 #define HIJACK_MEMBER(ACCESSOR, MEMBER_TYPE, MEMBER) \
     struct ACCESSOR##_CLASS__ { \
-            constexpr ACCESSOR##_CLASS__() = default; \
-            friend constexpr MEMBER_TYPE getMember(ACCESSOR##_CLASS__);\
+            ACCESSOR##_CLASS__() { } \
+            friend MEMBER_TYPE getMember(ACCESSOR##_CLASS__);\
         };\
     template struct hijacked_member_accessor<ACCESSOR##_CLASS__, MEMBER_TYPE, MEMBER>; \
-    static const auto ACCESSOR = getMember(ACCESSOR##_CLASS__())
+    static MEMBER_TYPE const ACCESSOR = getMember(ACCESSOR##_CLASS__())
 
 
 

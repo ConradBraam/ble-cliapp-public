@@ -1,7 +1,7 @@
 #ifndef BLE_CLIAPP_CHARACTERISTIC_PROPERTIES_H_
 #define BLE_CLIAPP_CHARACTERISTIC_PROPERTIES_H_
 
-#include <cstdint>
+#include <stdint.h>
 
 #include "Serializer.h"
 #include "ble/GattCharacteristic.h"
@@ -32,8 +32,8 @@ struct SerializerDescription<GattCharacteristic::Properties_t> {
 };
 
 
-static inline bool characteristicPropertiesFromStrings(const ConstArray<const char*>& strings, std::uint8_t& result) {
-    std::uint8_t properties = GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NONE;
+static inline bool characteristicPropertiesFromStrings(const ConstArray<const char*>& strings, uint8_t& result) {
+    uint8_t properties = GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NONE;
 
     for(std::size_t i = 0; i < strings.count(); ++i) {
         GattCharacteristic::Properties_t prop;
@@ -49,7 +49,7 @@ static inline bool characteristicPropertiesFromStrings(const ConstArray<const ch
 }
 
 static inline serialization::JSONOutputStream& serializeCharacteristicProperties(
-    serialization::JSONOutputStream& os, std::uint8_t properties) {
+    serialization::JSONOutputStream& os, uint8_t properties) {
     using namespace serialization;
 
     os << startArray;

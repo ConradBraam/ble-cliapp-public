@@ -1,10 +1,9 @@
 #include <cstdlib>
-#include <cstdint>
+#include <stdint.h>
 #include <cstdio>
 
 #include "Hex.h"
 
-using std::uint8_t;
 using std::size_t;
 using std::strtol;
 using std::strlen;

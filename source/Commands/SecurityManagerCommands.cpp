@@ -6,14 +6,12 @@
 #include <ble/SecurityManager.h>
 
 #include "SecurityManagerCommands.h"
-#include "util/StaticLambda.h"
 #include "Serialization/Serializer.h"
 #include "Serialization/SecurityManagerSerialization.h"
 #include "Serialization/BLECommonSerializer.h"
 #include "Serialization/GapSerializer.h"
 
-template<typename T>
-using SharedPointer = mbed::util::SharedPointer<T>;
+using mbed::util::SharedPointer;
 
 // isolation
 namespace {
@@ -43,16 +41,31 @@ static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response,
     }
 }
 
-static constexpr const Command init {
-    "init",
-    "Enable the BLE stack's Security Manager.",
-    (const CommandArgDescription[]) {
-        { "<bool>", "enableBonding: Allow for bonding." },
-        { "<bool>", "requireMITM   Require protection for man-in-the-middle attacks." },
-        { "<SecurityManager::SecurityIOCapabilities_t>", "iocaps :To specify the I/O capabilities of this peripheral." },
-        { "<Passkey_t>", "passkey: To specify a static passkey.." }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+static bool is_digit(uint8_t v) {
+    return (bool) std::isdigit(v);
+}
+
+
+struct InitCommand : public Command {
+    virtual const char* name() const {
+        return "init";
+    }
+
+    virtual const char* help() const {
+        return "Enable the BLE stack's Security Manager.";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<bool>", "enableBonding: Allow for bonding." },
+            { "<bool>", "requireMITM   Require protection for man-in-the-middle attacks." },
+            { "<SecurityManager::SecurityIOCapabilities_t>", "iocaps :To specify the I/O capabilities of this peripheral." },
+            { "<Passkey_t>", "passkey: To specify a static passkey.." }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         bool enableBonding;
         if(!fromString(args[0], enableBonding)) {
             response->invalidParameters("enableBonding should be a bool");
@@ -73,7 +86,7 @@ static constexpr const Command init {
 
         SecurityManager::Passkey_t passkey;
         if(std::strlen(args[3]) != sizeof(passkey) ||
-           std::count_if(args[3], args[3] + sizeof(passkey), [](std::uint8_t v) { return (bool) std::isdigit(v); }) == sizeof(passkey)) {
+           std::count_if(args[3], args[3] + sizeof(passkey), is_digit) == sizeof(passkey)) {
             response->invalidParameters("passkey should be a SecurityManager::Passkey_t");
             return;
         }
@@ -85,16 +98,27 @@ static constexpr const Command init {
     }
 };
 
-static constexpr const Command getAddressesFromBondTable {
-    "getAddressesFromBondTable",
-    "Get a list of addresses from all peers in the bond table.",
-    (const CommandArgDescription[]) {
-        { "<uint8_t>", "addressesCount count of addresses to get" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct GetAddressesFromBondTableCommand : public Command {
+    virtual const char* name() const {
+        return "getAddressesFromBondTable";
+    }
+
+    virtual const char* help() const {
+        return "Get a list of addresses from all peers in the bond table.";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<uint8_t>", "addressesCount count of addresses to get" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         using namespace serialization;
 
-        std::uint8_t addrCount;
+        uint8_t addrCount;
         if(!fromString(args[0], addrCount)) {
             response->invalidParameters("address count should be a value in STD::uint_t domain");
             return;
@@ -112,7 +136,7 @@ static constexpr const Command getAddressesFromBondTable {
             response->faillure(err);
         } else {
             response->success();
-            auto& os = response->getResultStream();
+            serialization::JSONOutputStream& os = response->getResultStream();
 
             os << startArray;
             for(std::size_t i = 0; i < whitelist.size; ++i) {
@@ -129,25 +153,30 @@ static constexpr const Command getAddressesFromBondTable {
 };
 
 
-static constexpr const Command purgeAllBondingState {
-    "purgeAllBondingState",
-    "Delete all peer device context and all related bonding information from "
-    "the database within the security manager.",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+struct PurgeAllBondingStateCommand : public Command {
+    virtual const char* name() const {
+        return "purgeAllBondingState";
+    }
+
+    virtual const char* help() const {
+        return "Delete all peer device context and all related bonding information from "
+        "the database within the security manager.";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         ble_error_t err = sm().purgeAllBondingState();
         reportErrorOrSuccess(response, err);
     }
 };
 
-
 } // end of annonymous namespace
 
-ConstArray<Command> SecurityManagerCommandSuiteDescription::commands() {
-    static constexpr const Command commandHandlers[] = {
-        init,
-        getAddressesFromBondTable,
-        purgeAllBondingState
+ConstArray<CommandAccessor_t> SecurityManagerCommandSuiteDescription::commands() {
+    static const CommandAccessor_t commandHandlers[] = {
+        &getCommand<InitCommand>,
+        &getCommand<GetAddressesFromBondTableCommand>,
+        &getCommand<PurgeAllBondingStateCommand>
     };
 
-    return ConstArray<Command>(commandHandlers);
+    return ConstArray<CommandAccessor_t>(commandHandlers);
 }

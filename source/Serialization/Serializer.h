@@ -93,7 +93,7 @@ static inline bool fromString(const char* str, T& value) {
  *
  * @return true if the conversion succeed and false otherwise
  */
-bool fromString(const char* str, std::int8_t& val);
+bool fromString(const char* str, int8_t& val);
 
 /**
  * @brief Convert a string to an uint8_t
@@ -103,7 +103,7 @@ bool fromString(const char* str, std::int8_t& val);
  *
  * @return true if the conversion succeed and false otherwise
  */
-bool fromString(const char* str, std::uint8_t& val);
+bool fromString(const char* str, uint8_t& val);
 
 /**
  * @brief Convert a string to an uint16_t
@@ -113,7 +113,7 @@ bool fromString(const char* str, std::uint8_t& val);
  *
  * @return true if the conversion succeed and false otherwise
  */
-bool fromString(const char* str, std::uint16_t& val);
+bool fromString(const char* str, uint16_t& val);
 
 /**
  * @brief Convert a string to an uint32_t
@@ -123,7 +123,7 @@ bool fromString(const char* str, std::uint16_t& val);
  *
  * @return true if the conversion succeed and false otherwise
  */
-bool fromString(const char* str, std::uint32_t& val);
+bool fromString(const char* str, uint32_t& val);
 
 /**
  * @brief Convert a string to a bool

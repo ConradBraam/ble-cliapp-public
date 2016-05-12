@@ -9,7 +9,7 @@ HIJACK_MEMBER(_hasVariableLen_accessor, bool GattAttribute::*, &GattAttribute::_
 namespace detail {
 
 RAIIGattAttribute::RAIIGattAttribute(const UUID& uuid)  :
-    GattAttribute(uuid, nullptr, 0, 0, true) {
+    GattAttribute(uuid, NULL, 0, 0, true) {
 }
 
 RAIIGattAttribute::~RAIIGattAttribute() {
@@ -18,14 +18,14 @@ RAIIGattAttribute::~RAIIGattAttribute() {
     }
 }
 
-void RAIIGattAttribute::setValue(const Vector<std::uint8_t>& newValue) {
+void RAIIGattAttribute::setValue(const container::Vector<uint8_t>& newValue) {
     uint8_t*& valuePtr = (this->*_valuePtr_accessor);
     uint16_t& len = this->*_len_accessor;
     uint16_t& maxLen = this->*_lenMax_accessor;
 
     if(valuePtr) {
         delete[] valuePtr;
-        valuePtr = nullptr;
+        valuePtr = NULL;
         len = 0;
     }
 
@@ -40,7 +40,7 @@ void RAIIGattAttribute::setValue(const Vector<std::uint8_t>& newValue) {
     }
 }
 
-bool RAIIGattAttribute::setMaxLength(std::uint16_t max) {
+bool RAIIGattAttribute::setMaxLength(uint16_t max) {
     if(max < this->*_len_accessor) {
         return false;
     }
@@ -59,7 +59,7 @@ void RAIIGattAttribute::releaseAttributeValue() {
 
     if(valuePtr) {
         delete[] valuePtr;
-        valuePtr = nullptr;
+        valuePtr = NULL;
         len = 0;
     }
 }

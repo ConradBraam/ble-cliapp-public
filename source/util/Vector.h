@@ -4,7 +4,6 @@
 #include <cstring>
 #include <algorithm>
 #include <utility>
-#include "StandardLibraryPolyfill.h"
 
 namespace container {
 
@@ -22,12 +21,6 @@ public:
         for(std::size_t i = 0; i < _size; ++i) {
             new(_data + i) T(that._data[i]);
         }
-    }
-
-    Vector(Vector&& that) : std::allocator<T>(that), _data(that._data), _size(that._size), _capacity(that._capacity) {
-        that._data = NULL;
-        that._size = 0;
-        that._capacity = 0;
     }
 
     ~Vector() {
@@ -65,7 +58,7 @@ public:
             std::size_t newCapacity = ((_capacity * 1618) / 1000) + 1;
             typename Allocator::pointer newData = std::allocator<T>::allocate(newCapacity);
             for(std::size_t i = 0; i < _size; ++i) {
-                new (newData + i) T(util::move(_data[i]));
+                new (newData + i) T(_data[i]);
                 (_data + i)->~T();
             }
             if(_data) {
@@ -76,26 +69,6 @@ public:
         }
 
         new (_data + _size) T(value);
-        ++_size;
-    }
-
-    void push_back(T&& value) {
-        if(_size == _capacity) {
-            std::size_t newCapacity = ((_capacity * 1618) / 1000) + 1;
-            typename Allocator::pointer newData = std::allocator<T>::allocate(newCapacity);
-            for(std::size_t i = 0; i < _size; ++i) {
-                T foo(util::move(_data[i]));
-                new (newData + i) T(foo);
-                (_data + i)->~T();
-            }
-            if(_data) {
-                std::allocator<T>::deallocate(_data, _capacity);
-            }
-            _capacity = newCapacity;
-            _data = newData;
-        }
-
-        new (_data + _size) T(util::move(value));
         ++_size;
     }
 

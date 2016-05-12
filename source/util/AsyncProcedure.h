@@ -4,12 +4,26 @@
 #include <core-util/SharedPointer.h>
 #include <minar/minar.h>
 #include "CLICommand/CommandResponse.h"
-#include "StandardLibraryPolyfill.h"
 
 struct AsyncProcedure {
 
-    template<typename ProcedureType, typename... Ts>
-    friend void startProcedure(Ts&&... args);
+    template<typename ProcedureType, typename T0>
+    friend void startProcedure(const T0& arg0);
+
+    template<typename ProcedureType, typename T0, typename T1>
+    friend void startProcedure(const T0& arg0, const T1& arg1);
+
+    template<typename ProcedureType, typename T0, typename T1, typename T2>
+    friend void startProcedure(const T0& arg0, const T1& arg1, const T2& arg2);
+
+    template<typename ProcedureType, typename T0, typename T1, typename T2, typename T3>
+    friend void startProcedure(const T0& arg0, const T1& arg1, const T2& arg2, const T3& arg3);
+
+    template<typename ProcedureType, typename T0, typename T1, typename T2, typename T3, typename T4>
+    friend void startProcedure(const T0& arg0, const T1& arg1, const T2& arg2, const T3& arg3, const T4& arg4);
+
+    template<typename ProcedureType, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+    friend void startProcedure(const T0& arg0, const T1& arg1, const T2& arg2, const T3& arg3, const T4& arg4, const T5& arg5);
 
 protected:
 
@@ -64,7 +78,7 @@ private:
 
 
     minar::callback_handle_t timeoutHandle;
-    std::uint32_t timeout;
+    uint32_t timeout;
 };
 
 /**
@@ -74,9 +88,39 @@ private:
  * @param args Args used to build the procedure
  * @tparam ProcedureType The type of procedure to start
  */
-template<typename ProcedureType, typename... Ts>
-void startProcedure(Ts&&... args) {
-    auto proc = new ProcedureType(util::forward<Ts>(args)...);
+template<typename ProcedureType, typename T0>
+void startProcedure(T0& arg0) {
+    ProcedureType* proc = new ProcedureType(arg0);
+    proc->start();
+}
+
+template<typename ProcedureType, typename T0, typename T1>
+void startProcedure(const T0& arg0, const T1& arg1) {
+    ProcedureType* proc = new ProcedureType(arg0, arg1);
+    proc->start();
+}
+
+template<typename ProcedureType, typename T0, typename T1, typename T2>
+void startProcedure(const T0& arg0, const T1& arg1, const T2& arg2) {
+    ProcedureType* proc = new ProcedureType(arg0, arg1, arg2);
+    proc->start();
+}
+
+template<typename ProcedureType, typename T0, typename T1, typename T2, typename T3>
+void startProcedure(const T0& arg0, const T1& arg1, const T2& arg2, const T3& arg3) {
+    ProcedureType* proc = new ProcedureType(arg0, arg1, arg2, arg3);
+    proc->start();
+}
+
+template<typename ProcedureType, typename T0, typename T1, typename T2, typename T3, typename T4>
+void startProcedure(const T0& arg0, const T1& arg1, const T2& arg2, const T3& arg3, const T4& arg4) {
+    ProcedureType* proc = new ProcedureType(arg0, arg1, arg2, arg3, arg4);
+    proc->start();
+}
+
+template<typename ProcedureType, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+void startProcedure(const T0& arg0, const T1& arg1, const T2& arg2, const T3& arg3, const T4& arg4, const T5& arg5) {
+    ProcedureType* proc = new ProcedureType(arg0, arg1, arg2, arg3, arg4, arg5);
     proc->start();
 }
 
