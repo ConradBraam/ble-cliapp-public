@@ -15,35 +15,35 @@ JSONOutputStream& JSONOutputStream::operator<<(bool value) {
     return *this;
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(std::int8_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(int8_t value) {
     return formatValue("%" PRId8, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(std::uint8_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(uint8_t value) {
     return formatValue("%" PRIu8, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(std::int16_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(int16_t value) {
     return formatValue("%" PRId16, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(std::uint16_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(uint16_t value) {
     return formatValue("%" PRIu16, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(std::int32_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(int32_t value) {
     return formatValue("%" PRId32, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(std::uint32_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(uint32_t value) {
     return formatValue("%" PRIu32, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(std::int64_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(int64_t value) {
     return formatValue("%" PRId64, value);
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(std::uint64_t value) {
+JSONOutputStream& JSONOutputStream::operator<<(uint64_t value) {
     return formatValue("%" PRIu64, value);
 }
 

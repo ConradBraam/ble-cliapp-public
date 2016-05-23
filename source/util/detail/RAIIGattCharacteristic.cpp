@@ -36,14 +36,14 @@ RAIIGattCharacteristic::~RAIIGattCharacteristic() {
     }
 }
 
-void RAIIGattCharacteristic::setValue(const Vector<std::uint8_t>& newValue) {
+void RAIIGattCharacteristic::setValue(const container::Vector<uint8_t>& newValue) {
     uint8_t*& valuePtr = (this->getValueAttribute()).*_valuePtr_accessor;
     uint16_t& len = (this->getValueAttribute()).*_len_accessor;
     uint16_t& maxLen = (this->getValueAttribute()).*_lenMax_accessor;
 
     if(valuePtr) {
         delete[] valuePtr;
-        valuePtr = nullptr;
+        valuePtr = NULL;
         len = 0;
     }
 
@@ -58,7 +58,7 @@ void RAIIGattCharacteristic::setValue(const Vector<std::uint8_t>& newValue) {
     }
 }
 
-bool RAIIGattCharacteristic::setMaxLength(std::uint16_t max) {
+bool RAIIGattCharacteristic::setMaxLength(uint16_t max) {
     if(max < (this->getValueAttribute()).*_lenMax_accessor) {
         return false;
     }
@@ -71,7 +71,7 @@ void RAIIGattCharacteristic::setVariableLength(bool hasVariableLen) {
     (this->getValueAttribute()).*_hasVariableLen_accessor = hasVariableLen;
 }
 
-void RAIIGattCharacteristic::setProperties(std::uint8_t newProperties) {
+void RAIIGattCharacteristic::setProperties(uint8_t newProperties) {
     this->*_properties_accessor = newProperties;
 }
 
@@ -91,7 +91,7 @@ void RAIIGattCharacteristic::releaseAttributesValue() {
 
     if(valuePtr) {
         delete[] valuePtr;
-        valuePtr = nullptr;
+        valuePtr = NULL;
         len = 0;
     }
 

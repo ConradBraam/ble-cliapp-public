@@ -1,19 +1,15 @@
+#include <stdint.h>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
 
 #include "Serializer.h"
 
-using std::int8_t;
-using std::uint8_t;
-using std::uint16_t;
-using std::uint32_t;
 using std::strtoul;
 using std::strtol;
 using std::strcmp;
 
-template<typename T>
-using numeric_limits = std::numeric_limits<T>;
+using std::numeric_limits;
 
 bool fromString(const char* str, int8_t& val) {
     char* end;
@@ -85,4 +81,3 @@ bool fromString(const char* str, bool& val) {
 
     return false;
 }
-

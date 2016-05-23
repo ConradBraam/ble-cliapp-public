@@ -14,11 +14,8 @@ class ServiceBuilder {
 
 public:
     ServiceBuilder(const UUID& uuid) :
-        service(new detail::RAIIGattService(uuid)), currentCharacteristic(nullptr), currentDescriptor(nullptr) {
+        service(new detail::RAIIGattService(uuid)), currentCharacteristic(NULL), currentDescriptor(NULL) {
     }
-
-    ServiceBuilder(const ServiceBuilder&) = delete;
-    ServiceBuilder& operator=(const ServiceBuilder&) = delete;
 
     ~ServiceBuilder() {
         delete service;
@@ -31,7 +28,7 @@ public:
         currentCharacteristic = new detail::RAIIGattCharacteristic(characteristicUUID);
     }
 
-    bool setCharacteristicValue(const container::Vector<std::uint8_t>& characteristicValue) {
+    bool setCharacteristicValue(const container::Vector<uint8_t>& characteristicValue) {
         if(!currentCharacteristic) {
             return false;
         }
@@ -39,7 +36,7 @@ public:
         return true;
     }
 
-    bool setCharacteristicProperties(std::uint8_t properties) {
+    bool setCharacteristicProperties(uint8_t properties) {
         if(!currentCharacteristic) {
             return false;
         }
@@ -55,7 +52,7 @@ public:
         return true;
     }
 
-    bool setCharacteristicMaxLength(std::uint16_t maxLen) {
+    bool setCharacteristicMaxLength(uint16_t maxLen) {
         if(!currentCharacteristic) {
             return false;
         }
@@ -75,7 +72,7 @@ public:
         return true;
     }
 
-    bool setDescriptorValue(const container::Vector<std::uint8_t>& descriptorValue) {
+    bool setDescriptorValue(const container::Vector<uint8_t>& descriptorValue) {
         if(!currentCharacteristic || !currentDescriptor) {
             return false;
         }
@@ -93,7 +90,7 @@ public:
         return true;
     }
 
-    bool setDescriptorMaxLength(std::uint16_t maxLen) {
+    bool setDescriptorMaxLength(uint16_t maxLen) {
         if(!currentCharacteristic || !currentDescriptor) {
             return false;
         }
@@ -102,8 +99,8 @@ public:
     }
 
     detail::RAIIGattService* release() {
-        auto* toReturn = service;
-        service = nullptr;
+        detail::RAIIGattService* toReturn = service;
+        service = NULL;
         return toReturn;
     }
 
@@ -111,14 +108,17 @@ public:
         if(currentCharacteristic) {
             if(currentDescriptor) {
                 currentCharacteristic->addDescriptor(currentDescriptor);
-                currentDescriptor = nullptr;
+                currentDescriptor = NULL;
             }
             service->addCharacteristic(currentCharacteristic);
-            currentCharacteristic = nullptr;
+            currentCharacteristic = NULL;
         }
     }
 
 private:
+    ServiceBuilder(const ServiceBuilder&);
+    ServiceBuilder& operator=(const ServiceBuilder&);
+
     detail::RAIIGattService* service;
     detail::RAIIGattCharacteristic* currentCharacteristic;
     detail::RAIIGattAttribute* currentDescriptor;

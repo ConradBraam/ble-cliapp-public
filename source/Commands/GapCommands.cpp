@@ -6,13 +6,11 @@
 #include "Serialization/GapAdvertisingDataSerializer.h"
 #include "Serialization/GapAdvertisingParamsSerializer.h"
 #include "Serialization/BLECommonSerializer.h"
-#include "util/StaticLambda.h"
 #include "minar/minar.h"
 #include "CLICommand/CommandSuite.h"
 #include "util/AsyncProcedure.h"
 
-template<typename T>
-using SharedPointer = mbed::util::SharedPointer<T>;
+using mbed::util::SharedPointer;
 
 // isolation ...
 namespace {
@@ -31,7 +29,6 @@ static Gap& gap() {
     return ble().gap();
 }
 
-
 static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err) {
     if(err) {
         response->faillure(err);
@@ -39,6 +36,7 @@ static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response,
         response->success();
     }
 }
+
 
 template<typename T>
 static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err, const T& res) {
@@ -50,14 +48,24 @@ static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response,
 }
 
 
-static constexpr const Command setAddress {
-    "setAddress",
-    "set the address of this device",
-    (const CommandArgDescription[]) {
-        { "<addressType>", "The address type to set. It is a string representation of BLEProtocol::AddressType_t" },
-        { "<address>"    , "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" },
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+struct SetAddressCommand : public Command {
+    virtual const char* name() const {
+        return "setAddress";
+    }
+
+    virtual const char* help() const {
+        return "set the address of this device";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<addressType>", "The address type to set. It is a string representation of BLEProtocol::AddressType_t" },
+            { "<address>"    , "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         // extract first args
         BLEProtocol::AddressType_t addressType;
         if(!fromString(args[0], addressType)) {
@@ -71,18 +79,25 @@ static constexpr const Command setAddress {
             return;
         }
 
-        auto err = gap().setAddress(addressType, address);
+        ble_error_t err = gap().setAddress(addressType, address);
         reportErrorOrSuccess(response, err);
     }
 };
 
-static constexpr const Command getAddress {
-    "getAddress",
-    "Get the address and the type of address of this device.\r\n"
-    "The result will be a json object containing:\r\n"
-    "   * 'address_type': <type of the address. It is a string representation of BLEProtocol::AddressType_t>\r\n"
-    "   * 'address'     : <the address which is a string representation like 'XX:XX:XX:XX:XX:XX'>\r\n",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetAddressCommand : public Command {
+    virtual const char* name() const {
+        return "getAddress";
+    }
+
+    virtual const char* help() const {
+        return "Get the address and the type of address of this device.\r\n"
+               "The result will be a json object containing:\r\n"
+               "   * 'address_type': <type of the address. It is a string representation of BLEProtocol::AddressType_t>\r\n"
+               "   * 'address'     : <the address which is a string representation like 'XX:XX:XX:XX:XX:XX'>\r\n";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         using namespace serialization;
 
         BLEProtocol::AddressType_t addressType;
@@ -103,82 +118,110 @@ static constexpr const Command getAddress {
     }
 };
 
-static constexpr const Command getMinAdvertisingInterval {
-    "getMinAdvertisingInterval",
-    "Return the minimum advertising interval",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
-        response->success(gap().getMinAdvertisingInterval());
-    }
-};
 
-static constexpr const Command getMinNonConnectableAdvertisingInterval {
-    "getMinNonConnectableAdvertisingInterval",
-    // TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+struct GetMinAdvertisingIntervalCommand : public Command {
+    virtual const char* name() const {
+        return "getMinAdvertisingInterval";
+    }
+
+    virtual const char* help() const {
+        return "Return the minimum advertising interval";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         response->success(gap().getMinNonConnectableAdvertisingInterval());
     }
 };
 
-static constexpr const Command getMaxAdvertisingInterval {
-    "getMaxAdvertisingInterval",
-    //TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetMinNonConnectableAdvertisingIntervalCommand : public Command {
+    virtual const char* name() const {
+        return "getMinNonConnectableAdvertisingInterval";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+        response->success(gap().getMinNonConnectableAdvertisingInterval());
+    }
+};
+
+
+struct GetMaxAdvertisingIntervalCommand : public Command {
+    virtual const char* name() const {
+        return "getMaxAdvertisingInterval";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         response->success(gap().getMaxAdvertisingInterval());
     }
 };
 
-static constexpr const Command stopAdvertising {
-    "stopAdvertising",
-    //TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct StopAdvertisingCommand : public Command {
+    virtual const char* name() const {
+        return "stopAdvertising";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         ble_error_t err = gap().stopAdvertising();
         reportErrorOrSuccess(response, err);
     }
 };
 
-static constexpr const Command stopScan {
-    "stopScan",
-    //TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct StopScanCommand : public Command {
+    virtual const char* name() const {
+        return "stopScan";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         ble_error_t err = gap().stopScan();
         reportErrorOrSuccess(response, err);
     }
 };
 
-static constexpr const Command connect {
-    "connect",
-    "connect to a device, if this function succeed, a ConnectionCallbackParams_t is returned:\r\n"\
-    "\thandle: The connection handle\r\n"\
-    "\trole: Role of the device in the connection (here, it should be central)\r\n"\
-    "\tpeerAddrType: The addressType of the peer\r\n"\
-    "\tpeerAddr: The address of the peer\r\n"\
-    "\townAddrType: The address type of this device\r\n"\
-    "\townAddr: The address of this device\r\n"\
-    "\tconnectionParams: Object which contain the parameters of the connection\r\n"\
-    "\t\tminConnectionInterval: minimum connection interval for this connection\r\n"\
-    "\t\tmaxConnectionInterval: maximum connection interval for this connection\r\n"\
-    "\t\tslaveLatency: slave latency of the connection\r\n"\
-    "\t\tconnectionSupervisionTimeout: supervision timeout for this connection",
-    (const CommandArgDescription[]) {
-        { "<addressType>", "The address type to of the peer device."\
-                           "It is a string representation of BLEProtocol::AddressType_t" },
-        { "<address>", "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" },
-        // connection parameters
-        { "<minConnectionInterval>", "Minimum Connection Interval in 1.25 ms units" },
-        { "<maxConnectionInterval>", "Maximum Connection Interval in 1.25 ms units" },
-        { "<slaveLatency>", "Slave Latency in number of connection events" },
-        { "<connectionSupervisionTimeout>", "Connection Supervision Timeout in 10 ms units" },
-        // scan parameters
-        { "<interval>", "The scan interval, it should be a number between 3 and 10420ms." },
-        { "<window>", "The scan window, it should be a number between 3 and 10420ms." },
-        { "<scan timeout>", "The scan timeout, it should be a number between 0 and 65534" },
-        { "<activeScanning>", "A boolean value { true, false } indicating if the device send scan request or not" },
-        // timeout for this procedure
-        { "<timeout>", "Maximum time allowed for this procedure" },
-    },
 
-    // TODO DOC
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+struct ConnectCommand : public Command {
+    virtual const char* name() const {
+        return "connect";
+    }
+
+    virtual const char* help() const {
+        return  "connect to a device, if this function succeed, a ConnectionCallbackParams_t is returned:\r\n"\
+                "\thandle: The connection handle\r\n"\
+                "\trole: Role of the device in the connection (here, it should be central)\r\n"\
+                "\tpeerAddrType: The addressType of the peer\r\n"\
+                "\tpeerAddr: The address of the peer\r\n"\
+                "\townAddrType: The address type of this device\r\n"\
+                "\townAddr: The address of this device\r\n"\
+                "\tconnectionParams: Object which contain the parameters of the connection\r\n"\
+                "\t\tminConnectionInterval: minimum connection interval for this connection\r\n"\
+                "\t\tmaxConnectionInterval: maximum connection interval for this connection\r\n"\
+                "\t\tslaveLatency: slave latency of the connection\r\n"\
+                "\t\tconnectionSupervisionTimeout: supervision timeout for this connection";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<addressType>", "The address type to of the peer device."\
+                               "It is a string representation of BLEProtocol::AddressType_t" },
+            { "<address>", "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" },
+            // connection parameters
+            { "<minConnectionInterval>", "Minimum Connection Interval in 1.25 ms units" },
+            { "<maxConnectionInterval>", "Maximum Connection Interval in 1.25 ms units" },
+            { "<slaveLatency>", "Slave Latency in number of connection events" },
+            { "<connectionSupervisionTimeout>", "Connection Supervision Timeout in 10 ms units" },
+            // scan parameters
+            { "<interval>", "The scan interval, it should be a number between 3 and 10420ms." },
+            { "<window>", "The scan window, it should be a number between 3 and 10420ms." },
+            { "<scan timeout>", "The scan timeout, it should be a number between 0 and 65534" },
+            { "<activeScanning>", "A boolean value { true, false } indicating if the device send scan request or not" },
+            // timeout for this procedure
+            { "<timeout>", "Maximum time allowed for this procedure" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         // extract Address and address type
         BLEProtocol::AddressType_t addressType;
         if (!fromString(args[0], addressType)) {
@@ -252,19 +295,19 @@ static constexpr const Command connect {
         }
 
         // everything is alright, launching the procedure
-        Gap::ConnectionParams_t connectionParams {
+        Gap::ConnectionParams_t connectionParams = {
             minConnectionInterval,
             maxConnectionInterval,
             slaveLatency,
             connectionSupervisionTimeout
         };
 
-        GapScanningParams scanParams {
+        GapScanningParams scanParams(
             scanInterval,
             window,
             scanTimeout,
             activeScanning
-        };
+        );
 
         ble_error_t err = gap().connect(
             address,
@@ -278,69 +321,79 @@ static constexpr const Command connect {
             return;
         }
 
-        struct ConnectionProcedure : public AsyncProcedure {
-            ConnectionProcedure(BLEProtocol::AddressType_t _addressType, const Gap::Address_t& _address,
-                const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout) :
-                AsyncProcedure(res, procedureTimeout), addressType(_addressType) {
-                memcpy(address, _address, sizeof(address));
-                gap().onConnection(makeFunctionPointer(this, &ConnectionProcedure::whenConnected));
-            }
-
-            virtual ~ConnectionProcedure() {
-                gap().onConnection().detach(makeFunctionPointer(this, &ConnectionProcedure::whenConnected));
-            }
-
-            virtual bool doStart() {
-                // nothing to do here, already started ...
-                return true;
-            }
-
-            void whenConnected(const Gap::ConnectionCallbackParams_t* params) {
-                using namespace serialization;
-
-                // check that the callback has been called for the right address and object
-                if (memcmp(params->peerAddr, address, sizeof(address)) != 0 ||
-                    params->peerAddrType != addressType) {
-                    return;
-                }
-
-                response->success();
-                auto& os = response->getResultStream();
-
-                os << startObject <<
-                    key("handle") << params->handle <<
-                    key("role") << toString(params->role) <<
-                    key("peerAddrType") << toString(params->peerAddrType) <<
-                    key("peerAddr") << macAddressToString(params->peerAddr).str <<
-                    key("ownAddrType") << toString(params->ownAddrType) <<
-                    key("ownAddr") << macAddressToString(params->ownAddr).str <<
-                    key("connectionParams") << startObject <<
-                        key("minConnectionInterval") << params->connectionParams->minConnectionInterval <<
-                        key("maxConnectionInterval") << params->connectionParams->maxConnectionInterval <<
-                        key("slaveLatency") << params->connectionParams->slaveLatency <<
-                        key("connectionSupervisionTimeout") << params->connectionParams->connectionSupervisionTimeout <<
-                    endObject <<
-                endObject;
-
-                terminate();
-            }
-
-            BLEProtocol::AddressType_t addressType;
-            Gap::Address_t address;
-        };
-
         startProcedure<ConnectionProcedure>(addressType, address, response, procedureTimeout);
     }
+
+    struct ConnectionProcedure : public AsyncProcedure {
+        ConnectionProcedure(BLEProtocol::AddressType_t _addressType, const Gap::Address_t& _address,
+            const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout) :
+            AsyncProcedure(res, procedureTimeout), addressType(_addressType) {
+            memcpy(address, _address, sizeof(address));
+            gap().onConnection(makeFunctionPointer(this, &ConnectionProcedure::whenConnected));
+        }
+
+        virtual ~ConnectionProcedure() {
+            gap().onConnection().detach(makeFunctionPointer(this, &ConnectionProcedure::whenConnected));
+        }
+
+        virtual bool doStart() {
+            // nothing to do here, already started ...
+            return true;
+        }
+
+        void whenConnected(const Gap::ConnectionCallbackParams_t* params) {
+            using namespace serialization;
+
+            // check that the callback has been called for the right address and object
+            if (memcmp(params->peerAddr, address, sizeof(address)) != 0 ||
+                params->peerAddrType != addressType) {
+                return;
+            }
+
+            response->success();
+            serialization::JSONOutputStream& os = response->getResultStream();
+
+            os << startObject <<
+                key("handle") << params->handle <<
+                key("role") << toString(params->role) <<
+                key("peerAddrType") << toString(params->peerAddrType) <<
+                key("peerAddr") << macAddressToString(params->peerAddr).str <<
+                key("ownAddrType") << toString(params->ownAddrType) <<
+                key("ownAddr") << macAddressToString(params->ownAddr).str <<
+                key("connectionParams") << startObject <<
+                    key("minConnectionInterval") << params->connectionParams->minConnectionInterval <<
+                    key("maxConnectionInterval") << params->connectionParams->maxConnectionInterval <<
+                    key("slaveLatency") << params->connectionParams->slaveLatency <<
+                    key("connectionSupervisionTimeout") << params->connectionParams->connectionSupervisionTimeout <<
+                endObject <<
+            endObject;
+
+            terminate();
+        }
+
+        BLEProtocol::AddressType_t addressType;
+        Gap::Address_t address;
+    };
 };
 
 
-static constexpr const Command waitForConnection {
-    "waitForConnection",
-    "Wait for a connection to occur",
-    (const CommandArgDescription[]) {
-        { "<timeout>", "Maximum time allowed for this procedure" },
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+struct WaitForConnectionCommand : public Command {
+    virtual const char* name() const {
+        return "waitForConnection";
+    }
+
+    virtual const char* help() const {
+        return "Wait for a connection to occur";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<timeout>", "Maximum time allowed for this procedure" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         // timeout for this procedure
         uint16_t procedureTimeout;
         if (!fromString(args[0], procedureTimeout)) {
@@ -348,62 +401,73 @@ static constexpr const Command waitForConnection {
             return;
         }
 
-        struct ConnectionProcedure : public AsyncProcedure {
-            ConnectionProcedure(const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout) :
-                AsyncProcedure(res, procedureTimeout) {
-                gap().onConnection(makeFunctionPointer(this, &ConnectionProcedure::whenConnected));
-            }
-
-            virtual ~ConnectionProcedure() {
-                gap().onConnection().detach(makeFunctionPointer(this, &ConnectionProcedure::whenConnected));
-            }
-
-            virtual bool doStart() {
-                // nothing to do here, already started ...
-                return true;
-            }
-
-            void whenConnected(const Gap::ConnectionCallbackParams_t* params) {
-                using namespace serialization;
-
-                response->success();
-                auto& os = response->getResultStream();
-
-                os << startObject <<
-                    key("handle") << params->handle <<
-                    key("role") << toString(params->role) <<
-                    key("peerAddrType") << toString(params->peerAddrType) <<
-                    key("peerAddr") << macAddressToString(params->peerAddr).str <<
-                    key("ownAddrType") << toString(params->ownAddrType) <<
-                    key("ownAddr") << macAddressToString(params->ownAddr).str <<
-                    key("connectionParams") << startObject <<
-                        key("minConnectionInterval") << params->connectionParams->minConnectionInterval <<
-                        key("maxConnectionInterval") << params->connectionParams->maxConnectionInterval <<
-                        key("slaveLatency") << params->connectionParams->slaveLatency <<
-                        key("connectionSupervisionTimeout") << params->connectionParams->connectionSupervisionTimeout <<
-                    endObject <<
-                endObject;
-
-                terminate();
-            }
-        };
-
-        startProcedure<ConnectionProcedure>(response, procedureTimeout);
+        startProcedure<WaitForConnectionProcedure>(response, procedureTimeout);
     }
+
+    struct WaitForConnectionProcedure : public AsyncProcedure {
+        WaitForConnectionProcedure(const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout) :
+            AsyncProcedure(res, procedureTimeout) {
+            gap().onConnection(makeFunctionPointer(this, &WaitForConnectionProcedure::whenConnected));
+        }
+
+        virtual ~WaitForConnectionProcedure() {
+            gap().onConnection().detach(makeFunctionPointer(this, &WaitForConnectionProcedure::whenConnected));
+        }
+
+        virtual bool doStart() {
+            // nothing to do here, already started ...
+            return true;
+        }
+
+        void whenConnected(const Gap::ConnectionCallbackParams_t* params) {
+            using namespace serialization;
+
+            response->success();
+            serialization::JSONOutputStream& os = response->getResultStream();
+
+            os << startObject <<
+                key("handle") << params->handle <<
+                key("role") << toString(params->role) <<
+                key("peerAddrType") << toString(params->peerAddrType) <<
+                key("peerAddr") << macAddressToString(params->peerAddr).str <<
+                key("ownAddrType") << toString(params->ownAddrType) <<
+                key("ownAddr") << macAddressToString(params->ownAddr).str <<
+                key("connectionParams") << startObject <<
+                    key("minConnectionInterval") << params->connectionParams->minConnectionInterval <<
+                    key("maxConnectionInterval") << params->connectionParams->maxConnectionInterval <<
+                    key("slaveLatency") << params->connectionParams->slaveLatency <<
+                    key("connectionSupervisionTimeout") << params->connectionParams->connectionSupervisionTimeout <<
+                endObject <<
+            endObject;
+
+            terminate();
+        }
+    };
 };
 
-static constexpr const Command disconnect {
-    "disconnect",
-    "disconnect the device from a specific connection.\r\n"\
-    "If procedure succeed, a JSON object containing the following fields will be returned:\r\n"\
-    "\t* handle: The handle disconnected\r\n"\
-    "\t* reason: The reason of the disconnection (see Gap::DisconnectionReason_t)\r\n"\
-    "In case of error, the reason of the error will be returned.",
-    (const CommandArgDescription[]) {
-        { "<connectionHandle>", "The id of the connection to terminate." },
-        { "<reason>", "The reason of the termination (see Gap::DisconnectionReason_t)" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct DisconnectCommand : public Command {
+    virtual const char* name() const {
+        return "disconnect";
+    }
+
+    virtual const char* help() const {
+        return "disconnect the device from a specific connection.\r\n"\
+               "If procedure succeed, a JSON object containing the following fields will be returned:\r\n"\
+               "\t* handle: The handle disconnected\r\n"\
+               "\t* reason: The reason of the disconnection (see Gap::DisconnectionReason_t)\r\n"\
+               "In case of error, the reason of the error will be returned.";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<connectionHandle>", "The id of the connection to terminate." },
+            { "<reason>", "The reason of the termination (see Gap::DisconnectionReason_t)" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         static Gap::Handle_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
             response->invalidParameters("the connection handle is ill formed");
@@ -416,70 +480,83 @@ static constexpr const Command disconnect {
             return;
         }
 
-        struct DisconnectionProcedure : public AsyncProcedure {
-            DisconnectionProcedure(Gap::Handle_t handle, Gap::DisconnectionReason_t disconnectionReason,
-                const SharedPointer<CommandResponse>& res, uint16_t procedureTimeout) :
-                AsyncProcedure(res, procedureTimeout), connectionHandle(handle), reason(disconnectionReason) {
-                gap().onDisconnection(this, &DisconnectionProcedure::whenDisconnected);
-            }
-
-            virtual ~DisconnectionProcedure() {
-                gap().onDisconnection().detach(makeFunctionPointer(this, &DisconnectionProcedure::whenDisconnected));
-            }
-
-            virtual bool doStart() {
-                ble_error_t err = gap().disconnect(connectionHandle, reason);
-                if (err) {
-                    response->faillure(err);
-                    return false;
-                }
-                return true;
-            }
-
-            void whenDisconnected(const Gap::DisconnectionCallbackParams_t* params) {
-                using namespace serialization;
-
-                if (params->handle != connectionHandle) {
-                    return;
-                }
-
-                // the right connection has been disconnected, sending result back to the user
-                response->success();
-                response->getResultStream() << startObject <<
-                    key("handle") << params->handle <<
-                    key("reason") << params->reason <<
-                endObject;
-
-                terminate();
-            }
-
-            Gap::Handle_t connectionHandle;
-            Gap::DisconnectionReason_t reason;
-        };
-
         // Set the timeout to the maximum supervision timeout allowed in BLE
         startProcedure<DisconnectionProcedure>(connectionHandle, reason, response, 10240);
     }
+
+    struct DisconnectionProcedure : public AsyncProcedure {
+        DisconnectionProcedure(Gap::Handle_t handle, Gap::DisconnectionReason_t disconnectionReason,
+            const SharedPointer<CommandResponse>& res, uint16_t procedureTimeout) :
+            AsyncProcedure(res, procedureTimeout), connectionHandle(handle), reason(disconnectionReason) {
+            gap().onDisconnection(this, &DisconnectionProcedure::whenDisconnected);
+        }
+
+        virtual ~DisconnectionProcedure() {
+            gap().onDisconnection().detach(makeFunctionPointer(this, &DisconnectionProcedure::whenDisconnected));
+        }
+
+        virtual bool doStart() {
+            ble_error_t err = gap().disconnect(connectionHandle, reason);
+            if (err) {
+                response->faillure(err);
+                return false;
+            }
+            return true;
+        }
+
+        void whenDisconnected(const Gap::DisconnectionCallbackParams_t* params) {
+            using namespace serialization;
+
+            if (params->handle != connectionHandle) {
+                return;
+            }
+
+            // the right connection has been disconnected, sending result back to the user
+            response->success();
+            response->getResultStream() << startObject <<
+                key("handle") << params->handle <<
+                key("reason") << params->reason <<
+            endObject;
+
+            terminate();
+        }
+
+        Gap::Handle_t connectionHandle;
+        Gap::DisconnectionReason_t reason;
+    };
 };
 
-static constexpr const Command getPreferredConnectionParams {
-    "getPreferredConnectionParams",
-    // TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetPreferredConnectionParamsCommand : public Command {
+    virtual const char* name() const {
+        return "getPreferredConnectionParams";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         Gap::ConnectionParams_t connectionParameters;
         ble_error_t err = gap().getPreferredConnectionParams(&connectionParameters);
         reportErrorOrSuccess(response, err, connectionParameters);
     }
 };
 
-static constexpr const Command setPreferredConnectionParams {
-    "setPreferredConnectionParams",
-    "set the prefered connection parameters",
-    (const CommandArgDescription[]) {
-        { "<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>", "all the parameters, coma separated" }
-    },
-    //TODO: betrer args
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetPreferredConnectionParamsCommand : public Command {
+    virtual const char* name() const {
+        return "setPreferredConnectionParams";
+    }
+
+    virtual const char* help() const {
+        return "set the prefered connection parameters";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>", "all the parameters, coma separated" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         Gap::ConnectionParams_t connectionParameters;
         if(!connectionParamsFromCLI(args[0], connectionParameters)) {
             response->invalidParameters("malformed connection parameters, should be like"\
@@ -492,32 +569,51 @@ static constexpr const Command setPreferredConnectionParams {
     }
 };
 
-static constexpr const Command updateConnectionParams {
-    "updateConnectionParams",
-    // TODO DOC
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
-        // TODO
-        //ble_error_t updateConnectionParams(Handle_t handle, const ConnectionParams_t *params)
+
+struct UpdateConnectionParamsCommand : public Command {
+    virtual const char* name() const {
+        return "updateConnectionParams";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         response->notImplemented();
     }
 };
 
-static constexpr const Command setDeviceName {
-    "setDeviceName",
-    "set the devce name",
-    (const CommandArgDescription[]) {
-        { "<name>", "the name of the device, it should not have space" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetDeviceNameCommand : public Command {
+    virtual const char* name() const {
+        return "setDeviceName";
+    }
+
+    virtual const char* help() const {
+        return "set the devce name";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<name>", "the name of the device, it should not have space" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         ble_error_t err = gap().setDeviceName((const uint8_t*) args[0]);
         reportErrorOrSuccess(response, err);
     }
 };
 
-static constexpr const Command getDeviceName {
-    "getDeviceName",
-    "return the device name as a string",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetDeviceNameCommand : public Command {
+    virtual const char* name() const {
+        return "getDeviceName";
+    }
+
+    virtual const char* help() const {
+        return "return the device name as a string";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         // first : collect the size of the name
         unsigned deviceNameLength = 0;
         ble_error_t err = gap().getDeviceName(NULL, &deviceNameLength);
@@ -544,13 +640,24 @@ static constexpr const Command getDeviceName {
     }
 };
 
-static constexpr const  Command setAppearance {
-    "setAppearance",
-    "set the appearance flag of the device",
-    (const CommandArgDescription[]) {
-        { "<appearance>", "the appearance to set (see GapAdvertisingData::Appearance_t)" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetAppearanceCommand : public Command {
+    virtual const char* name() const {
+        return "setAppearance";
+    }
+
+    virtual const char* help() const {
+        return "set the appearance flag of the device";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<appearance>", "the appearance to set (see GapAdvertisingData::Appearance_t)" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
         if(!fromString(args[0], appearance)) {
             response->invalidParameters("the appearance to set is illformed (see GapAdvertisingData::Appearance_t)");
@@ -562,23 +669,41 @@ static constexpr const  Command setAppearance {
     }
 };
 
-static constexpr const Command getAppearance {
-    "getAppearance",
-    "get the appearance of the device",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetAppearanceCommand : public Command {
+    virtual const char* name() const {
+        return "getAppearance";
+    }
+
+    virtual const char* help() const {
+        return "get the appearance of the device";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
         ble_error_t err = gap().getAppearance(&appearance);
         reportErrorOrSuccess(response, err, appearance);
     }
 };
 
-static constexpr const Command setTxPower {
-    "setTxPower",
-    "set the transmission power of the device",
-    (const CommandArgDescription[]) {
-        { "<TxPower>", "The transmission power, it is an integer between [-128:127]"}
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetTxPowerCommand : public Command {
+    virtual const char* name() const {
+        return "setTxPower";
+    }
+
+    virtual const char* help() const {
+        return "set the transmission power of the device";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<TxPower>", "The transmission power, it is an integer between [-128:127]"}
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         int8_t txPower = 0;
         if(!fromString(args[0], txPower)) {
             response->invalidParameters("the txPower is malformed (should be between [-127:128])");
@@ -590,10 +715,17 @@ static constexpr const Command setTxPower {
     }
 };
 
-static constexpr const Command getPermittedTxPowerValues {
-    "getPermittedTxPowerValues",
-    "return an array of the authorized Tx power values",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetPermittedTxPowerValuesCommand : public Command {
+    virtual const char* name() const {
+        return "getPermittedTxPowerValues";
+    }
+
+    virtual const char* help() const {
+        return "return an array of the authorized Tx power values";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         using namespace serialization;
         const int8_t* permittedTxPowerValues = NULL;
         size_t permittedTxPowerValuesCount = 0;
@@ -601,30 +733,48 @@ static constexpr const Command getPermittedTxPowerValues {
         gap().getPermittedTxPowerValues(&permittedTxPowerValues, &permittedTxPowerValuesCount);
 
         response->success();
-        auto& os = response->getResultStream();
+        serialization::JSONOutputStream& os = response->getResultStream();
         os << startArray;
-        std::for_each(permittedTxPowerValues, permittedTxPowerValues + permittedTxPowerValuesCount, [&](int8_t val) {
-            os << val;
-        });
+        for (std::size_t i = 0; i < permittedTxPowerValuesCount; ++i) {
+            os << permittedTxPowerValues[i];
+        }
         os << endArray;
     }
 };
 
-static constexpr const Command getState {
-    "getState",
-    "return the state of the device as defined in Gap::GapState_t",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetStateCommand : public Command {
+    virtual const char* name() const {
+        return "getState";
+    }
+
+    virtual const char* help() const {
+        return "return the state of the device as defined in Gap::GapState_t";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         response->success(gap().getState());
     }
 };
 
-static constexpr const Command setAdvertisingType {
-    "setAdvertisingType",
-    "set the advertising type",
-    (const CommandArgDescription[]) {
-        { "<advertisingType>", "The advertising type as defined in GapAdvertisingParams::AdvertisingType_t" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetAdvertisingTypeCommand : public Command {
+    virtual const char* name() const {
+        return "setAdvertisingType";
+    }
+
+    virtual const char* help() const {
+        return "set the advertising type";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<advertisingType>", "The advertising type as defined in GapAdvertisingParams::AdvertisingType_t" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         GapAdvertisingParams::AdvertisingType_t advType;
 
         if(!fromString(args[0], advType)) {
@@ -637,13 +787,24 @@ static constexpr const Command setAdvertisingType {
     }
 };
 
-static constexpr const Command setAdvertisingInterval {
-    "setAdvertisingInterval",
-    "set the advertising interval",
-    (const CommandArgDescription[]) {
-        { "<interval>", "The interval in ms, if 0, the advertising is disabled" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetAdvertisingIntervalCommand : public Command {
+    virtual const char* name() const {
+        return "setAdvertisingInterval";
+    }
+
+    virtual const char* help() const {
+        return "set the advertising interval";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<interval>", "The interval in ms, if 0, the advertising is disabled" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         uint16_t interval = 0;
         if(!fromString(args[0], interval)) {
             response->invalidParameters("the advertising interval is ill formed");
@@ -655,13 +816,24 @@ static constexpr const Command setAdvertisingInterval {
     }
 };
 
-static constexpr const Command setAdvertisingTimeout {
-    "setAdvertisingTimeout",
-    "set the advertising timeout, in seconds",
-    (const CommandArgDescription[]) {
-        { "<timeout>", "An integer wich represent the advertising timeout in seconds [0x1 : 0x3FFF]. 0 disable the timeout" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetAdvertisingTimeoutCommand : public Command {
+    virtual const char* name() const {
+        return "setAdvertisingTimeout";
+    }
+
+    virtual const char* help() const {
+        return "set the advertising timeout, in seconds";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<timeout>", "An integer wich represent the advertising timeout in seconds [0x1 : 0x3FFF]. 0 disable the timeout" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         uint16_t timeout = 0;
         if(!fromString(args[0], timeout)) {
             response->invalidParameters("the advertising timeout is ill formed");
@@ -673,33 +845,61 @@ static constexpr const Command setAdvertisingTimeout {
     }
 };
 
-static constexpr const Command startAdvertising {
-    "startAdvertising",
-    "start the advertising",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct StartAdvertisingCommand : public Command {
+    virtual const char* name() const {
+        return "startAdvertising";
+    }
+
+    virtual const char* help() const {
+        return "start the advertising";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         ble_error_t err = gap().startAdvertising();
         reportErrorOrSuccess(response, err);
     }
 };
 
-static constexpr const Command clearAdvertisingPayload {
-    "clearAdvertisingPayload",
-    "clear the advertising payload",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct ClearAdvertisingPayloadCommand : public Command {
+    virtual const char* name() const {
+        return "clearAdvertisingPayload";
+    }
+
+    virtual const char* help() const {
+        return "clear the advertising payload";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         gap().clearAdvertisingPayload();
         response->success();
     }
 };
 
-static constexpr const Command accumulateAdvertisingPayload {
-    "accumulateAdvertisingPayload",
-    "add a new field into the advertising payload",
-    (const CommandArgDescription[]) {
-        { "<fieldType>", "the field type of the data following (see GapAdvertisingData::DataType_t)" },
-        { "<data>", "the value of the field, please see GapAdvertisingData" }
-    },
-    /* maximum args counts is undefined */ 0xFF,
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct AccumulateAdvertisingPayloadCommand : public Command {
+    virtual const char* name() const {
+        return "accumulateAdvertisingPayload";
+    }
+
+    virtual const char* help() const {
+        return "add a new field into the advertising payload";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<fieldType>", "the field type of the data following (see GapAdvertisingData::DataType_t)" },
+            { "<data>", "the value of the field, please see GapAdvertisingData" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual std::size_t maximumArgsRequired() const {
+        return 0xFF;
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         AdvertisingPayloadField_t payloadField;
         const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -713,16 +913,30 @@ static constexpr const Command accumulateAdvertisingPayload {
     }
 };
 
-static constexpr const Command updateAdvertisingPayload {
-    "updateAdvertisingPayload",
-    "update a field int the advertising payload.\r\n"
-    "Take care, at the moment, this will only succeed if the new value has the same size as the old one",
-    (const CommandArgDescription[]) {
-        { "<fieldType>", "the field type to update (see GapAdvertisingData::DataType_t)" },
-        { "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData" }
-    },
-    /* maximum args counts is undefined */ 0xFF,
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct UpdateAdvertisingPayloadCommand : public Command {
+    virtual const char* name() const {
+        return "updateAdvertisingPayload";
+    }
+
+    virtual const char* help() const {
+        return "update a field int the advertising payload.\r\n"
+               "Take care, at the moment, this will only succeed if the new value has the same size as the old one";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<fieldType>", "the field type to update (see GapAdvertisingData::DataType_t)" },
+            { "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual std::size_t maximumArgsRequired() const {
+        return 0xFF;
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         AdvertisingPayloadField_t payloadField;
         const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -736,33 +950,61 @@ static constexpr const Command updateAdvertisingPayload {
     }
 };
 
-static constexpr const Command setAdvertisingPayload {
-    "setAdvertisingPayload",
-    "set the advertising payload",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct SetAdvertisingPayloadCommand : public Command {
+    virtual const char* name() const {
+        return "setAdvertisingPayload";
+    }
+
+    virtual const char* help() const {
+        return "set the advertising payload";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         // TODO
         //ble_error_t setAdvertisingPayload(const GapAdvertisingData &payload)
         response->notImplemented();
     }
 };
 
-static constexpr const Command getAdvertisingPayload {
-    "getAdvertisingPayload",
-    "get the current advertising payload",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetAdvertisingPayloadCommand : public Command {
+    virtual const char* name() const {
+        return "getAdvertisingPayload";
+    }
+
+    virtual const char* help() const {
+        return "get the current advertising payload";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         response->success(gap().getAdvertisingPayload());
     }
 };
 
-static constexpr const Command accumulateScanResponse {
-    "accumulateScanResponse",
-    "add a field into the scan response payload",
-    (const CommandArgDescription[]) {
-        { "<fieldType>", "the field type to update (see GapAdvertisingData::DataType_t)" },
-        { "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData" }
-    },
-    /* maximum args counts is undefined */ 0xFF,
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct AccumulateScanResponseCommand : public Command {
+    virtual const char* name() const {
+        return "accumulateScanResponse";
+    }
+
+    virtual const char* help() const {
+        return "add a field into the scan response payload";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<fieldType>", "the field type to update (see GapAdvertisingData::DataType_t)" },
+            { "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual std::size_t maximumArgsRequired() const {
+        return 0xFF;
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         AdvertisingPayloadField_t payloadField;
         const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -776,25 +1018,43 @@ static constexpr const Command accumulateScanResponse {
     }
 };
 
-static constexpr const Command clearScanResponse {
-    "clearScanResponse",
-    "clear the scan response",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct ClearScanResponseCommand : public Command {
+    virtual const char* name() const {
+        return "clearScanResponse";
+    }
+
+    virtual const char* help() const {
+        return "clear the scan response";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         gap().clearScanResponse();
         response->success();
     }
 };
 
-static constexpr const Command setScanParams {
-    "setScanParams",
-    "Set the scan parameters",
-    (const CommandArgDescription[]) {
-        { "<interval>", "The scan interval, it should be a number between 3 and 10420ms" },
-        { "<window>", "The scan window, it should be a number between 3 and 10420ms" },
-        { "<timeout>", "The scan timeout, it should be a number between 0 and 65534 " },
-        { "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetScanParamsCommand : public Command {
+    virtual const char* name() const {
+        return "setScanParams";
+    }
+
+    virtual const char* help() const {
+        return "Set the scan parameters";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<interval>", "The scan interval, it should be a number between 3 and 10420ms" },
+            { "<window>", "The scan window, it should be a number between 3 and 10420ms" },
+            { "<timeout>", "The scan timeout, it should be a number between 0 and 65534 " },
+            { "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         uint16_t interval = 0xFFFF;
         if(!fromString(args[0], interval)) {
             response->invalidParameters("invalid interval, it should be a number between 3 and 10240ms");
@@ -824,13 +1084,24 @@ static constexpr const Command setScanParams {
     }
 };
 
-static constexpr const Command setScanInterval {
-    "setScanInterval",
-    "set the scan interval",
-    (const CommandArgDescription[]) {
-        { "<interval>", "The interval between each scan, it should be a number between 3 and 10240ms" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetScanIntervalCommand : public Command {
+    virtual const char* name() const {
+        return "setScanInterval";
+    }
+
+    virtual const char* help() const {
+        return "set the scan interval";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<interval>", "The interval between each scan, it should be a number between 3 and 10240ms" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         uint16_t interval = 0;
         if(!fromString(args[0], interval)) {
             response->invalidParameters("the interval is ill formed");
@@ -842,13 +1113,24 @@ static constexpr const Command setScanInterval {
     }
 };
 
-static constexpr const Command setScanWindow {
-    "setScanWindow",
-    "set the scan windows",
-    (const CommandArgDescription[]) {
-        { "<window>", "The interval between each scan, it should be a number between 3 and 10240ms" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetScanWindowCommand : public Command {
+    virtual const char* name() const {
+        return "setScanWindow";
+    }
+
+    virtual const char* help() const {
+        return "set the scan windows";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<window>", "The interval between each scan, it should be a number between 3 and 10240ms" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         uint16_t window = 0;
         if(!fromString(args[0], window)) {
             response->invalidParameters("the window is ill formed");
@@ -860,13 +1142,24 @@ static constexpr const Command setScanWindow {
     }
 };
 
-static constexpr const Command setScanTimeout {
-    "setScanTimeout",
-    "The scan timeout",
-    (const CommandArgDescription[]) {
-        { "<timeout>", "The scan timeout, it should be a number between 0 and 65534 " }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetScanTimeoutCommand : public Command {
+    virtual const char* name() const {
+        return "setScanTimeout";
+    }
+
+    virtual const char* help() const {
+        return "Set the scane timeout";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<timeout>", "The scan timeout, it should be a number between 0 and 65534 " }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         uint16_t timeout = 0;
         if(!fromString(args[0], timeout)) {
             response->invalidParameters("the timeout is ill formed");
@@ -878,13 +1171,24 @@ static constexpr const Command setScanTimeout {
     }
 };
 
-static constexpr const Command setActiveScanning {
-    "setActiveScanning",
-    "Enable or disable active scanning",
-    (const CommandArgDescription[]) {
-        { "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetActiveScanningCommand : public Command {
+    virtual const char* name() const {
+        return "setActiveScanning";
+    }
+
+    virtual const char* help() const {
+        return "Enable or disable active scanning";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         bool activeScanning = 0;
         if(!fromString(args[0], activeScanning)) {
             response->invalidParameters("the active scanning state is ill formed");
@@ -896,14 +1200,25 @@ static constexpr const Command setActiveScanning {
     }
 };
 
-static constexpr const Command startScan {
-    "startScan",
-    "start the scan process",
-    (const CommandArgDescription[]) {
-        { "<duration>", "The duration of the scan" },
-        { "<address>", "The address to scan for" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct StartScanCommand : public Command {
+    virtual const char* name() const {
+        return "startScan";
+    }
+
+    virtual const char* help() const {
+        return "start the scan process";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<duration>", "The duration of the scan" },
+            { "<address>", "The address to scan for" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         uint16_t duration = 0;
         if(!fromString(args[0], duration)) {
             response->invalidParameters("first argument should be the duration of the scan in milliseconds");
@@ -916,90 +1231,115 @@ static constexpr const Command startScan {
             return;
         }
 
-        struct ScanProcedure : public AsyncProcedure {
-            ScanProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, const Gap::Address_t& addr) :
-                AsyncProcedure(res, timeout) {
-                    memcpy(address, addr, sizeof(address));
-            }
-
-            virtual ~ScanProcedure() {
-                // close the array of scan
-                gap().stopScan();
-                // note : there should be a way to detach this function pointer in the BLE API
-            }
-
-            virtual bool doStart() {
-                ble_error_t err = gap().startScan(this, &ScanProcedure::whenAdvertisementReceived);
-                if(err) {
-                    response->faillure(err);
-                    return false;
-                } else {
-                    referenceTime = minar::ticks(minar::getTime());
-                    response->success();
-                    // the response will be an array of scan sample, start this array right now
-                    response->getResultStream() << serialization::startArray;
-                    return true;
-                }
-            }
-
-            void whenAdvertisementReceived(const Gap::AdvertisementCallbackParams_t* scanResult) {
-                using namespace serialization;
-
-                // check the address, if it is not the address wanted, just return
-                if(memcmp(scanResult->peerAddr, address, sizeof(address))) {
-                    return;
-                }
-
-                response->getResultStream() << startObject <<
-                    key("peerAddr") << macAddressToString(scanResult->peerAddr).str <<
-                    key("rssi") << scanResult->rssi <<
-                    key("isScanResponse") << scanResult->isScanResponse <<
-                    key("type") << scanResult->type <<
-                    key("data") << AdvertisingDataSerializer(scanResult->advertisingData, scanResult->advertisingDataLen) <<
-                    key("time") << (minar::ticks(minar::getTime()) - referenceTime) <<
-                endObject;
-            }
-
-            virtual void doWhenTimeout() {
-                response->getResultStream() << serialization::endArray;
-                // nothing to do jere, timeout is not an error in this case
-            }
-
-            Gap::Address_t address;
-            uint32_t referenceTime;
-        };
-
         startProcedure<ScanProcedure>(response, duration, address);
     }
+
+    struct ScanProcedure : public AsyncProcedure {
+        ScanProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, const Gap::Address_t& addr) :
+            AsyncProcedure(res, timeout) {
+                memcpy(address, addr, sizeof(address));
+        }
+
+        virtual ~ScanProcedure() {
+            // close the array of scan
+            gap().stopScan();
+            // note : there should be a way to detach this function pointer in the BLE API
+        }
+
+        virtual bool doStart() {
+            ble_error_t err = gap().startScan(this, &ScanProcedure::whenAdvertisementReceived);
+            if(err) {
+                response->faillure(err);
+                return false;
+            } else {
+                referenceTime = minar::ticks(minar::getTime());
+                response->success();
+                // the response will be an array of scan sample, start this array right now
+                response->getResultStream() << serialization::startArray;
+                return true;
+            }
+        }
+
+        void whenAdvertisementReceived(const Gap::AdvertisementCallbackParams_t* scanResult) {
+            using namespace serialization;
+
+            // check the address, if it is not the address wanted, just return
+            if(memcmp(scanResult->peerAddr, address, sizeof(address))) {
+                return;
+            }
+
+            response->getResultStream() << startObject <<
+                key("peerAddr") << macAddressToString(scanResult->peerAddr).str <<
+                key("rssi") << scanResult->rssi <<
+                key("isScanResponse") << scanResult->isScanResponse <<
+                key("type") << scanResult->type <<
+                key("data") << AdvertisingDataSerializer(scanResult->advertisingData, scanResult->advertisingDataLen) <<
+                key("time") << (minar::ticks(minar::getTime()) - referenceTime) <<
+            endObject;
+        }
+
+        virtual void doWhenTimeout() {
+            response->getResultStream() << serialization::endArray;
+            // nothing to do jere, timeout is not an error in this case
+        }
+
+        Gap::Address_t address;
+        uint32_t referenceTime;
+    };
 };
 
-static constexpr const Command initRadioNotification {
-    "initRadioNotification",
-    "initialize radio notifications",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct InitRadioNotificationCommand : public Command {
+    virtual const char* name() const {
+        return "initRadioNotification";
+    }
+
+    virtual const char* help() const {
+        return "initialize radio notifications";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         // TODO (maybe)
         //ble_error_t initRadioNotification(void)
         response->notImplemented();
     }
 };
 
-static constexpr const Command getAdvertisingParams {
-    "getAdvertisingParams",
-    "return the current advertising params",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetAdvertisingParamsCommand : public Command {
+    virtual const char* name() const {
+        return "getAdvertisingParams";
+    }
+
+    virtual const char* help() const {
+        return "return the current advertising params";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         response->success(gap().getAdvertisingParams());
     }
 };
 
-static constexpr const Command setAdvertisingParams {
-    "setAdvertisingParams",
-    "set the advertising parameters",
-    (const CommandArgDescription[]) {
-        { "<advertisingType>", "The Advertising type, please refer to GapAdvertisingParams::AdvertisingType_t" },
-        { "<interval>", "The advertising interval, it should be a number between 0 and 65534" },
-        { "<timeout>", "The timeout, it should be a number between 0 and 65534" },
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetAdvertisingParamsCommand : public Command {
+    virtual const char* name() const {
+        return "setAdvertisingParams";
+    }
+
+    virtual const char* help() const {
+        return "set the advertising parameters";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<advertisingType>", "The Advertising type, please refer to GapAdvertisingParams::AdvertisingType_t" },
+            { "<interval>", "The advertising interval, it should be a number between 0 and 65534" },
+            { "<timeout>", "The timeout, it should be a number between 0 and 65534" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         GapAdvertisingParams::AdvertisingType_t advertisingType;
         if(!fromString(args[0], advertisingType)) {
             response->invalidParameters("Advertising type is malformed, please refer to GapAdvertisingParams::AdvertisingType_t");
@@ -1023,19 +1363,33 @@ static constexpr const Command setAdvertisingParams {
     }
 };
 
-static constexpr const Command getMaxWhitelistSize {
-    "getMaxWhitelistSize",
-    "get the maximum size the whitelist can take",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetMaxWhitelistSizeCommand : public Command {
+    virtual const char* name() const {
+        return "getMaxWhitelistSize";
+    }
+
+    virtual const char* help() const {
+        return "get the maximum size the whitelist can take";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         response->success(gap().getMaxWhitelistSize());
     }
 };
 
-static constexpr const Command getWhiteList {
-    "getWhitelist",
-    "Get the internal whitelist to be used by the Link Layer when scanning,"
-    "advertising or initiating a connection depending on the filter policies.",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetWhitelistCommand : public Command {
+    virtual const char* name() const {
+        return "getWhitelist";
+    }
+
+    virtual const char* help() const {
+        return "Get the internal whitelist to be used by the Link Layer when scanning,"
+               "advertising or initiating a connection depending on the filter policies.";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         using namespace serialization;
 
         BLEProtocol::Address_t* addresses = new BLEProtocol::Address_t[gap().getMaxWhitelistSize()]();
@@ -1053,7 +1407,7 @@ static constexpr const Command getWhiteList {
         }
 
         response->success();
-        auto& os = response->getResultStream();
+        serialization::JSONOutputStream& os = response->getResultStream();
 
         os << startArray;
         for(std::size_t i = 0; i < whiteList.size; ++i) {
@@ -1068,25 +1422,32 @@ static constexpr const Command getWhiteList {
     }
 };
 
-static constexpr const Command setWhitelist {
-    "setWhitelist",
-    "Set the internal whitelist to be used by the Link Layer when scanning,"
-    "advertising or initiating a connection depending on the filter policies.",
-/*    (const CommandArgDescription[]) {
-        { "<addressType>", "address type" },
-        { "<address>", "address" }
-    },*/
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetWhitelistCommand : public Command {
+    virtual const char* name() const {
+        return "setWhitelist";
+    }
+
+    virtual const char* help() const {
+        return "Set the internal whitelist to be used by the Link Layer when scanning,"
+               "advertising or initiating a connection depending on the filter policies.";
+    }
+
+    virtual std::size_t maximumArgsRequired() const {
+        return 0xFF;
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         if(args.count() % 2) {
             response->invalidParameters("[ <addressType> <address> ] expected");
             return;
         }
 
-        std::uint8_t addressCount = args.count() / 2;
+        uint8_t addressCount = args.count() / 2;
         BLEProtocol::Address_t* addresses = new BLEProtocol::Address_t[addressCount]();
 
         // fill the input
-        for(std::uint8_t i = 0; i < addressCount; ++i) {
+        for(uint8_t i = 0; i < addressCount; ++i) {
             if(!fromString(args[i * 2], addresses[i].type)) {
                 response->invalidParameters("invalid address type");
                 delete[] addresses;
@@ -1112,14 +1473,25 @@ static constexpr const Command setWhitelist {
     }
 };
 
-static constexpr const Command setAdvertisingPolicyMode {
-    "setAdvertisingPolicyMode",
-    "Set the advertising policy filter mode to be used in the next call"
-    "to startAdvertising().",
-    (const CommandArgDescription[]) {
-        { "<AdvertisingPolicyMode_t>", "The advertising policy mode to set" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetAdvertisingPolicyModeCommand : public Command {
+    virtual const char* name() const {
+        return "setAdvertisingPolicyMode";
+    }
+
+    virtual const char* help() const {
+        return "Set the advertising policy filter mode to be used in the next call"
+               "to startAdvertising().";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<AdvertisingPolicyMode_t>", "The advertising policy mode to set" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         Gap::AdvertisingPolicyMode_t mode;
         if(!fromString(args[0], mode)) {
             response->invalidParameters("The policy mode in input is ill formed");
@@ -1130,13 +1502,24 @@ static constexpr const Command setAdvertisingPolicyMode {
     }
 };
 
-static constexpr const Command setScanningPolicyMode {
-    "setScanningPolicyMode",
-    "Set the scan policy filter mode to be used in the next call to startScan().",
-    (const CommandArgDescription[]) {
-        { "<ScanningPolicyMode_t>", "The scanning policy mode to set" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetScanningPolicyModeCommand : public Command {
+    virtual const char* name() const {
+        return "setScanningPolicyMode";
+    }
+
+    virtual const char* help() const {
+        return "Set the scan policy filter mode to be used in the next call to startScan().";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<ScanningPolicyMode_t>", "The scanning policy mode to set" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         Gap::ScanningPolicyMode_t mode;
         if(!fromString(args[0], mode)) {
             response->invalidParameters("The policy mode in input is ill formed");
@@ -1147,13 +1530,24 @@ static constexpr const Command setScanningPolicyMode {
     }
 };
 
-static constexpr const Command setInitiatorPolicyMode {
-    "setInitiatorPolicyMode",
-    "Set the initiator policy filter mode to be used.",
-    (const CommandArgDescription[]) {
-        { "<InitiatorPolicyMode_t>", "The scanning policy mode to set" }
-    },
-    STATIC_LAMBDA(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+
+struct SetInitiatorPolicyModeCommand : public Command {
+    virtual const char* name() const {
+        return "setInitiatorPolicyMode";
+    }
+
+    virtual const char* help() const {
+        return "Set the initiator policy filter mode to be used.";
+    }
+
+    virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static const CommandArgDescription argsDescription[] = {
+            { "<InitiatorPolicyMode_t>", "The scanning policy mode to set" }
+        };
+        return ConstArray<CommandArgDescription>(argsDescription);
+    }
+
+    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         Gap::InitiatorPolicyMode_t mode;
         if(!fromString(args[0], mode)) {
             response->invalidParameters("The policy mode in input is ill formed");
@@ -1164,87 +1558,110 @@ static constexpr const Command setInitiatorPolicyMode {
     }
 };
 
-static constexpr const Command getAdvertisingPolicyMode {
-    "getAdvertisingPolicyMode",
-    "Get the advertising policy filter mode that will be used in the next"
-    "call to startAdvertising()",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+
+struct GetAdvertisingPolicyModeCommand : public Command {
+    virtual const char* name() const {
+        return "getAdvertisingPolicyMode";
+    }
+
+    virtual const char* help() const {
+        return "Get the advertising policy filter mode that will be used in the next"
+               "call to startAdvertising()";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         response->success(gap().getAdvertisingPolicyMode());
     }
 };
 
-static constexpr const Command getScanningPolicyMode {
-    "getScanningPolicyMode",
-    "Get the scan policy filter mode that will be used in the next"
-    "call to startScan().",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+
+struct GetScanningPolicyModeCommand : public Command {
+    virtual const char* name() const {
+        return "getScanningPolicyMode";
+    }
+
+    virtual const char* help() const {
+        return "Get the scan policy filter mode that will be used in the next"
+               "call to startScan().";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         response->success(gap().getScanningPolicyMode());
     }
 };
 
 
-static constexpr const Command getInitiatorPolicyMode {
-    "getInitiatorPolicyMode",
-    "Get the initiator policy filter mode that will be used.",
-    STATIC_LAMBDA(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+struct GetInitiatorPolicyModeCommand : public Command {
+    virtual const char* name() const {
+        return "getInitiatorPolicyMode";
+    }
+
+    virtual const char* help() const {
+        return "Get the initiator policy filter mode that will be used.";
+    }
+
+    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
         response->success(gap().getInitiatorPolicyMode());
     }
 };
 
+
 } // end of annonymous namespace
 
-ConstArray<Command> GapCommandSuiteDescription::commands() {
-    static constexpr const Command commandHandlers[] = {
-        setAddress,
-        getAddress,
-        getMinAdvertisingInterval,
-        getMinNonConnectableAdvertisingInterval,
-        getMaxAdvertisingInterval,
-        stopAdvertising,
-        stopScan,
-        connect,
-        waitForConnection,
-        disconnect,
-        getPreferredConnectionParams,
-        setPreferredConnectionParams,
-        updateConnectionParams,
-        setDeviceName,
-        getDeviceName,
-        setAppearance,
-        getAppearance,
-        setTxPower,
-        getPermittedTxPowerValues,
-        getState,
-        setAdvertisingType,
-        setAdvertisingInterval,
-        setAdvertisingTimeout,
-        startAdvertising,
-        clearAdvertisingPayload,
-        accumulateAdvertisingPayload,
-        updateAdvertisingPayload,
-        setAdvertisingPayload,
-        getAdvertisingPayload,
-        accumulateScanResponse,
-        clearScanResponse,
-        setScanParams,
-        setScanInterval,
-        setScanWindow,
-        setScanTimeout,
-        setActiveScanning,
-        startScan,
-        initRadioNotification,
-        getAdvertisingParams,
-        setAdvertisingParams,
-        getMaxWhitelistSize,
-        getWhiteList,
-        setWhitelist,
-        setAdvertisingPolicyMode,
-        setScanningPolicyMode,
-        setInitiatorPolicyMode,
-        getAdvertisingPolicyMode,
-        getScanningPolicyMode,
-        getInitiatorPolicyMode
+
+ConstArray<CommandAccessor_t> GapCommandSuiteDescription::commands() {
+    static const CommandAccessor_t commandHandlers[] = {
+        &getCommand<SetAddressCommand>,
+        &getCommand<GetAddressCommand>,
+        &getCommand<GetMinAdvertisingIntervalCommand>,
+        &getCommand<GetMinNonConnectableAdvertisingIntervalCommand>,
+        &getCommand<GetMaxAdvertisingIntervalCommand>,
+        &getCommand<StopAdvertisingCommand>,
+        &getCommand<StopScanCommand>,
+        &getCommand<ConnectCommand>,
+        &getCommand<WaitForConnectionCommand>,
+        &getCommand<DisconnectCommand>,
+        &getCommand<GetPreferredConnectionParamsCommand>,
+        &getCommand<SetPreferredConnectionParamsCommand>,
+        &getCommand<UpdateConnectionParamsCommand>,
+        &getCommand<SetDeviceNameCommand>,
+        &getCommand<GetDeviceNameCommand>,
+        &getCommand<SetAppearanceCommand>,
+        &getCommand<GetAppearanceCommand>,
+        &getCommand<SetTxPowerCommand>,
+        &getCommand<GetPermittedTxPowerValuesCommand>,
+        &getCommand<GetStateCommand>,
+        &getCommand<SetAdvertisingTypeCommand>,
+        &getCommand<SetAdvertisingIntervalCommand>,
+        &getCommand<SetAdvertisingTimeoutCommand>,
+        &getCommand<StartAdvertisingCommand>,
+        &getCommand<ClearAdvertisingPayloadCommand>,
+        &getCommand<AccumulateAdvertisingPayloadCommand>,
+        &getCommand<UpdateAdvertisingPayloadCommand>,
+        &getCommand<SetAdvertisingPayloadCommand>,
+        &getCommand<GetAdvertisingPayloadCommand>,
+        &getCommand<AccumulateScanResponseCommand>,
+        &getCommand<ClearScanResponseCommand>,
+        &getCommand<SetScanParamsCommand>,
+        &getCommand<SetScanIntervalCommand>,
+        &getCommand<SetScanWindowCommand>,
+        &getCommand<SetScanTimeoutCommand>,
+        &getCommand<SetActiveScanningCommand>,
+        &getCommand<StartScanCommand>,
+        &getCommand<InitRadioNotificationCommand>,
+        &getCommand<GetAdvertisingParamsCommand>,
+        &getCommand<SetAdvertisingParamsCommand>,
+        &getCommand<GetMaxWhitelistSizeCommand>,
+        &getCommand<GetWhitelistCommand>,
+        &getCommand<SetWhitelistCommand>,
+        &getCommand<SetAdvertisingPolicyModeCommand>,
+        &getCommand<SetScanningPolicyModeCommand>,
+        &getCommand<SetInitiatorPolicyModeCommand>,
+        &getCommand<GetAdvertisingPolicyModeCommand>,
+        &getCommand<GetScanningPolicyModeCommand>,
+        &getCommand<GetInitiatorPolicyModeCommand>
     };
 
-    return ConstArray<Command>(commandHandlers);
+    return ConstArray<CommandAccessor_t>(commandHandlers);
 }

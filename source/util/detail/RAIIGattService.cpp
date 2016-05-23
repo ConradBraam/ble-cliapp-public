@@ -9,7 +9,7 @@ HIJACK_MEMBER(_characteristicCount_accessor, uint8_t GattService::*, &GattServic
 namespace detail {
 
 RAIIGattService::RAIIGattService(const UUID& uuid)  :
-    GattService(uuid, nullptr, 0) {
+    GattService(uuid, NULL, 0) {
 }
 
 RAIIGattService::~RAIIGattService() {
