@@ -1433,6 +1433,10 @@ struct SetWhitelistCommand : public Command {
                "advertising or initiating a connection depending on the filter policies.";
     }
 
+    virtual std::size_t maximumArgsRequired() const {
+        return 0xFF;
+    }
+
     virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
         if(args.count() % 2) {
             response->invalidParameters("[ <addressType> <address> ] expected");
