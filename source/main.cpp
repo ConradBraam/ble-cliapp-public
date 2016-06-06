@@ -2,7 +2,7 @@
 #include "ble/BLE.h"
 #include "ble/services/iBeacon.h"
 #include "mbed-client-cli/ns_cmdline.h"
-#include "mbed-client-trace/mbed_client_trace.h"
+#include "mbed-trace/mbed_trace.h"
 
 #include "CLICommand/CommandSuite.h"
 #include "Commands/BLECommands.h"
@@ -111,10 +111,10 @@ void app_start(int, char*[])
     get_stdio_serial().attach(whenRxInterrupt);
 
     // initialize trace libary
-    mbed_client_trace_init();
-    mbed_client_trace_print_function_set( trace_printer );
-    mbed_client_trace_cmdprint_function_set( cmd_printer );
-    mbed_client_trace_config_set(TRACE_MODE_COLOR|TRACE_ACTIVE_LEVEL_DEBUG|TRACE_CARRIAGE_RETURN);
+    mbed_trace_init();
+    mbed_trace_print_function_set( trace_printer );
+    mbed_trace_cmdprint_function_set( cmd_printer );
+    mbed_trace_config_set(TRACE_MODE_COLOR|TRACE_ACTIVE_LEVEL_DEBUG|TRACE_CARRIAGE_RETURN);
 
     cmd_init( &custom_cmd_response_out );
     cmd_set_ready_cb( cmd_ready_cb );

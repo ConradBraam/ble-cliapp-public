@@ -14,8 +14,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "ble": "ARMmbed/ble",
-    "mbed-client-cli": "ARMmbed/mbed-client-cli",
-    "mbed-client-trace": "ARMmbed/mbed-client-trace"
+    "mbed-client-cli": "ARMmbed/mbed-client-cli"
   },
   "targetDependencies": {},
   "bin": "./source"
