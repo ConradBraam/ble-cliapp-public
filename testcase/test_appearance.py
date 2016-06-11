@@ -1,8 +1,8 @@
-from mbed_clitest.bench import Bench
+from BleTestCase import BleTestCase
 
-class Testcase(Bench):
+class Testcase(BleTestCase):
     def __init__(self):
-        Bench.__init__(self,
+        BleTestCase.__init__(self,
                        name="test_appearance",
                        title = "Change BLE device appearance",
                        status = "released",
@@ -19,23 +19,26 @@ class Testcase(Bench):
                                }
                            }}
         )
+        self.dut = self.getDevice(1)
 
     def rampUp(self):
+        resp = self.dut.ble("reset")
+        self.assertTrue(resp.success())
         # nothing for now
         pass
 
     def case(self):
+        dut = self.dut
+        deviceAppearance = "GENERIC_HEART_RATE_SENSOR"
 
-        BLE_APPEARANCE_GENERIC_PHONE = 64
+        resp = dut.gap("setAppearance", deviceAppearance)
+        self.assertTrue(resp.status == 0)
 
-        # Appearance related test cases
-        resp = self.command(1, "ifconfig")
-        resp.verifyMessage(['ble0'])
-        self.command(1, "ifconfig up")
-        self.command(1, "test HRM 1 appearance %d"% BLE_APPEARANCE_GENERIC_PHONE)
-        resp = self.command(1, "ifconfig")
-        resp.verifyMessage(['Generic Phone'])
+        resp = dut.gap("getAppearance")
+        self.assertTrue(resp.status == 0) 
+        self.assertTrue(resp.result == deviceAppearance) 
 
     def rampDown(self):
-        # nothing for now
+        resp = self.dut.ble("shutdown")
+        self.assertTrue(resp.success())
         pass
