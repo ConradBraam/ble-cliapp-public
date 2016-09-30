@@ -1,0 +1,4 @@
+yotta_modules/*
+modules/*
+build/*
+yotta_targets/*
