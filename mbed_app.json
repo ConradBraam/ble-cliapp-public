@@ -14,7 +14,16 @@
         "*": {
             "target.features_add": ["COMMON_PAL"],
             "mbed-trace.enable": 1,
-	    "core.stdio-flush-at-exit": false
+	        "core.stdio-flush-at-exit": false
+        },
+        "K64F": {
+            "target.features_add": ["BLE"],
+            "target.extra_labels_add": ["ST_BLUENRG"],
+            "target.macros_add": ["IDB0XA1_D13_PATCH"]
+        },
+        "NUCLEO_F401RE": {
+            "target.features_add": ["BLE"],
+            "target.extra_labels_add": ["ST_BLUENRG"]
         }
     }
 }
