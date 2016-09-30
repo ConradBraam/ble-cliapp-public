@@ -1,14 +1,18 @@
 #include <stdint.h>
-#include <minar/minar.h>
+#include "EventQueue/EventQueue.h"
 
 #include "CommandSuiteImplementation.h"
+#include <string.h>
 
 using mbed::util::SharedPointer;
+
+// TODO: ugly, should be injected
+extern eq::EventQueue& taskQueue;
 
 namespace {
 
 static void whenAsyncCommandEnd(const CommandResponse* response) {
-    minar::Scheduler::postCallback(mbed::util::FunctionPointer1<void, int>(cmd_ready).bind(response->getStatusCode()));
+    taskQueue.post(&cmd_ready, response->getStatusCode());
 }
 
 static const Command* getCommand(

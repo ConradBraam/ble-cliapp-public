@@ -81,7 +81,7 @@ static const char* toString(const T& value) {
  * @brief Convert a string to a value
  */
 template<typename T>
-static inline bool fromString(const char* str, T& value) {
+static bool fromString(const char* str, T& value) {
     return Serializer<T>::fromString(str, value);
 }
 

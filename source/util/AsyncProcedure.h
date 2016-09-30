@@ -2,7 +2,7 @@
 #define BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
 
 #include <core-util/SharedPointer.h>
-#include <minar/minar.h>
+#include "EventQueue/EventQueue.h"
 #include "CLICommand/CommandResponse.h"
 
 struct AsyncProcedure {
@@ -77,7 +77,7 @@ private:
     void whenTimeout();
 
 
-    minar::callback_handle_t timeoutHandle;
+    eq::EventQueue::event_handle_t timeoutHandle;
     uint32_t timeout;
 };
 

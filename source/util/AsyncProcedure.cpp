@@ -1,20 +1,25 @@
 #include "AsyncProcedure.h"
 
+// TODO: ugly, should be injected
+extern eq::EventQueue& taskQueue;
+
 AsyncProcedure::AsyncProcedure(const mbed::util::SharedPointer<CommandResponse>& res, uint32_t t) :
     response(res), timeoutHandle(NULL), timeout(t) {
 }
 
 AsyncProcedure::~AsyncProcedure() {
     if(timeoutHandle) {
-        minar::Scheduler::cancelCallback(timeoutHandle);
+        taskQueue.cancel(timeoutHandle);
     }
 }
 
 void AsyncProcedure::start() {
     // register the timeout callback
-    timeoutHandle = minar::Scheduler::postCallback(
-        this, &AsyncProcedure::whenTimeout
-    ).delay(minar::milliseconds(timeout)).getHandle();
+    timeoutHandle = taskQueue.post_in(
+        &AsyncProcedure::whenTimeout,
+        this,
+        timeout
+    );
 
     if(doStart() == false) {
         terminate();

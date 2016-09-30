@@ -1,4 +1,8 @@
+#ifdef YOTTA_CFG
 #include "mbed-drivers/mbed.h"
+#else
+#include "mbed.h"
+#endif
 #include "ble/BLE.h"
 #include "ble/services/iBeacon.h"
 #include "mbed-client-cli/ns_cmdline.h"
@@ -11,25 +15,37 @@
 #include "Commands/GattClientCommands.h"
 #include "Commands/SecurityManagerCommands.h"
 
-// mbed::util::CriticalSectionLock is broken on nordic platform.
-// This is a temporary workaround which should be removed as soon as
-// https://github.com/ARMmbed/core-util/pull/50 is accepted and published
-// in yotta registry.
-#ifdef TARGET_NORDIC
-#include "util/NordicCriticalSectionLock.h"
-typedef ::util::NordicCriticalSectionLock CriticalSection;
-#else
-#include <core-util/CriticalSectionLock.h>
-typedef ::mbed::util::CriticalSectionLock CriticalSection;
-#endif
+#include "util/CriticalSectionLock.h"
+typedef ::util::CriticalSectionLock CriticalSection;
 
 #include "util/CircularBuffer.h"
+
+
+#ifdef YOTTA_CFG
+#include "EventQueue/EventQueueMinar.h"
+
+static eq::EventQueueMinar _taskQueue;
+#else
+#include "EventQueue/EventQueueClassic.h"
+
+static eq::EventQueueClassic<10> _taskQueue;
+#endif
+
+eq::EventQueue& taskQueue = _taskQueue;
 
 // Prototypes
 void cmd_ready_cb(int retcode);
 static void whenRxInterrupt(void);
 static void consumeSerialBytes(void);
 
+Serial& get_serial() {
+#ifdef YOTTA_CFG
+    return get_stdio_serial();
+#else
+    static Serial serial(USBTX, USBRX);
+    return serial;
+#endif
+}
 // constants
 static const size_t CIRCULAR_BUFFER_LENGTH = 768;
 static const size_t CONSUMER_BUFFER_LENGTH = 32;
@@ -45,12 +61,12 @@ static ::util::CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
 static void whenRxInterrupt(void)
 {
     bool startConsumer = rxBuffer.empty();
-    if(rxBuffer.push((uint8_t) get_stdio_serial().getc()) == false) {
+    if(rxBuffer.push((uint8_t) get_serial().getc()) == false) {
         error("error, serial buffer is full\r\n");
     }
 
     if(startConsumer) {
-        minar::Scheduler::postCallback(consumeSerialBytes);
+        taskQueue.post(consumeSerialBytes);
     }
 }
 
@@ -78,8 +94,15 @@ static void consumeSerialBytes(void) {
 
 void trace_printer(const char* str)
 {
-	get_stdio_serial().printf("%s\r\n", str);
+    get_serial().printf("%s\r\n", str);
 	cmd_output();
+	fflush(stdout);
+}
+
+void cmd_printer(const char *str)
+{
+  cmd_printf("%s", str);
+  fflush(stdout);
 }
 
 void custom_cmd_response_out(const char* fmt, va_list ap)
@@ -104,11 +127,23 @@ void initialize_app_commands(void) {
     registerCommandSuite<SecurityManagerCommandSuiteDescription>();
 }
 
+void scheduleBleEventsProcessing(BLE::OnEventsToProcessCallbackContext* context) {
+    taskQueue.post(&BLE::processEvents, &context->ble);
+}
+
+static char output_buffer[50];
+
+
+
 void app_start(int, char*[])
 {
+    setvbuf(stdout, output_buffer, _IOFBF, sizeof(output_buffer));
+    BLE& ble = BLE::Instance(BLE::DEFAULT_INSTANCE);
+    ble.onEventsToProcess(scheduleBleEventsProcessing);
+
     //configure serial port
-    get_stdio_serial().baud(115200);	// This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
-    get_stdio_serial().attach(whenRxInterrupt);
+    get_serial().baud(115200);    // This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
+    get_serial().attach(whenRxInterrupt);
 
     // initialize trace libary
     mbed_trace_init();
@@ -118,16 +153,20 @@ void app_start(int, char*[])
 
     cmd_init( &custom_cmd_response_out );
     cmd_set_ready_cb( cmd_ready_cb );
+    cmd_history_size(1);
     initialize_app_commands();
 }
-/**
- * main() is needed only for mbed-classic. mbed OS triggers app_start() automatically.
- */
-#ifndef YOTTA_CFG_MBED_OS
+
+#ifndef YOTTA_CFG
 int main(void)
 {
     app_start(0, NULL);
 
-    return 0;
+    while (true) {
+        _taskQueue.dispatch();
+        // TODO: should wait for event/ go to sleep, even if BLE_API is not active ...
+        //ble.waitForEvent(); // this will return upon any system event (such as an interrupt or a ticker wakeup)
+    }
 }
 #endif
+

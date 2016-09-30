@@ -6,9 +6,14 @@
 #include "Serialization/GapAdvertisingDataSerializer.h"
 #include "Serialization/GapAdvertisingParamsSerializer.h"
 #include "Serialization/BLECommonSerializer.h"
-#include "minar/minar.h"
 #include "CLICommand/CommandSuite.h"
 #include "util/AsyncProcedure.h"
+
+#ifdef YOTTA_CFG
+#include "mbed-drivers/Timer.h"
+#else
+#include "Timer.h"
+#endif
 
 using mbed::util::SharedPointer;
 
@@ -1243,6 +1248,7 @@ struct StartScanCommand : public Command {
         virtual ~ScanProcedure() {
             // close the array of scan
             gap().stopScan();
+            timer.stop();
             // note : there should be a way to detach this function pointer in the BLE API
         }
 
@@ -1252,7 +1258,8 @@ struct StartScanCommand : public Command {
                 response->faillure(err);
                 return false;
             } else {
-                referenceTime = minar::ticks(minar::getTime());
+                timer.reset();
+                timer.start();
                 response->success();
                 // the response will be an array of scan sample, start this array right now
                 response->getResultStream() << serialization::startArray;
@@ -1274,7 +1281,7 @@ struct StartScanCommand : public Command {
                 key("isScanResponse") << scanResult->isScanResponse <<
                 key("type") << scanResult->type <<
                 key("data") << AdvertisingDataSerializer(scanResult->advertisingData, scanResult->advertisingDataLen) <<
-                key("time") << (minar::ticks(minar::getTime()) - referenceTime) <<
+                key("time") << (int32_t) timer.read_ms() <<
             endObject;
         }
 
@@ -1284,7 +1291,7 @@ struct StartScanCommand : public Command {
         }
 
         Gap::Address_t address;
-        uint32_t referenceTime;
+        mbed::Timer timer;
     };
 };
 

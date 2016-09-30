@@ -1,0 +1,29 @@
+{
+    "macros": [
+        "MEM_ALLOC=malloc",
+        "MEM_FREE=free",
+        "NDEBUG=1",
+        "OS_TASKCNT=1",
+        "OS_IDLESTKSIZE=32",
+        "OS_STKSIZE=1",
+        "OS_TIMERS=0",
+        "OS_FIFOSZ=4",
+        "OS_MUTEXCNT=1"
+    ],
+    "target_overrides": {
+        "*": {
+            "target.features_add": ["COMMON_PAL"],
+            "mbed-trace.enable": 1,
+	        "core.stdio-flush-at-exit": false
+        },
+        "K64F": {
+            "target.features_add": ["BLE"],
+            "target.extra_labels_add": ["ST_BLUENRG"],
+            "target.macros_add": ["IDB0XA1_D13_PATCH"]
+        },
+        "NUCLEO_F401RE": {
+            "target.features_add": ["BLE"],
+            "target.extra_labels_add": ["ST_BLUENRG"]
+        }
+    }
+}
