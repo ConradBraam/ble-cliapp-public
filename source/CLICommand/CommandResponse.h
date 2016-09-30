@@ -2,7 +2,6 @@
 #define BLE_CLIAPP_COMMAND_RESPONSE_H_
 
 #include <mbed-client-cli/ns_cmdline.h>
-#include <core-util/FunctionPointer.h>
 
 #include "CommandArgs.h"
 #include "Serialization/JSONOutputStream.h"
@@ -19,7 +18,7 @@
 class CommandResponse {
 
 public:
-    typedef mbed::util::FunctionPointer1<void, const CommandResponse*> OnClose_t;
+    typedef void(*OnClose_t)(const CommandResponse*);
 
     /**
      * @brief construct a new response

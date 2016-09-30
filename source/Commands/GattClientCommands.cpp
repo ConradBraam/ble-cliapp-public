@@ -2,7 +2,6 @@
 #include "ble/BLE.h"
 #include "ble/DiscoveredService.h"
 #include "ble/DiscoveredCharacteristic.h"
-#include "minar/minar.h"
 #include "CLICommand/CommandSuite.h"
 
 #include "Serialization/Serializer.h"
