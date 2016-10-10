@@ -7,7 +7,7 @@
 #include "CommandArgDescription.h"
 #include "mbed_error.h"
 
-struct CommandTable {
+struct Command {
     const char* (* const name )();
     const char* (* const help)();
     ConstArray<CommandArgDescription> (* const argsDescription)();

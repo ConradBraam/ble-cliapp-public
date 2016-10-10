@@ -5,11 +5,11 @@
 
 template<typename T>
 struct CommandAccessor { 
-    static const CommandTable command;
+    static const Command command;
 };
 
 template<typename T>
-const CommandTable CommandAccessor<T>::command =  {
+const Command CommandAccessor<T>::command =  {
         &T::name,
         &T::help,
         &T::argsDescription,
@@ -17,6 +17,6 @@ const CommandTable CommandAccessor<T>::command =  {
         &T::handler
 };
 
-typedef const CommandTable* (*CommandAccessor_t)();
+typedef const Command* (*CommandAccessor_t)();
 
 #endif //BLE_CLIAPP_CLICOMMAND_COMMAND_ACCESSOR_H_

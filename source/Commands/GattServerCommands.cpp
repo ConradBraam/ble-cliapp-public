@@ -790,8 +790,8 @@ struct WaitForDataWrittenCommand : public BaseCommand {
 
 } // end of annonymous namespace
 
-ConstArray<const CommandTable*> GattServerCommandSuiteDescription::commands() {
-    static const CommandTable* commandHandlers[] = {
+ConstArray<const Command*> GattServerCommandSuiteDescription::commands() {
+    static const Command* commandHandlers[] = {
         &CommandAccessor<DeclareServiceCommand>::command,
         &CommandAccessor<DeclareCharacteristicCommand>::command,
         &CommandAccessor<SetCharacteristicValueCommand>::command,
@@ -809,5 +809,5 @@ ConstArray<const CommandTable*> GattServerCommandSuiteDescription::commands() {
         &CommandAccessor<WaitForDataWrittenCommand>::command
     };
 
-    return ConstArray<const CommandTable*>(commandHandlers);
+    return ConstArray<const Command*>(commandHandlers);
 }

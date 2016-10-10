@@ -1136,8 +1136,8 @@ struct WriteLongCharacteristicDescriptorCommand : public BaseCommand {
 
 } // end of annonymous namespace
 
-ConstArray<const CommandTable*> GattClientCommandSuiteDescription::commands() {
-    static const CommandTable* commandHandlers[] = {
+ConstArray<const Command*> GattClientCommandSuiteDescription::commands() {
+    static const Command* commandHandlers[] = {
         &CommandAccessor<DiscoverAllServicesAndCharacteristicsCommand>::command,
         &CommandAccessor<DiscoverAllServicesCommand>::command,
         &CommandAccessor<DiscoverPrimaryServicesByUUIDCommand>::command,
@@ -1161,5 +1161,5 @@ ConstArray<const CommandTable*> GattClientCommandSuiteDescription::commands() {
         &CommandAccessor<WriteLongCharacteristicDescriptorCommand>::command
     };
 
-    return ConstArray<const CommandTable*>(commandHandlers);
+    return ConstArray<const Command*>(commandHandlers);
 }

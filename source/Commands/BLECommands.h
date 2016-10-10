@@ -24,7 +24,7 @@ public:
     }
 
     // see implementation
-    static ConstArray<const CommandTable*> commands();
+    static ConstArray<const Command*> commands();
 };
 
 #endif //BLE_CLIAPP_BLE_COMMANDS_H_

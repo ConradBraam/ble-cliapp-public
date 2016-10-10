@@ -1621,8 +1621,8 @@ struct GetInitiatorPolicyModeCommand : public BaseCommand {
 } // end of annonymous namespace
 
 
-ConstArray<const CommandTable*> GapCommandSuiteDescription::commands() {
-    static const CommandTable* commandHandlers[] = {
+ConstArray<const Command*> GapCommandSuiteDescription::commands() {
+    static const Command* commandHandlers[] = {
         &CommandAccessor<SetAddressCommand>::command,
         &CommandAccessor<GetAddressCommand>::command,
         &CommandAccessor<GetMinAdvertisingIntervalCommand>::command,
@@ -1674,5 +1674,5 @@ ConstArray<const CommandTable*> GapCommandSuiteDescription::commands() {
         &CommandAccessor<GetInitiatorPolicyModeCommand>::command
     };
 
-    return ConstArray<const CommandTable*>(commandHandlers);
+    return ConstArray<const Command*>(commandHandlers);
 }

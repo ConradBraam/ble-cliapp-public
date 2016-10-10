@@ -127,13 +127,13 @@ struct GetVersionCommand : public BaseCommand {
 
 } // end of annonymous namespace
 
-ConstArray<const CommandTable*> BLECommandSuiteDescription::commands() {
-    static const CommandTable* commandHandlers[] = {
+ConstArray<const Command*> BLECommandSuiteDescription::commands() {
+    static const Command* commandHandlers[] = {
         &CommandAccessor<ShutdownCommand>::command,
         &CommandAccessor<InitCommand>::command,
         &CommandAccessor<ResetCommand>::command,
         &CommandAccessor<GetVersionCommand>::command
     };
 
-    return ConstArray<const CommandTable*>(commandHandlers);
+    return ConstArray<const Command*>(commandHandlers);
 }

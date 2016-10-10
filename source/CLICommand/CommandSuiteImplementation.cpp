@@ -15,10 +15,10 @@ static void whenAsyncCommandEnd(const CommandResponse* response) {
     taskQueue.post(&cmd_ready, response->getStatusCode());
 }
 
-static const CommandTable* getCommand(
+static const Command* getCommand(
     const char* name,
-    const ConstArray<const CommandTable*>& builtinCommands,
-    const ConstArray<const CommandTable*>& moduleCommands) {
+    const ConstArray<const Command*>& builtinCommands,
+    const ConstArray<const Command*>& moduleCommands) {
     // builtin commands
     for(size_t i = 0; i < builtinCommands.count(); ++i) {
         if(strcmp(name, builtinCommands[i]->name()) == 0) {
@@ -39,8 +39,8 @@ static const CommandTable* getCommand(
 
 int CommandSuiteImplementation::commandHandler(
     int argc, char** argv,
-    const ConstArray<const CommandTable*>& builtinCommands,
-    const ConstArray<const CommandTable*>& moduleCommands) {
+    const ConstArray<const Command*>& builtinCommands,
+    const ConstArray<const Command*>& moduleCommands) {
     const CommandArgs args(argc, argv);
     const char* commandName = args[1];
     const CommandArgs commandArgs(args.drop(2));
@@ -50,7 +50,7 @@ int CommandSuiteImplementation::commandHandler(
     response->setCommandName(commandName);
     response->setArguments(commandArgs);
 
-    const CommandTable* command = getCommand(commandName, builtinCommands, moduleCommands);
+    const Command* command = getCommand(commandName, builtinCommands, moduleCommands);
     if(!command) {
         response->faillure("invalid command name, you can get all the command name for this module by using the command 'list'");
         return response->getStatusCode();
@@ -84,9 +84,9 @@ int CommandSuiteImplementation::commandHandler(
 
 void CommandSuiteImplementation::help(
     const CommandArgs& args, const SharedPointer<CommandResponse>& response,
-    const ConstArray<const CommandTable*>& builtinCommands,
-    const ConstArray<const CommandTable*>& moduleCommands) {
-    const CommandTable* command = getCommand(args[0], builtinCommands, moduleCommands);
+    const ConstArray<const Command*>& builtinCommands,
+    const ConstArray<const Command*>& moduleCommands) {
+    const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
     if(!command) {
         response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
     } else {
@@ -96,8 +96,8 @@ void CommandSuiteImplementation::help(
 
 void CommandSuiteImplementation::list(
     const CommandArgs&, const SharedPointer<CommandResponse>& response,
-    const ConstArray<const CommandTable*>& builtinCommands,
-    const ConstArray<const CommandTable*>& moduleCommands) {
+    const ConstArray<const Command*>& builtinCommands,
+    const ConstArray<const Command*>& moduleCommands) {
     using namespace serialization;
 
     response->setStatusCode(CommandResponse::SUCCESS);
@@ -119,11 +119,11 @@ void CommandSuiteImplementation::list(
 
 void CommandSuiteImplementation::args(
     const CommandArgs& args, const SharedPointer<CommandResponse>& response,
-    const ConstArray<const CommandTable*>& builtinCommands,
-    const ConstArray<const CommandTable*>& moduleCommands) {
+    const ConstArray<const Command*>& builtinCommands,
+    const ConstArray<const Command*>& moduleCommands) {
     using namespace serialization;
 
-    const CommandTable* command = getCommand(args[0], builtinCommands, moduleCommands);
+    const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
     if(!command) {
         response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
         return;

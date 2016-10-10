@@ -39,13 +39,13 @@
  *            "    * dummy bar : print bar\r\n";
  * }
  *
- * static ConstArray<CommandTable*> commands() {
- *  	static const CommandTable* commandHandlers[] = {
+ * static ConstArray<Command*> commands() {
+ *  	static const Command* commandHandlers[] = {
  *      	&&CommandAccessor<FooCommand>::command,
  *          &&CommandAccessor<BarCommand>::command
  *      };
  *
- *      return ConstArray<CommandTable*>(commandHandlers);
+ *      return ConstArray<Command*>(commandHandlers);
  * }
  *
  * };
@@ -86,17 +86,17 @@ private:
         );
     }
 
-    static ConstArray<const CommandTable*> getModuleCommands() {
+    static ConstArray<const Command*> getModuleCommands() {
         return SuiteDescription::commands();
     }
 
-    static ConstArray<const CommandTable*> getBuiltinCommands() {
-        static const CommandTable* builtinCommands[] = {
+    static ConstArray<const Command*> getBuiltinCommands() {
+        static const Command* builtinCommands[] = {
             &CommandAccessor<HelpCommand>::command,
             &CommandAccessor<ListCommand>::command,
             &CommandAccessor<ArgsCommand>::command
         };
-        return ConstArray<const CommandTable*>(builtinCommands);
+        return ConstArray<const Command*>(builtinCommands);
     }
 
 
