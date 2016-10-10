@@ -133,6 +133,7 @@ void CommandSuiteImplementation::args(
         return;
     }
 
+#if defined(ENABLE_COMMAND_ARG_DESCRIPTION)
     serialization::JSONOutputStream& os = response->getResultStream();
 
     os << startArray;
@@ -141,4 +142,7 @@ void CommandSuiteImplementation::args(
         os << startObject << key(argsDescription[i].name) << argsDescription[i].desc << endObject;
     }
     os << endArray;
+#else
+    response->success("Commands args is deactivated, recompile with ENABLE_COMMAND_HENABLE_COMMAND_ARG_DESCRIPTIONELP defined");
+#endif
 }
