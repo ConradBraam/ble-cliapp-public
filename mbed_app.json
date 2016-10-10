@@ -12,7 +12,7 @@
     "target_overrides": {
         "*": {
             "target.features_add": ["COMMON_PAL"],
-	        "core.stdio-flush-at-exit": false
+	        "platform.stdio-flush-at-exit": false
         },
         "K64F": {
             "target.features_add": ["BLE"],
