@@ -15,20 +15,20 @@ static void whenAsyncCommandEnd(const CommandResponse* response) {
     taskQueue.post(&cmd_ready, response->getStatusCode());
 }
 
-static const Command* getCommand(
+static const CommandTable* getCommand(
     const char* name,
-    const ConstArray<CommandAccessor_t>& builtinCommands,
-    const ConstArray<CommandAccessor_t>& moduleCommands) {
+    const ConstArray<const CommandTable*>& builtinCommands,
+    const ConstArray<const CommandTable*>& moduleCommands) {
     // builtin commands
     for(size_t i = 0; i < builtinCommands.count(); ++i) {
-        if(strcmp(name, builtinCommands[i]().name()) == 0) {
-            return &(builtinCommands[i]());
+        if(strcmp(name, builtinCommands[i]->name()) == 0) {
+            return (builtinCommands[i]);
         }
     }
 
     for(size_t i = 0; i < moduleCommands.count(); ++i) {
-        if(strcmp(name, moduleCommands[i]().name()) == 0) {
-            return &(moduleCommands[i]());
+        if(strcmp(name, moduleCommands[i]->name()) == 0) {
+            return (moduleCommands[i]);
         }
     }
 
@@ -39,8 +39,8 @@ static const Command* getCommand(
 
 int CommandSuiteImplementation::commandHandler(
     int argc, char** argv,
-    const ConstArray<CommandAccessor_t>& builtinCommands,
-    const ConstArray<CommandAccessor_t>& moduleCommands) {
+    const ConstArray<const CommandTable*>& builtinCommands,
+    const ConstArray<const CommandTable*>& moduleCommands) {
     const CommandArgs args(argc, argv);
     const char* commandName = args[1];
     const CommandArgs commandArgs(args.drop(2));
@@ -50,7 +50,7 @@ int CommandSuiteImplementation::commandHandler(
     response->setCommandName(commandName);
     response->setArguments(commandArgs);
 
-    const Command* command = getCommand(commandName, builtinCommands, moduleCommands);
+    const CommandTable* command = getCommand(commandName, builtinCommands, moduleCommands);
     if(!command) {
         response->faillure("invalid command name, you can get all the command name for this module by using the command 'list'");
         return response->getStatusCode();
@@ -84,9 +84,9 @@ int CommandSuiteImplementation::commandHandler(
 
 void CommandSuiteImplementation::help(
     const CommandArgs& args, const SharedPointer<CommandResponse>& response,
-    const ConstArray<CommandAccessor_t>& builtinCommands,
-    const ConstArray<CommandAccessor_t>& moduleCommands) {
-    const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
+    const ConstArray<const CommandTable*>& builtinCommands,
+    const ConstArray<const CommandTable*>& moduleCommands) {
+    const CommandTable* command = getCommand(args[0], builtinCommands, moduleCommands);
     if(!command) {
         response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
     } else {
@@ -96,8 +96,8 @@ void CommandSuiteImplementation::help(
 
 void CommandSuiteImplementation::list(
     const CommandArgs&, const SharedPointer<CommandResponse>& response,
-    const ConstArray<CommandAccessor_t>& builtinCommands,
-    const ConstArray<CommandAccessor_t>& moduleCommands) {
+    const ConstArray<const CommandTable*>& builtinCommands,
+    const ConstArray<const CommandTable*>& moduleCommands) {
     using namespace serialization;
 
     response->setStatusCode(CommandResponse::SUCCESS);
@@ -107,11 +107,11 @@ void CommandSuiteImplementation::list(
     os << startArray;
     // builtin commands
     for(size_t i = 0; i < builtinCommands.count(); ++i) {
-        os << builtinCommands[i]().name();
+        os << builtinCommands[i]->name();
     }
 
     for(size_t i = 0; i < moduleCommands.count(); ++i) {
-        os << moduleCommands[i]().name();
+        os << moduleCommands[i]->name();
     }
 
     os << endArray;
@@ -119,11 +119,11 @@ void CommandSuiteImplementation::list(
 
 void CommandSuiteImplementation::args(
     const CommandArgs& args, const SharedPointer<CommandResponse>& response,
-    const ConstArray<CommandAccessor_t>& builtinCommands,
-    const ConstArray<CommandAccessor_t>& moduleCommands) {
+    const ConstArray<const CommandTable*>& builtinCommands,
+    const ConstArray<const CommandTable*>& moduleCommands) {
     using namespace serialization;
 
-    const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
+    const CommandTable* command = getCommand(args[0], builtinCommands, moduleCommands);
     if(!command) {
         response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
         return;

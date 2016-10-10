@@ -39,13 +39,13 @@
  *            "    * dummy bar : print bar\r\n";
  * }
  *
- * static ConstArray<CommandAccessor_t> commands() {
- *  	static const CommandAccessor_t commandHandlers[] = {
- *      	&getCommand<FooCommand>,
- *          &getCommand<BarCommand>
+ * static ConstArray<CommandTable*> commands() {
+ *  	static const CommandTable* commandHandlers[] = {
+ *      	&&CommandAccessor<FooCommand>::command,
+ *          &&CommandAccessor<BarCommand>::command
  *      };
  *
- *      return ConstArray<CommandAccessor_t>(commandHandlers);
+ *      return ConstArray<CommandTable*>(commandHandlers);
  * }
  *
  * };
@@ -86,30 +86,30 @@ private:
         );
     }
 
-    static ConstArray<CommandAccessor_t> getModuleCommands() {
+    static ConstArray<const CommandTable*> getModuleCommands() {
         return SuiteDescription::commands();
     }
 
-    static ConstArray<CommandAccessor_t> getBuiltinCommands() {
-        static const CommandAccessor_t builtinCommands[] = {
-            getCommand<HelpCommand>,
-            getCommand<ListCommand>,
-            getCommand<ArgsCommand>
+    static ConstArray<const CommandTable*> getBuiltinCommands() {
+        static const CommandTable* builtinCommands[] = {
+            &CommandAccessor<HelpCommand>::command,
+            &CommandAccessor<ListCommand>::command,
+            &CommandAccessor<ArgsCommand>::command
         };
-        return ConstArray<CommandAccessor_t>(builtinCommands);
+        return ConstArray<const CommandTable*>(builtinCommands);
     }
 
 
-    struct HelpCommand : public Command {
-        virtual const char* name() const {
+    struct HelpCommand : public BaseCommand {
+        static const char* name() {
             return "help";
         }
 
-        virtual const char* help() const {
+        static const char* help() {
             return "Print help about a command, you can list the command by using the command 'list'";
         }
 
-        virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static ConstArray<CommandArgDescription> argsDescription() {
             static const CommandArgDescription argsDescription[] = {
                 {
                     "<commandName>",
@@ -119,7 +119,7 @@ private:
             return ConstArray<CommandArgDescription>(argsDescription);
         }
 
-        virtual void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) const {
+        static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::help(
                 args,
                 response,
@@ -130,16 +130,16 @@ private:
     };
 
 
-    struct ListCommand : public Command {
-        virtual const char* name() const {
+    struct ListCommand : public BaseCommand {
+        static const char* name() {
             return "list";
         }
 
-        virtual const char* help() const {
+        static const char* help() {
             return "list all the command in a module";
         }
 
-        virtual void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) const {
+        static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::list(
                 args,
                 response,
@@ -150,23 +150,23 @@ private:
     };
 
 
-    struct ArgsCommand : public Command {
-        virtual const char* name() const {
+    struct ArgsCommand : public BaseCommand {
+        static const char* name() {
             return "args";
         }
 
-        virtual const char* help() const {
+        static const char* help() {
             return "print the args of a command";
         }
 
-        virtual ConstArray<CommandArgDescription> argsDescription() const {
+        static ConstArray<CommandArgDescription> argsDescription() {
             static const CommandArgDescription argsDescription[] = {
                 { "commandName", "The name of the the command you want the args" }
             };
             return ConstArray<CommandArgDescription>(argsDescription);
         }
 
-        virtual void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) const {
+        static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::args(
                 args,
                 response,

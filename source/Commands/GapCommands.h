@@ -20,7 +20,7 @@ public:
     }
 
     // see implementation
-    static ConstArray<CommandAccessor_t> commands();
+    static ConstArray<const CommandTable*> commands();
 };
 
 #endif //BLE_CLIAPP_GAP_COMMANDS_H_

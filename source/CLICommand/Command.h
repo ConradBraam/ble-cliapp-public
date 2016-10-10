@@ -5,23 +5,31 @@
 #include "CommandResponse.h"
 #include "CommandArgs.h"
 #include "CommandArgDescription.h"
+#include "mbed_error.h"
 
-/**
- * A command handler is a function which handle commands from the command
- * line. It receive args in input and a response object it has to fullfill.
- * \param args : array of arguments of the function. It does not contain the
- * command name at first argument.
- * \param res : response to the command. It is expected that the handler set the
- * status code then provide a result for the command. Command will be finmished
- * once the CommandResponse pointer will expire. This means that as long as the
- * response exist in the system others command will be rejected.
- * It is not expected that the user will close manually the response everytime,
- * please just let the destructor handle this task.
- */
-typedef void (*CommandHandler_t)(
-    const CommandArgs& args,
-    const mbed::util::SharedPointer<CommandResponse>& res
-);
+struct CommandTable {
+    const char* (* const name )();
+    const char* (* const help)();
+    ConstArray<CommandArgDescription> (* const argsDescription)();
+    std::size_t (* const maximumArgsRequired)();
+
+    /**
+     * A command handler is a function which handle commands from the command
+     * line. It receive args in input and a response object it has to fullfill.
+     * \param args : array of arguments of the function. It does not contain the
+     * command name at first argument.
+     * \param res : response to the command. It is expected that the handler set the
+     * status code then provide a result for the command. Command will be finmished
+     * once the CommandResponse pointer will expire. This means that as long as the
+     * response exist in the system others command will be rejected.
+     * It is not expected that the user will close manually the response everytime,
+     * please just let the destructor handle this task.
+     */
+    void (* const handler)(
+        const CommandArgs& args,
+        const mbed::util::SharedPointer<CommandResponse>& res
+    );
+};
 
 
 /**
@@ -37,20 +45,21 @@ typedef void (*CommandHandler_t)(
  *   - maximumArgs: The maximum number of arguments that this command can handle.
  *   - handler: The handler of this command.
  */
-struct Command {
-    virtual ~Command() { }
-
+struct BaseCommand {
     /**
      * name of the command, this function has to be overiden
      * @return The name of the command
      */
-    virtual const char* name() const = 0;
+    static const char* name() { 
+        error("A command should have a name!");
+        return NULL;
+    }
 
     /**
      * Help associated with this command
      * @return the help of the command
      */
-    virtual const char* help() const {
+    static const char* help() {
         return "";
     }
 
@@ -58,7 +67,7 @@ struct Command {
      * Description of each args of the command, if not overriden, this will
      * return an empty array of args.
      */
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         return ConstArray<CommandArgDescription>();
     }
 
@@ -67,8 +76,9 @@ struct Command {
      * is equal to the count of arguments returned by argsDescription.
      * @return the maximum number of arguments allowed
      */
-    virtual std::size_t maximumArgsRequired() const {
-        return argsDescription().count();
+    template<typename T>
+    static std::size_t maximumArgsRequired() {
+        return T::argsDescription().count();
     }
 
     /**
@@ -76,10 +86,12 @@ struct Command {
      * @param args arguments of the command
      * @param res response of the command
      */
-    virtual void handler(
+    static void handler(
         const CommandArgs& args,
         const mbed::util::SharedPointer<CommandResponse>& res
-    ) const = 0;
+    ) { 
+        error("A command handler should be implemented");
+    }
 };
 
 #endif //BLE_CLIAPP_CLICOMMAND_COMMAND_H_

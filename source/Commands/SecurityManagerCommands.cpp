@@ -46,16 +46,16 @@ static bool is_digit(uint8_t v) {
 }
 
 
-struct InitCommand : public Command {
-    virtual const char* name() const {
+struct InitCommand : public BaseCommand {
+    static const char* name() {
         return "init";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Enable the BLE stack's Security Manager.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<bool>", "enableBonding: Allow for bonding." },
             { "<bool>", "requireMITM   Require protection for man-in-the-middle attacks." },
@@ -65,7 +65,7 @@ struct InitCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         bool enableBonding;
         if(!fromString(args[0], enableBonding)) {
             response->invalidParameters("enableBonding should be a bool");
@@ -99,23 +99,23 @@ struct InitCommand : public Command {
 };
 
 
-struct GetAddressesFromBondTableCommand : public Command {
-    virtual const char* name() const {
+struct GetAddressesFromBondTableCommand : public BaseCommand {
+    static const char* name() {
         return "getAddressesFromBondTable";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Get a list of addresses from all peers in the bond table.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<uint8_t>", "addressesCount count of addresses to get" }
         };
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         using namespace serialization;
 
         uint8_t addrCount;
@@ -153,17 +153,17 @@ struct GetAddressesFromBondTableCommand : public Command {
 };
 
 
-struct PurgeAllBondingStateCommand : public Command {
-    virtual const char* name() const {
+struct PurgeAllBondingStateCommand : public BaseCommand {
+    static const char* name() {
         return "purgeAllBondingState";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Delete all peer device context and all related bonding information from "
         "the database within the security manager.";
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         ble_error_t err = sm().purgeAllBondingState();
         reportErrorOrSuccess(response, err);
     }
@@ -171,12 +171,12 @@ struct PurgeAllBondingStateCommand : public Command {
 
 } // end of annonymous namespace
 
-ConstArray<CommandAccessor_t> SecurityManagerCommandSuiteDescription::commands() {
-    static const CommandAccessor_t commandHandlers[] = {
-        &getCommand<InitCommand>,
-        &getCommand<GetAddressesFromBondTableCommand>,
-        &getCommand<PurgeAllBondingStateCommand>
+ConstArray<const CommandTable*> SecurityManagerCommandSuiteDescription::commands() {
+    static const CommandTable* commandHandlers[] = {
+        &CommandAccessor<InitCommand>::command,
+        &CommandAccessor<GetAddressesFromBondTableCommand>::command,
+        &CommandAccessor<PurgeAllBondingStateCommand>::command
     };
 
-    return ConstArray<CommandAccessor_t>(commandHandlers);
+    return ConstArray<const CommandTable*>(commandHandlers);
 }
