@@ -9,7 +9,9 @@
 
 struct Command {
     const char* (* const name )();
+#if defined(ENABLE_COMMAND_HELP)
     const char* (* const help)();
+#endif
     ConstArray<CommandArgDescription> (* const argsDescription)();
     std::size_t (* const maximumArgsRequired)();
 

@@ -90,7 +90,11 @@ void CommandSuiteImplementation::help(
     if(!command) {
         response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
     } else {
+#if defined(ENABLE_COMMAND_HELP)
         response->success(command->help());
+#else
+        response->success("Commands help is deactivated, recompile with ENABLE_COMMAND_HELP defined");
+#endif
     }
 }
 
