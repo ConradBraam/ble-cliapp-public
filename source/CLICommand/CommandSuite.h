@@ -91,7 +91,7 @@ private:
     }
 
     static ConstArray<const Command*> getBuiltinCommands() {
-        static const Command* builtinCommands[] = {
+        static const Command* const builtinCommands[] = {
             &CommandAccessor<HelpCommand>::command,
             &CommandAccessor<ListCommand>::command,
             &CommandAccessor<ArgsCommand>::command
