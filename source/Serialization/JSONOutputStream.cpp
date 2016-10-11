@@ -81,6 +81,15 @@ JSONOutputStream& nil(JSONOutputStream& os) {
     return os;
  }
 
+JSONOutputStream::JSONOutputStream(mbed::RawSerial& output) :
+    out(output), startNewValue(false) {
+}
+
+JSONOutputStream::~JSONOutputStream() {
+    out.puts("\r\n");
+    flush();
+}
+
 JSONOutputStream& JSONOutputStream::format(const char *fmt, ...) {
     std::va_list args;
     va_start(args, fmt);
@@ -91,27 +100,43 @@ JSONOutputStream& JSONOutputStream::format(const char *fmt, ...) {
 
 JSONOutputStream& JSONOutputStream::vformat(const char *fmt, std::va_list list) {
     handleNewValue();
-    vfprintf(out, fmt, list);
+
+    // ARMCC microlib does not properly handle a size of 0.
+    // As a workaround supply a dummy buffer with a size of 1.
+    char dummy_buf[1];
+    int len = vsnprintf(dummy_buf, sizeof(dummy_buf), fmt, list);
+    if (len < 100) {
+        char temp[100];
+        vsprintf(temp, fmt, list);
+        out.puts(temp);
+    } else {
+        char *temp = new char[len + 1];
+        vsprintf(temp, fmt, list);
+        out.puts(temp);
+        delete[] temp;
+    }
+
     return *this;
 }
 
 void JSONOutputStream::put(char c) {
     handleNewValue();
-    fputc(c, out);
+    out.putc(c);
 }
 
 void JSONOutputStream::write(const char* data, std::size_t count) {
     handleNewValue();
-    fwrite(data, 1, count, out);
+    for (size_t i = 0; i < count; ++i) {
+        out.putc(data[i]);
+    }
 }
 
 void JSONOutputStream::write(const char* data) {
     handleNewValue();
-    fputs(data, out);
+    out.puts(data);
 }
 
 void JSONOutputStream::flush() {
-    fflush(out);
 }
 
 void JSONOutputStream::commitValue() {
@@ -134,7 +159,7 @@ JSONOutputStream& JSONOutputStream::vformatValue(const char *fmt, std::va_list l
 
 void JSONOutputStream::handleNewValue() {
     if(startNewValue) {
-        fputc(',', out);
+        out.putc(',');
         startNewValue = false;
     }
 }

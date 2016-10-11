@@ -5,6 +5,9 @@
 #include <cstdarg>
 #include <cstdio>
 #include <memory>
+#include <drivers/RawSerial.h>
+
+extern mbed::RawSerial& get_serial();
 
 namespace serialization {
 
@@ -29,14 +32,9 @@ public:
     /**
      * @brief Instantiate a new output stream
      */
-    JSONOutputStream(std::FILE* output = stdout) :
-        out(output), startNewValue(false) {
-    }
+    JSONOutputStream(mbed::RawSerial& output = get_serial());
 
-    ~JSONOutputStream() {
-        fputs("\r\n", out);
-        flush();
-    }
+    ~JSONOutputStream();
 
     /**
      * @brief insert a boolean value into the stream
@@ -205,7 +203,7 @@ private:
 
     void handleNewValue();
 
-    std::FILE* out;
+    mbed::RawSerial& out;
     bool startNewValue;
 };
 
