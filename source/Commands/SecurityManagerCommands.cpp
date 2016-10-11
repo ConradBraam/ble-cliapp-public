@@ -172,7 +172,7 @@ struct PurgeAllBondingStateCommand : public BaseCommand {
 } // end of annonymous namespace
 
 ConstArray<const Command*> SecurityManagerCommandSuiteDescription::commands() {
-    static const Command* commandHandlers[] = {
+    static const Command* const commandHandlers[] = {
         &CommandAccessor<InitCommand>::command,
         &CommandAccessor<GetAddressesFromBondTableCommand>::command,
         &CommandAccessor<PurgeAllBondingStateCommand>::command

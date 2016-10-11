@@ -1137,7 +1137,7 @@ struct WriteLongCharacteristicDescriptorCommand : public BaseCommand {
 } // end of annonymous namespace
 
 ConstArray<const Command*> GattClientCommandSuiteDescription::commands() {
-    static const Command* commandHandlers[] = {
+    static const Command* const commandHandlers[] = {
         &CommandAccessor<DiscoverAllServicesAndCharacteristicsCommand>::command,
         &CommandAccessor<DiscoverAllServicesCommand>::command,
         &CommandAccessor<DiscoverPrimaryServicesByUUIDCommand>::command,

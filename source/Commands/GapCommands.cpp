@@ -1622,7 +1622,7 @@ struct GetInitiatorPolicyModeCommand : public BaseCommand {
 
 
 ConstArray<const Command*> GapCommandSuiteDescription::commands() {
-    static const Command* commandHandlers[] = {
+    static const Command* const commandHandlers[] = {
         &CommandAccessor<SetAddressCommand>::command,
         &CommandAccessor<GetAddressCommand>::command,
         &CommandAccessor<GetMinAdvertisingIntervalCommand>::command,
