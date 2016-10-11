@@ -64,8 +64,13 @@ public:
         cmd_add(
             SuiteDescription::name(),
             commandHandler,
+#ifdef ENABLE_COMMAND_INFO_AND_MANUAL
             SuiteDescription::info(),
             SuiteDescription::man()
+#else
+            "",
+            ""
+#endif
         );
     }
 
@@ -91,15 +96,19 @@ private:
     }
 
     static ConstArray<const Command*> getBuiltinCommands() {
+#ifdef ENABLE_BUILTIN_COMMANDS
         static const Command* const builtinCommands[] = {
             &CommandAccessor<HelpCommand>::command,
             &CommandAccessor<ListCommand>::command,
             &CommandAccessor<ArgsCommand>::command
         };
         return ConstArray<const Command*>(builtinCommands);
+#else
+        return ConstArray<const Command*>();
+#endif
     }
 
-
+#ifdef ENABLE_BUILTIN_COMMANDS
     struct HelpCommand : public BaseCommand {
         static const char* name() {
             return "help";
@@ -175,6 +184,8 @@ private:
             );
         }
     };
+#endif
+
 };
 
 /**
