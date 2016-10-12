@@ -158,3 +158,8 @@ int main(void)
 }
 #endif
 
+// Custom implementation for mbed_die, 
+// this reduce the memory consumption
+extern "C" void mbed_die(void) {
+    while(true) { }
+}
