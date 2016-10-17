@@ -39,12 +39,8 @@ static void whenRxInterrupt(void);
 static void consumeSerialBytes(void);
 
 RawSerial& get_serial() {
-#ifdef YOTTA_CFG
-    return get_stdio_serial();
-#else
     static RawSerial serial(USBTX, USBRX);
     return serial;
-#endif
 }
 // constants
 static const size_t CIRCULAR_BUFFER_LENGTH = 768;
