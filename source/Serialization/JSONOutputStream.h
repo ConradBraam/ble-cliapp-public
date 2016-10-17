@@ -5,7 +5,12 @@
 #include <cstdarg>
 #include <cstdio>
 #include <memory>
+
+#ifndef YOTTA_CFG
 #include <drivers/RawSerial.h>
+#else
+#include <mbed-drivers/RawSerial.h>
+#endif
 
 extern mbed::RawSerial& get_serial();
 
