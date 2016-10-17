@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstdio>
+#include <stddef.h>
 
 #include "UUID.h"
 #include "Hex.h"
