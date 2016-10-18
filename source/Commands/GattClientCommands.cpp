@@ -702,7 +702,7 @@ struct ReadCharacteristicValueCommand : public BaseCommand {
             return;
         }
 
-        startProcedure<ReadProcedure>(response, /* timeout */ 100 * 1000, connectionHandle, characteristicValueHandle);
+        startProcedure<ReadProcedure>(response, /* timeout */ 5 * 1000, connectionHandle, characteristicValueHandle);
     }
 };
 
@@ -870,7 +870,7 @@ struct WriteWithoutResponseCommand : public BaseCommand {
         }
 
         startProcedure<WriteProcedure>(
-            response, /* timeout */ 100 * 1000,
+            response, /* timeout */ 5 * 1000,
             GattClient::GATT_OP_WRITE_CMD, connectionHandle, characteristicValuehandle, dataToWrite
         );
     }
@@ -941,7 +941,7 @@ struct WriteCommand : public BaseCommand {
         }
 
         startProcedure<WriteProcedure>(
-            response, 100 * 1000,
+            response, 5 * 1000,
             GattClient::GATT_OP_WRITE_REQ, connectionHandle, characteristicValuehandle, dataToWrite
         );
     }
@@ -1034,7 +1034,7 @@ struct ReadCharacteristicDescriptorCommand : public BaseCommand {
             return;
         }
 
-        startProcedure<ReadProcedure>(response, /* timeout */ 100 * 1000, connectionHandle, characteristicDescriptorHandle);
+        startProcedure<ReadProcedure>(response, /* timeout */ 5 * 1000, connectionHandle, characteristicDescriptorHandle);
     }
 };
 
@@ -1102,7 +1102,7 @@ struct WriteCharacteristicDescriptorCommand : public BaseCommand {
         }
 
         startProcedure<WriteProcedure>(
-            response, 100 * 1000,
+            response, 5 * 1000,
             GattClient::GATT_OP_WRITE_REQ, connectionHandle, characteristicDescriptorhandle, dataToWrite
         );
     }
