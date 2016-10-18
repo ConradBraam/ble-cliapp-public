@@ -618,6 +618,7 @@ struct DiscoverAllCharacteristicsDescriptorsCommand : public BaseCommand {
                 )  {
                     gattc = &client();
                     declHandle = decl;
+                    valueHandle = decl + 1;
                     lastHandle = last;
                     connHandle = conn;
                 }
