@@ -13,8 +13,8 @@
 struct CommandSuiteImplementation {
     static int commandHandler(
         int argc, char** argv,
-        const ConstArray<CommandAccessor_t>& builtinCommands,
-        const ConstArray<CommandAccessor_t>& moduleCommands
+        const ConstArray<const Command*>& builtinCommands,
+        const ConstArray<const Command*>& moduleCommands
     );
 
     /**
@@ -22,8 +22,8 @@ struct CommandSuiteImplementation {
      */
     static void help(
         const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response,
-        const ConstArray<CommandAccessor_t>& builtinCommands,
-        const ConstArray<CommandAccessor_t>& moduleCommands
+        const ConstArray<const Command*>& builtinCommands,
+        const ConstArray<const Command*>& moduleCommands
     );
 
     /**
@@ -31,8 +31,8 @@ struct CommandSuiteImplementation {
      */
     static void list(
         const CommandArgs&, const mbed::util::SharedPointer<CommandResponse>& response,
-        const ConstArray<CommandAccessor_t>& builtinCommands,
-        const ConstArray<CommandAccessor_t>& moduleCommands
+        const ConstArray<const Command*>& builtinCommands,
+        const ConstArray<const Command*>& moduleCommands
     );
 
     /**
@@ -40,8 +40,8 @@ struct CommandSuiteImplementation {
      */
     static void args(
         const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response,
-        const ConstArray<CommandAccessor_t>& builtinCommands,
-        const ConstArray<CommandAccessor_t>& moduleCommands
+        const ConstArray<const Command*>& builtinCommands,
+        const ConstArray<const Command*>& moduleCommands
     );
 };
 

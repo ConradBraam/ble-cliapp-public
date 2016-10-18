@@ -4,21 +4,21 @@
 #include "Command.h"
 
 template<typename T>
-struct CommandSingleton {
-    static const T command;
+struct CommandAccessor { 
+    static const Command command;
 };
 
 template<typename T>
-const T CommandSingleton<T>::command = T();
+const Command CommandAccessor<T>::command =  {
+        &T::name,
+#if defined(ENABLE_COMMAND_HELP)
+        &T::help,
+#endif
+        &T::argsDescription,
+        &T::template maximumArgsRequired<T>,
+        &T::handler
+};
 
-/**
- * Accessor to a command of type T. The command is held in a singleton.
- */
-template<typename T>
-const Command& getCommand() {
-    return CommandSingleton<T>::command;
-}
-
-typedef const Command& (*CommandAccessor_t)();
+typedef const Command* (*CommandAccessor_t)();
 
 #endif //BLE_CLIAPP_CLICOMMAND_COMMAND_ACCESSOR_H_

@@ -17,18 +17,18 @@ static void whenAsyncCommandEnd(const CommandResponse* response) {
 
 static const Command* getCommand(
     const char* name,
-    const ConstArray<CommandAccessor_t>& builtinCommands,
-    const ConstArray<CommandAccessor_t>& moduleCommands) {
+    const ConstArray<const Command*>& builtinCommands,
+    const ConstArray<const Command*>& moduleCommands) {
     // builtin commands
     for(size_t i = 0; i < builtinCommands.count(); ++i) {
-        if(strcmp(name, builtinCommands[i]().name()) == 0) {
-            return &(builtinCommands[i]());
+        if(strcmp(name, builtinCommands[i]->name()) == 0) {
+            return (builtinCommands[i]);
         }
     }
 
     for(size_t i = 0; i < moduleCommands.count(); ++i) {
-        if(strcmp(name, moduleCommands[i]().name()) == 0) {
-            return &(moduleCommands[i]());
+        if(strcmp(name, moduleCommands[i]->name()) == 0) {
+            return (moduleCommands[i]);
         }
     }
 
@@ -39,8 +39,8 @@ static const Command* getCommand(
 
 int CommandSuiteImplementation::commandHandler(
     int argc, char** argv,
-    const ConstArray<CommandAccessor_t>& builtinCommands,
-    const ConstArray<CommandAccessor_t>& moduleCommands) {
+    const ConstArray<const Command*>& builtinCommands,
+    const ConstArray<const Command*>& moduleCommands) {
     const CommandArgs args(argc, argv);
     const char* commandName = args[1];
     const CommandArgs commandArgs(args.drop(2));
@@ -84,20 +84,24 @@ int CommandSuiteImplementation::commandHandler(
 
 void CommandSuiteImplementation::help(
     const CommandArgs& args, const SharedPointer<CommandResponse>& response,
-    const ConstArray<CommandAccessor_t>& builtinCommands,
-    const ConstArray<CommandAccessor_t>& moduleCommands) {
+    const ConstArray<const Command*>& builtinCommands,
+    const ConstArray<const Command*>& moduleCommands) {
     const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
     if(!command) {
         response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
     } else {
+#if defined(ENABLE_COMMAND_HELP)
         response->success(command->help());
+#else
+        response->success("Commands help is deactivated, recompile with ENABLE_COMMAND_HELP defined");
+#endif
     }
 }
 
 void CommandSuiteImplementation::list(
     const CommandArgs&, const SharedPointer<CommandResponse>& response,
-    const ConstArray<CommandAccessor_t>& builtinCommands,
-    const ConstArray<CommandAccessor_t>& moduleCommands) {
+    const ConstArray<const Command*>& builtinCommands,
+    const ConstArray<const Command*>& moduleCommands) {
     using namespace serialization;
 
     response->setStatusCode(CommandResponse::SUCCESS);
@@ -107,11 +111,11 @@ void CommandSuiteImplementation::list(
     os << startArray;
     // builtin commands
     for(size_t i = 0; i < builtinCommands.count(); ++i) {
-        os << builtinCommands[i]().name();
+        os << builtinCommands[i]->name();
     }
 
     for(size_t i = 0; i < moduleCommands.count(); ++i) {
-        os << moduleCommands[i]().name();
+        os << moduleCommands[i]->name();
     }
 
     os << endArray;
@@ -119,8 +123,8 @@ void CommandSuiteImplementation::list(
 
 void CommandSuiteImplementation::args(
     const CommandArgs& args, const SharedPointer<CommandResponse>& response,
-    const ConstArray<CommandAccessor_t>& builtinCommands,
-    const ConstArray<CommandAccessor_t>& moduleCommands) {
+    const ConstArray<const Command*>& builtinCommands,
+    const ConstArray<const Command*>& moduleCommands) {
     using namespace serialization;
 
     const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
@@ -129,6 +133,7 @@ void CommandSuiteImplementation::args(
         return;
     }
 
+#if defined(ENABLE_COMMAND_ARG_DESCRIPTION)
     serialization::JSONOutputStream& os = response->getResultStream();
 
     os << startArray;
@@ -137,4 +142,7 @@ void CommandSuiteImplementation::args(
         os << startObject << key(argsDescription[i].name) << argsDescription[i].desc << endObject;
     }
     os << endArray;
+#else
+    response->success("Commands args is deactivated, recompile with ENABLE_COMMAND_HENABLE_COMMAND_ARG_DESCRIPTIONELP defined");
+#endif
 }

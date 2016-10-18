@@ -20,7 +20,7 @@ public:
                "gattServer args <commandName>: display description of arguments expected for this command\r\n";
     }
 
-    static ConstArray<CommandAccessor_t> commands();
+    static ConstArray<const Command*> commands();
 };
 
 #endif //BLE_CLIAPP_GATT_SERVER_COMMANDS_H_

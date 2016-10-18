@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "GattCallbackParamTypes.h"
 #include "Serialization/Hex.h"
 

@@ -31,23 +31,23 @@ static Gap& gap() {
 }
 
 
-struct DiscoverAllServicesAndCharacteristicsCommand : public Command {
-    virtual const char* name() const {
+struct DiscoverAllServicesAndCharacteristicsCommand : public BaseCommand {
+    static const char* name() {
         return "discoverAllServicesAndCharacteristics";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "discover all services and characteristics available on a peer device";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" }
         };
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         // get the connection handle
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
@@ -168,23 +168,23 @@ struct DiscoverAllServicesAndCharacteristicsCommand : public Command {
 };
 
 
-struct DiscoverAllServicesCommand : public Command {
-    virtual const char* name() const {
+struct DiscoverAllServicesCommand : public BaseCommand {
+    static const char* name() {
         return "discoverAllServices";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "discover all services available on a peer device";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" }
         };
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         // get the connection handle
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
@@ -274,16 +274,16 @@ struct DiscoverAllServicesCommand : public Command {
 };
 
 
-struct DiscoverPrimaryServicesByUUIDCommand : public Command {
-    virtual const char* name() const {
+struct DiscoverPrimaryServicesByUUIDCommand : public BaseCommand {
+    static const char* name() {
         return "discoverPrimaryServicesByUUID";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "discover a specific kind of services on a peer device";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<serviceUUID>", "The UUID of the services to discover" }
@@ -291,7 +291,7 @@ struct DiscoverPrimaryServicesByUUIDCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         // get the connection handle
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
@@ -389,16 +389,16 @@ struct DiscoverPrimaryServicesByUUIDCommand : public Command {
 };
 
 
-struct FindIncludedServicesCommand : public Command {
-    virtual const char* name() const {
+struct FindIncludedServicesCommand : public BaseCommand {
+    static const char* name() {
         return "findIncludedServices";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Find includded services declaration withn a service definition on the server";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<serviceStartHandle>", "The starting handle of the service" },
@@ -407,24 +407,24 @@ struct FindIncludedServicesCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 
 
-struct DiscoverCharacteristicsOfServiceCommand : public Command {
-    virtual const char* name() const {
+struct DiscoverCharacteristicsOfServiceCommand : public BaseCommand {
+    static const char* name() {
         return "discoverCharacteristicsOfService";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Discover all characteristics of a service, this procedure will find all the"
                "characteristics declaration within a service definition on a server";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<serviceStartHandle>", "The starting handle of the service" },
@@ -433,22 +433,22 @@ struct DiscoverCharacteristicsOfServiceCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 
-struct DiscoverCharacteristicsByUUIDCommand : public Command {
-    virtual const char* name() const {
+struct DiscoverCharacteristicsByUUIDCommand : public BaseCommand {
+    static const char* name() {
         return "discoverCharacteristicsByUUID";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Discover all characteristics of a service matching a specific UUID.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<serviceStartHandle>", "The starting handle of the service" },
@@ -458,24 +458,24 @@ struct DiscoverCharacteristicsByUUIDCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 
-struct DiscoverAllCharacteristicsDescriptorsCommand : public Command {
-    virtual const char* name() const {
+struct DiscoverAllCharacteristicsDescriptorsCommand : public BaseCommand {
+    static const char* name() {
         return "discoverAllCharacteristicsDescriptors";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Find all the characteristic descriptor’s Attribute Handles and Attribute "
                "Types within a characteristic definition. The characteristic specified is "
                "identified by the characteristic handle range.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicStartHandle>",
@@ -485,7 +485,7 @@ struct DiscoverAllCharacteristicsDescriptorsCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
             response->invalidParameters("the connection handle is ill formed");
@@ -672,16 +672,16 @@ private:
 };
 
 
-struct ReadCharacteristicValueCommand : public Command {
-    virtual const char* name() const {
+struct ReadCharacteristicValueCommand : public BaseCommand {
+    static const char* name() {
         return "readCharacteristicValue";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Read a characteristic value from a GATT Server using a characteristic value handle.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicValuehandle>", "The handle of characteristic value" }
@@ -689,7 +689,7 @@ struct ReadCharacteristicValueCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
             response->invalidParameters("the connection handle is ill formed");
@@ -707,18 +707,18 @@ struct ReadCharacteristicValueCommand : public Command {
 };
 
 
-struct ReadUsingCharacteristicUUIDCommand : public Command {
-    virtual const char* name() const {
+struct ReadUsingCharacteristicUUIDCommand : public BaseCommand {
+    static const char* name() {
         return "readUsingCharacteristicUUID";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "This sub-procedure is used to read a Characteristic Value from a server "
                "when the client only knows the characteristic UUID and does not know the "
                "handle of the characteristic.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<serviceStartHandle>", "The starting handle of the service" },
@@ -728,24 +728,24 @@ struct ReadUsingCharacteristicUUIDCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 
-struct ReadLongCharacteristicValueCommand : public Command {
-    virtual const char* name() const {
+struct ReadLongCharacteristicValueCommand : public BaseCommand {
+    static const char* name() {
         return "readLongCharacteristicValue";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Read a characteristic value from a server when the client knows the "
                "characteristic value handle and the length of the characteristic value "
                "is longer than can be sent in a single read response";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicValuehandle>", "The handle of characteristic value" }
@@ -753,22 +753,22 @@ struct ReadLongCharacteristicValueCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 
-struct ReadMultipleCharacteristicValuesCommand : public Command {
-    virtual const char* name() const {
+struct ReadMultipleCharacteristicValuesCommand : public BaseCommand {
+    static const char* name() {
         return "readMultipleCharacteristicValues";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Read a multiple characteristics values from a set of characteristics value handle.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicValuehandles...>", "Handles of characteristics values to read" }
@@ -776,7 +776,7 @@ struct ReadMultipleCharacteristicValuesCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
@@ -832,16 +832,16 @@ private:
 };
 
 
-struct WriteWithoutResponseCommand : public Command {
-    virtual const char* name() const {
+struct WriteWithoutResponseCommand : public BaseCommand {
+    static const char* name() {
         return "writeWithoutResponse";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Write a characteristic value to a server, the server will not acknowledge anything.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
@@ -850,7 +850,7 @@ struct WriteWithoutResponseCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
             response->faillure("connection handle is ill formed");
@@ -877,18 +877,18 @@ struct WriteWithoutResponseCommand : public Command {
 };
 
 
-struct SignedWriteWithoutResponseCommand : public Command {
-    virtual const char* name() const {
+struct SignedWriteWithoutResponseCommand : public BaseCommand {
+    static const char* name() {
         return "signedWriteWithoutResponse";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Write a characteristic value to a server, the server will not acknowledge anything. "
                "This sub-procedure shall only be used if the CharacteristicProperties authenticated "
                "bit is enabled and the client and server device share a bond.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
@@ -897,22 +897,22 @@ struct SignedWriteWithoutResponseCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 
-struct WriteCommand : public Command {
-    virtual const char* name() const {
+struct WriteCommand : public BaseCommand {
+    static const char* name() {
         return "write";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Write a characteristic value to a server.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
@@ -921,7 +921,7 @@ struct WriteCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
             response->faillure("connection handle is ill formed");
@@ -948,19 +948,19 @@ struct WriteCommand : public Command {
 };
 
 
-struct WriteLongCommand : public Command {
-    virtual const char* name() const {
+struct WriteLongCommand : public BaseCommand {
+    static const char* name() {
         return "writeLong";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Write a characteristic value to a server. This sub-procedure is used when "
                "the client knows the Characteristic Value Handle but the length of the "
                "Characteristic Value is longer than can be sent in a single Write Request "
                "Attribute Protocol message.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
@@ -969,18 +969,18 @@ struct WriteLongCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 
-struct ReliableWriteCommand : public Command {
-    virtual const char* name() const {
+struct ReliableWriteCommand : public BaseCommand {
+    static const char* name() {
         return "reliableWrite";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Write a characteristic value to a server. This sub-procedure is used when "
                "the client knows the Characteristic Value Handle, and assurance is required "
                "that the correct Characteristic Value is going to be written by transferring "
@@ -989,7 +989,7 @@ struct ReliableWriteCommand : public Command {
                "written, in order, in a single operation";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
@@ -998,22 +998,22 @@ struct ReliableWriteCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 
-struct ReadCharacteristicDescriptorCommand : public Command {
-    virtual const char* name() const {
+struct ReadCharacteristicDescriptorCommand : public BaseCommand {
+    static const char* name() {
         return "readCharacteristicDescriptor";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Read a characteristic descriptor from a server.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read" }
@@ -1021,7 +1021,7 @@ struct ReadCharacteristicDescriptorCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
             response->invalidParameters("the connection handle is ill formed");
@@ -1039,18 +1039,18 @@ struct ReadCharacteristicDescriptorCommand : public Command {
 };
 
 
-struct ReadLongCharacteristicDescriptorCommand : public Command {
-    virtual const char* name() const {
+struct ReadLongCharacteristicDescriptorCommand : public BaseCommand {
+    static const char* name() {
         return "readLongCharacteristicDescriptor";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Read a characteristic descriptor from a server. This procedure is used "
                "when the length of the characteristic descriptor declaration is longer "
                "than what can be sent in a single read";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read" }
@@ -1058,22 +1058,22 @@ struct ReadLongCharacteristicDescriptorCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 
-struct WriteCharacteristicDescriptorCommand : public Command {
-    virtual const char* name() const {
+struct WriteCharacteristicDescriptorCommand : public BaseCommand {
+    static const char* name() {
         return "writeCharacteristicDescriptor";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Write a characteristic descriptor to a server.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" },
@@ -1082,7 +1082,7 @@ struct WriteCharacteristicDescriptorCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
         uint16_t connectionHandle;
         if (!fromString(args[0], connectionHandle)) {
             response->faillure("connection handle is ill formed");
@@ -1109,18 +1109,18 @@ struct WriteCharacteristicDescriptorCommand : public Command {
 };
 
 
-struct WriteLongCharacteristicDescriptorCommand : public Command {
-    virtual const char* name() const {
+struct WriteLongCharacteristicDescriptorCommand : public BaseCommand {
+    static const char* name() {
         return "writeLongCharacteristicDescriptor";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Write a characteristic descriptor to a server. This procedure when the "
         "client knows that the length of the characteristic descriptor value is "
         "longer than what can be sent in a single write.";
     }
 
-    virtual ConstArray<CommandArgDescription> argsDescription() const {
+    static ConstArray<CommandArgDescription> argsDescription() {
         static const CommandArgDescription argsDescription[] = {
             { "<connectionHandle>", "The connection used by this procedure" },
             { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" },
@@ -1129,37 +1129,37 @@ struct WriteLongCharacteristicDescriptorCommand : public Command {
         return ConstArray<CommandArgDescription>(argsDescription);
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         response->notImplemented();
     }
 };
 
 } // end of annonymous namespace
 
-ConstArray<CommandAccessor_t> GattClientCommandSuiteDescription::commands() {
-    static const CommandAccessor_t commandHandlers[] = {
-        &getCommand<DiscoverAllServicesAndCharacteristicsCommand>,
-        &getCommand<DiscoverAllServicesCommand>,
-        &getCommand<DiscoverPrimaryServicesByUUIDCommand>,
-        //&getCommand<DiscoverServicesCommand>,
-        &getCommand<FindIncludedServicesCommand>,
-        &getCommand<DiscoverCharacteristicsOfServiceCommand>,
-        &getCommand<DiscoverCharacteristicsByUUIDCommand>,
-        &getCommand<DiscoverAllCharacteristicsDescriptorsCommand>,
-        &getCommand<ReadCharacteristicValueCommand>,
-        &getCommand<ReadUsingCharacteristicUUIDCommand>,
-        &getCommand<ReadLongCharacteristicValueCommand>,
-        &getCommand<ReadMultipleCharacteristicValuesCommand>,
-        &getCommand<WriteWithoutResponseCommand>,
-        &getCommand<SignedWriteWithoutResponseCommand>,
-        &getCommand<WriteCommand>,
-        &getCommand<WriteLongCommand>,
-        &getCommand<ReliableWriteCommand>,
-        &getCommand<ReadCharacteristicDescriptorCommand>,
-        &getCommand<ReadLongCharacteristicDescriptorCommand>,
-        &getCommand<WriteCharacteristicDescriptorCommand>,
-        &getCommand<WriteLongCharacteristicDescriptorCommand>
+ConstArray<const Command*> GattClientCommandSuiteDescription::commands() {
+    static const Command* const commandHandlers[] = {
+        &CommandAccessor<DiscoverAllServicesAndCharacteristicsCommand>::command,
+        &CommandAccessor<DiscoverAllServicesCommand>::command,
+        &CommandAccessor<DiscoverPrimaryServicesByUUIDCommand>::command,
+        //&CommandAccessor<DiscoverServicesCommand>::command,
+        &CommandAccessor<FindIncludedServicesCommand>::command,
+        &CommandAccessor<DiscoverCharacteristicsOfServiceCommand>::command,
+        &CommandAccessor<DiscoverCharacteristicsByUUIDCommand>::command,
+        &CommandAccessor<DiscoverAllCharacteristicsDescriptorsCommand>::command,
+        &CommandAccessor<ReadCharacteristicValueCommand>::command,
+        &CommandAccessor<ReadUsingCharacteristicUUIDCommand>::command,
+        &CommandAccessor<ReadLongCharacteristicValueCommand>::command,
+        &CommandAccessor<ReadMultipleCharacteristicValuesCommand>::command,
+        &CommandAccessor<WriteWithoutResponseCommand>::command,
+        &CommandAccessor<SignedWriteWithoutResponseCommand>::command,
+        &CommandAccessor<WriteCommand>::command,
+        &CommandAccessor<WriteLongCommand>::command,
+        &CommandAccessor<ReliableWriteCommand>::command,
+        &CommandAccessor<ReadCharacteristicDescriptorCommand>::command,
+        &CommandAccessor<ReadLongCharacteristicDescriptorCommand>::command,
+        &CommandAccessor<WriteCharacteristicDescriptorCommand>::command,
+        &CommandAccessor<WriteLongCharacteristicDescriptorCommand>::command
     };
 
-    return ConstArray<CommandAccessor_t>(commandHandlers);
+    return ConstArray<const Command*>(commandHandlers);
 }

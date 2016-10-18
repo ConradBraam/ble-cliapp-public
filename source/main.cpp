@@ -38,13 +38,9 @@ void cmd_ready_cb(int retcode);
 static void whenRxInterrupt(void);
 static void consumeSerialBytes(void);
 
-Serial& get_serial() {
-#ifdef YOTTA_CFG
-    return get_stdio_serial();
-#else
-    static Serial serial(USBTX, USBRX);
+RawSerial& get_serial() {
+    static RawSerial serial(USBTX, USBRX);
     return serial;
-#endif
 }
 // constants
 static const size_t CIRCULAR_BUFFER_LENGTH = 768;
@@ -92,23 +88,22 @@ static void consumeSerialBytes(void) {
     } while(shouldExit == false);
 }
 
-void trace_printer(const char* str)
-{
-    get_serial().printf("%s\r\n", str);
-	cmd_output();
-	fflush(stdout);
-}
-
-void cmd_printer(const char *str)
-{
-  cmd_printf("%s", str);
-  fflush(stdout);
-}
-
 void custom_cmd_response_out(const char* fmt, va_list ap)
 {
-    vprintf(fmt, ap);
-    fflush(stdout);
+    // ARMCC microlib does not properly handle a size of 0.
+    // As a workaround supply a dummy buffer with a size of 1.
+    char dummy_buf[1];
+    int len = vsnprintf(dummy_buf, sizeof(dummy_buf), fmt, ap);
+    if (len < 100) {
+        char temp[100];
+        vsprintf(temp, fmt, ap);
+        get_serial().puts(temp);
+    } else {
+        char *temp = new char[len + 1];
+        vsprintf(temp, fmt, ap);
+        get_serial().puts(temp);
+        delete[] temp;
+    }
 }
 
 // this function should be inside some "event scheduler", because
@@ -131,25 +126,14 @@ void scheduleBleEventsProcessing(BLE::OnEventsToProcessCallbackContext* context)
     taskQueue.post(&BLE::processEvents, &context->ble);
 }
 
-static char output_buffer[50];
-
-
-
 void app_start(int, char*[])
 {
-    setvbuf(stdout, output_buffer, _IOFBF, sizeof(output_buffer));
     BLE& ble = BLE::Instance(BLE::DEFAULT_INSTANCE);
     ble.onEventsToProcess(scheduleBleEventsProcessing);
 
     //configure serial port
     get_serial().baud(115200);    // This is default baudrate for our test applications. 230400 is also working, but not 460800. At least with k64f.
     get_serial().attach(whenRxInterrupt);
-
-    // initialize trace libary
-    mbed_trace_init();
-    mbed_trace_print_function_set( trace_printer );
-    mbed_trace_cmdprint_function_set( cmd_printer );
-    mbed_trace_config_set(TRACE_MODE_COLOR|TRACE_ACTIVE_LEVEL_DEBUG|TRACE_CARRIAGE_RETURN);
 
     cmd_init( &custom_cmd_response_out );
     cmd_set_ready_cb( cmd_ready_cb );
@@ -170,3 +154,8 @@ int main(void)
 }
 #endif
 
+// Custom implementation for mbed_die, 
+// this reduce the memory consumption
+extern "C" void mbed_die(void) {
+    while(true) { }
+}

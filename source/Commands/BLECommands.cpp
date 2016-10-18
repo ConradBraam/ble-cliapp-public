@@ -13,17 +13,17 @@ static BLE& ble() {
 }
 
 
-struct ShutdownCommand : public Command {
-    virtual const char* name() const {
+struct ShutdownCommand : public BaseCommand {
+    static const char* name() {
         return "shutdown";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Shutdown the current BLE instance, calling ble related function after this"
                "call may lead to faillure.";
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         ble_error_t err = ble().shutdown();
         if(err) {
             response->faillure(err);
@@ -34,17 +34,17 @@ struct ShutdownCommand : public Command {
 };
 
 
-struct InitCommand : public Command {
-    virtual const char* name() const {
+struct InitCommand : public BaseCommand {
+    static const char* name() {
         return "init";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Initialize the ble API and underlying BLE stack.\r\n"
         "Be sure to call this function before any other ble API function";
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         if(ble().hasInitialized()) {
             response->success();
             return;
@@ -75,17 +75,17 @@ struct InitCommand : public Command {
 };
 
 
-struct ResetCommand : public Command {
-    virtual const char* name() const {
+struct ResetCommand : public BaseCommand {
+    static const char* name() {
         return "reset";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Reset the ble API and ble stack.\r\n"
                "This function internaly does a reset and an init";
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         ble_error_t err;
         if(ble().hasInitialized()) {
             err = ble().shutdown();
@@ -105,16 +105,16 @@ struct ResetCommand : public Command {
 };
 
 
-struct GetVersionCommand : public Command {
-    virtual const char* name() const {
+struct GetVersionCommand : public BaseCommand {
+    static const char* name() {
         return "getVersion";
     }
 
-    virtual const char* help() const {
+    static const char* help() {
         return "Return the version of the BLE API.\r\n";
     }
 
-    virtual void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) const {
+    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
         const char* version = ble().getVersion();
 
         if(version) {
@@ -127,13 +127,13 @@ struct GetVersionCommand : public Command {
 
 } // end of annonymous namespace
 
-ConstArray<CommandAccessor_t> BLECommandSuiteDescription::commands() {
-    static const CommandAccessor_t commandHandlers[] = {
-        &getCommand<ShutdownCommand>,
-        &getCommand<InitCommand>,
-        &getCommand<ResetCommand>,
-        &getCommand<GetVersionCommand>
+ConstArray<const Command*> BLECommandSuiteDescription::commands() {
+    static const Command* const commandHandlers[] = {
+        &CommandAccessor<ShutdownCommand>::command,
+        &CommandAccessor<InitCommand>::command,
+        &CommandAccessor<ResetCommand>::command,
+        &CommandAccessor<GetVersionCommand>::command
     };
 
-    return ConstArray<CommandAccessor_t>(commandHandlers);
+    return ConstArray<const Command*>(commandHandlers);
 }
