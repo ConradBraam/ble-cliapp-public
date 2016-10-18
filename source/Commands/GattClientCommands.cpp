@@ -56,7 +56,7 @@ struct DiscoverAllServicesAndCharacteristicsCommand : public BaseCommand {
         }
 
         startProcedure<DiscoverAllServicesAndCharacteristicsProcedure>(
-            response, /* timeout */ 10 * 1000, connectionHandle
+            response, /* timeout */ 30 * 1000, connectionHandle
         );
     }
 
@@ -193,7 +193,7 @@ struct DiscoverAllServicesCommand : public BaseCommand {
         }
 
         startProcedure<DiscoverAllServicesProcedure>(
-            response, /* timeout */ 100 * 1000, connectionHandle
+            response, /* timeout */ 30 * 1000, connectionHandle
         );
     }
 
@@ -306,7 +306,7 @@ struct DiscoverPrimaryServicesByUUIDCommand : public BaseCommand {
         }
 
         startProcedure<DiscoverServicesByUUIDProcedure>(
-            response, /* timeout */ 100 * 1000, connectionHandle, serviceUUID
+            response, /* timeout */ 30 * 1000, connectionHandle, serviceUUID
         );
     }
 
@@ -517,7 +517,7 @@ struct DiscoverAllCharacteristicsDescriptorsCommand : public BaseCommand {
         }
 
         startProcedure<DiscoverAllCharacteristicsDescriptorsProcedure>(
-            response, /* timeout */ 10 * 1000, connectionHandle, startHandle, lastHandle
+            response, /* timeout */ 30 * 1000, connectionHandle, startHandle, lastHandle
         );
     }
 
