@@ -3,17 +3,12 @@
 #include "ble/FunctionPointerWithContext.h"
 #include "util/AsyncProcedure.h"
 #include "CLICommand/CommandHelper.h"
-
+#include "Common.h"
 
 using mbed::util::SharedPointer;
 
 // isolation
 namespace {
-
-static BLE& ble() {
-    return BLE::Instance();
-}
-
 
 DECLARE_CMD(ShutdownCommand) {
     CMD_NAME("shutdown")
