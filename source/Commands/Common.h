@@ -34,6 +34,13 @@ inline GattServer& gattServer() {
 }
 
 /**
+ * @brief Return the instance of the security manager of this device.
+ */
+inline SecurityManager& sm() {
+    return ble().securityManager();
+}
+
+/**
  * @brief Report an error or a success for a command
  * 
  * @param response The response used to report the status.

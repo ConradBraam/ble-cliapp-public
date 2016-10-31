@@ -11,35 +11,12 @@
 #include "Serialization/BLECommonSerializer.h"
 #include "Serialization/GapSerializer.h"
 
+#include "Common.h"
+
 using mbed::util::SharedPointer;
 
 // isolation
 namespace {
-
-static BLE& ble() {
-    return BLE::Instance();
-}
-
-static SecurityManager& sm() {
-    return ble().securityManager();
-}
-
-static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err) {
-    if(err) {
-        response->faillure(err);
-    } else {
-        response->success();
-    }
-}
-
-template<typename T>
-static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err, const T& res) {
-    if(err) {
-        response->faillure(err);
-    } else {
-        response->success(res);
-    }
-}
 
 static bool is_digit(uint8_t v) {
     return (bool) std::isdigit(v);
