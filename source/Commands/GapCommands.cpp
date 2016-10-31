@@ -8,6 +8,7 @@
 #include "Serialization/BLECommonSerializer.h"
 #include "CLICommand/CommandSuite.h"
 #include "util/AsyncProcedure.h"
+#include "Common.h"
 
 #ifdef YOTTA_CFG
 #include "mbed-drivers/Timer.h"
@@ -19,39 +20,6 @@ using mbed::util::SharedPointer;
 
 // isolation ...
 namespace {
-
-/**
- * return the ble instance of this device
- */
-static BLE& ble() {
-    return BLE::Instance();
-}
-
-/**
- * return the Gap instance of this device
- */
-static Gap& gap() {
-    return ble().gap();
-}
-
-static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err) {
-    if(err) {
-        response->faillure(err);
-    } else {
-        response->success();
-    }
-}
-
-
-template<typename T>
-static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err, const T& res) {
-    if(err) {
-        response->faillure(err);
-    } else {
-        response->success(res);
-    }
-}
-
 
 struct SetAddressCommand : public BaseCommand {
     static const char* name() {
