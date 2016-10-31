@@ -12,25 +12,14 @@
 #include "Serialization/GattCallbackParamTypes.h"
 #include "util/AsyncProcedure.h"
 
+#include "Common.h"
+
 using mbed::util::SharedPointer;
 
 // TODO: description of returned results
 
 // isolation
 namespace {
-static BLE& ble() {
-    return BLE::Instance();
-}
-
-static GattClient& client() {
-    return ble().gattClient();
-}
-
-static Gap& gap() {
-    return ble().gap();
-}
-
-
 struct DiscoverAllServicesAndCharacteristicsCommand : public BaseCommand {
     static const char* name() {
         return "discoverAllServicesAndCharacteristics";

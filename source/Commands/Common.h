@@ -19,6 +19,12 @@ inline Gap& gap() {
     return ble().gap();
 }
 
+/**
+ * @brief Return the GattClient of this device.
+ */
+inline GattClient& client() {
+    return ble().gattClient();
+}
 
 /**
  * @brief Report an error or a success for a command
@@ -33,7 +39,6 @@ inline void reportErrorOrSuccess(const mbed::util::SharedPointer<CommandResponse
         response->success();
     }
 }
-
 
 /**
  * @brief Report an error or a success for a command. In case of success, the 
