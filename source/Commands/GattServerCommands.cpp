@@ -12,6 +12,8 @@
 #include "util/ServiceBuilder.h"
 #include "util/AsyncProcedure.h"
 
+#include "Common.h"
+
 using mbed::util::SharedPointer;
 
 // isolation
@@ -22,14 +24,6 @@ static ServiceBuilder* serviceBuilder = NULL;
 static detail::RAIIGattService** gattServices = NULL;
 static size_t gattServicesCount = 0;
 static bool cleanupRegistered = false;
-
-static BLE& ble() {
-    return BLE::Instance();
-}
-
-static GattServer& gattServer() {
-    return ble().gattServer();
-}
 
 static void cleanupServiceBuilder();
 

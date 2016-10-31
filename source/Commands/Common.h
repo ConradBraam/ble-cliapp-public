@@ -27,6 +27,13 @@ inline GattClient& client() {
 }
 
 /**
+ * @brief Return the instance of the GattServer of this device.
+ */
+inline GattServer& gattServer() {
+    return ble().gattServer();
+}
+
+/**
  * @brief Report an error or a success for a command
  * 
  * @param response The response used to report the status.
