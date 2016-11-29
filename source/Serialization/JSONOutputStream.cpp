@@ -16,27 +16,27 @@ JSONOutputStream& JSONOutputStream::operator<<(bool value) {
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(int8_t value) {
-    return formatValue("%" PRId8, value);
+    return formatValue("%d", static_cast<int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(uint8_t value) {
-    return formatValue("%" PRIu8, value);
+    return formatValue("%u", static_cast<unsigned int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(int16_t value) {
-    return formatValue("%" PRId16, value);
+    return formatValue("%d", static_cast<int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(uint16_t value) {
-    return formatValue("%" PRIu16, value);
+    return formatValue("%u", static_cast<unsigned int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(int32_t value) {
-    return formatValue("%" PRId32, value);
+    return formatValue("%d", static_cast<int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(uint32_t value) {
-    return formatValue("%" PRIu32, value);
+    return formatValue("%u", static_cast<unsigned int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(int64_t value) {
