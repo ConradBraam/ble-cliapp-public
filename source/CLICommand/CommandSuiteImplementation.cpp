@@ -90,8 +90,22 @@ void CommandSuiteImplementation::help(
     if(!command) {
         response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
     } else {
-#if defined(ENABLE_COMMAND_HELP)
-        response->success(command->help());
+#if defined(ENABLE_COMMAND_HELP)        
+        using namespace serialization;
+
+        response->setStatusCode(CommandResponse::SUCCESS);
+        JSONOutputStream& stream = response->getResultStream();
+        ConstArray<CommandArgDescription> args_desc = command->argsDescription();
+
+        stream << startObject <<
+            key("command") << command->name() <<
+            key("help") << command->help() << 
+            key("arguments") << startArray;
+            for (size_t i = 0; i < args_desc.count(); ++i) { 
+                stream.formatValue("%s: %s - %s ", args_desc[i].name, args_desc[i].type, args_desc[i].desc);
+            }
+            stream << endArray <<
+        endObject;
 #else
         response->success("Commands help is deactivated, recompile with ENABLE_COMMAND_HELP defined");
 #endif
@@ -119,30 +133,4 @@ void CommandSuiteImplementation::list(
     }
 
     os << endArray;
-}
-
-void CommandSuiteImplementation::args(
-    const CommandArgs& args, const SharedPointer<CommandResponse>& response,
-    const ConstArray<const Command*>& builtinCommands,
-    const ConstArray<const Command*>& moduleCommands) {
-    using namespace serialization;
-
-    const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
-    if(!command) {
-        response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
-        return;
-    }
-
-#if defined(ENABLE_COMMAND_ARG_DESCRIPTION)
-    serialization::JSONOutputStream& os = response->getResultStream();
-
-    os << startArray;
-    ConstArray<CommandArgDescription> argsDescription = command->argsDescription();
-    for(size_t i = 0; i < argsDescription.count(); ++i) {
-        os << startObject << key(argsDescription[i].name) << argsDescription[i].desc << endObject;
-    }
-    os << endArray;
-#else
-    response->success("Commands args is deactivated, recompile with ENABLE_COMMAND_HENABLE_COMMAND_ARG_DESCRIPTIONELP defined");
-#endif
 }

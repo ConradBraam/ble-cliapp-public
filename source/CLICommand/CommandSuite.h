@@ -99,8 +99,7 @@ private:
 #ifdef ENABLE_BUILTIN_COMMANDS
         static const Command* const builtinCommands[] = {
             &CommandAccessor<HelpCommand>::command,
-            &CommandAccessor<ListCommand>::command,
-            &CommandAccessor<ArgsCommand>::command
+            &CommandAccessor<ListCommand>::command
         };
         return ConstArray<const Command*>(builtinCommands);
 #else
@@ -121,6 +120,7 @@ private:
         static ConstArray<CommandArgDescription> argsDescription() {
             static const CommandArgDescription argsDescription[] = {
                 {
+                    "string",
                     "<commandName>",
                     "the name of a command you want help for, use the command 'list' to have a list of available commands"
                 }
@@ -150,33 +150,6 @@ private:
 
         static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::list(
-                args,
-                response,
-                getBuiltinCommands(),
-                getModuleCommands()
-            );
-        }
-    };
-
-
-    struct ArgsCommand : public BaseCommand {
-        static const char* name() {
-            return "args";
-        }
-
-        static const char* help() {
-            return "print the args of a command";
-        }
-
-        static ConstArray<CommandArgDescription> argsDescription() {
-            static const CommandArgDescription argsDescription[] = {
-                { "commandName", "The name of the the command you want the args" }
-            };
-            return ConstArray<CommandArgDescription>(argsDescription);
-        }
-
-        static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
-            CommandSuiteImplementation::args(
                 args,
                 response,
                 getBuiltinCommands(),

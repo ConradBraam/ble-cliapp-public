@@ -3,12 +3,14 @@
 
 #include "Command.h"
 
+
 /**
  * @brief Start the declaration of a new command
  * @details Users should describe their commands in the next block.
  * @param COMMAND_NAME the name of the class of the command.
  */
 #define DECLARE_CMD(COMMAND_NAME) struct COMMAND_NAME : public BaseCommand
+
 
 /**
  * @brief Declare the field name of the command.
@@ -19,6 +21,7 @@
     return COMMAND_NAME; \
 }
 
+
 /**
  * @brief Declare the help field of a command.
  * 
@@ -27,6 +30,7 @@
 #define CMD_HELP(COMMAND_HELP) static const char* help() { \
     return COMMAND_HELP; \
 }
+
 
 /**
  * @brief Declare the arguments of the command.
@@ -38,6 +42,7 @@
         return ConstArray<CommandArgDescription>(argsDescription); \
     }
 
+
 /**
  * @brief Declare an argument of the command.
  * 
@@ -45,7 +50,7 @@
  * @param name: name of the argument
  * @param desc: description of the argument
  */
-#define CMD_ARG(type, name, desc) { name, desc }
+#define CMD_ARG(type, name, desc) { type, name, desc }
 
 
 /**
@@ -56,18 +61,32 @@
  * 
  * @return [description]
  */
-#define CMD_HANDLER(ARGS_NAME, RESPONSE_NAME) \
-    static void handler(const CommandArgs& ARGS_NAME, const SharedPointer<CommandResponse>& RESPONSE_NAME)
+#define CMD_HANDLER(...) \
+    static void handler(__VA_ARGS__)
 
 
-#if 0
-#define SYNTH_HANDLER(HANDLER) static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) { \
-    synth_handler(args, response, HANDLER); \
-}
-#endif
+/**
+ * @brief Helper which declare the function commands of a CommandSuite.
+ * 
+ * @param name: name of the command suite class.
+ * @param ...: Command instances.
+ */
+#define DECLARE_SUITE_COMMANDS(COMMAND_SUITE_NAME, ...) \
+    ConstArray<const Command*> COMMAND_SUITE_NAME::commands() { \
+        static const Command* const commandHandlers[] = { \
+            __VA_ARGS__ \
+        }; \
+        return ConstArray<const Command*>(commandHandlers); \
+    }
 
 
-
+/**
+ * @brief return the instance of a command.
+ * 
+ * @param COMMAND_CLASS_NAME The name of the command class.
+ */
+#define CMD_INSTANCE(COMMAND_CLASS_NAME) \
+    &CommandAccessor<COMMAND_CLASS_NAME>::command
 
 
 #endif //BLE_CLIAPP_CLICOMMAND_COMMAND_HELPER_H_

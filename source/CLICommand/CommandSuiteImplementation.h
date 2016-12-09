@@ -34,15 +34,6 @@ struct CommandSuiteImplementation {
         const ConstArray<const Command*>& builtinCommands,
         const ConstArray<const Command*>& moduleCommands
     );
-
-    /**
-     * @brief builtin args command implementation
-     */
-    static void args(
-        const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response,
-        const ConstArray<const Command*>& builtinCommands,
-        const ConstArray<const Command*>& moduleCommands
-    );
 };
 
 
