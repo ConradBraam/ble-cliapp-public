@@ -13,6 +13,8 @@
 
 #include "Common.h"
 
+#include "CLICommand/CommandHelper.h"
+
 using mbed::util::SharedPointer;
 
 // isolation
@@ -23,26 +25,19 @@ static bool is_digit(uint8_t v) {
 }
 
 
-struct InitCommand : public BaseCommand {
-    static const char* name() {
-        return "init";
-    }
+DECLARE_CMD(InitCommand) {
+    CMD_NAME("init")
 
-    static const char* help() {
-        return "Enable the BLE stack's Security Manager.";
-    }
+    CMD_HELP("Enable the BLE stack's Security Manager.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<bool>", "enableBonding: Allow for bonding." },
-            { "<bool>", "requireMITM   Require protection for man-in-the-middle attacks." },
-            { "<SecurityManager::SecurityIOCapabilities_t>", "iocaps :To specify the I/O capabilities of this peripheral." },
-            { "<Passkey_t>", "passkey: To specify a static passkey.." }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("", "<bool>", "enableBonding: Allow for bonding."),
+        CMD_ARG("", "<bool>", "requireMITM   Require protection for man-in-the-middle attacks."),
+        CMD_ARG("", "<SecurityManager::SecurityIOCapabilities_t>", "iocaps :To specify the I/O capabilities of this peripheral."),
+        CMD_ARG("", "<Passkey_t>", "passkey: To specify a static passkey..")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         bool enableBonding;
         if(!fromString(args[0], enableBonding)) {
             response->invalidParameters("enableBonding should be a bool");
@@ -76,30 +71,17 @@ struct InitCommand : public BaseCommand {
 };
 
 
-struct GetAddressesFromBondTableCommand : public BaseCommand {
-    static const char* name() {
-        return "getAddressesFromBondTable";
-    }
+DECLARE_CMD(GetAddressesFromBondTableCommand) {
+    CMD_NAME("getAddressesFromBondTable")
 
-    static const char* help() {
-        return "Get a list of addresses from all peers in the bond table.";
-    }
+    CMD_HELP("Get a list of addresses from all peers in the bond table.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<uint8_t>", "addressesCount count of addresses to get" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint8_t", "<uint8_t>", "addressesCount count of addresses to get")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(uint8_t addrCount, CommandResponsePtr& response) {
         using namespace serialization;
-
-        uint8_t addrCount;
-        if(!fromString(args[0], addrCount)) {
-            response->invalidParameters("address count should be a value in STD::uint_t domain");
-            return;
-        }
 
         BLEProtocol::Address_t* addresses = new BLEProtocol::Address_t[addrCount];
         Gap::Whitelist_t whitelist = {
@@ -130,17 +112,13 @@ struct GetAddressesFromBondTableCommand : public BaseCommand {
 };
 
 
-struct PurgeAllBondingStateCommand : public BaseCommand {
-    static const char* name() {
-        return "purgeAllBondingState";
-    }
+DECLARE_CMD(PurgeAllBondingStateCommand) {
+    CMD_NAME("purgeAllBondingState")
 
-    static const char* help() {
-        return "Delete all peer device context and all related bonding information from "
-        "the database within the security manager.";
-    }
+    CMD_HELP("Delete all peer device context and all related bonding information from "
+        "the database within the security manager.")
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         ble_error_t err = sm().purgeAllBondingState();
         reportErrorOrSuccess(response, err);
     }
@@ -148,12 +126,9 @@ struct PurgeAllBondingStateCommand : public BaseCommand {
 
 } // end of annonymous namespace
 
-ConstArray<const Command*> SecurityManagerCommandSuiteDescription::commands() {
-    static const Command* const commandHandlers[] = {
-        &CommandAccessor<InitCommand>::command,
-        &CommandAccessor<GetAddressesFromBondTableCommand>::command,
-        &CommandAccessor<PurgeAllBondingStateCommand>::command
-    };
 
-    return ConstArray<const Command*>(commandHandlers);
-}
+DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription, 
+    CMD_INSTANCE(InitCommand),
+    CMD_INSTANCE(GetAddressesFromBondTableCommand),
+    CMD_INSTANCE(PurgeAllBondingStateCommand)
+)
