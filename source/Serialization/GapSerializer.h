@@ -85,10 +85,33 @@ struct MacAddressString_t {
 bool macAddressFromString(const char* str, Gap::Address_t& val);
 MacAddressString_t macAddressToString(const Gap::Address_t& src);
 
+struct MacAddress_t { 
+    Gap::Address_t value;
+
+    operator Gap::Address_t&() { 
+        return value;
+    }
+
+    operator const Gap::Address_t&() const { 
+        return value;
+    }
+};
+
+static inline bool fromString(const char* str, MacAddress_t& val) { 
+    return macAddressFromString(str, val);
+}
+
+
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::Address_t& addr);
 
 /// convert Gap::ConnectionParams_t from CLI to structure
 bool connectionParamsFromCLI(const char* str, Gap::ConnectionParams_t& params);
+
+
+static inline bool fromString(const char* str, Gap::ConnectionParams_t& params) { 
+    return connectionParamsFromCLI(str, params);
+}
+
 
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os,const Gap::ConnectionParams_t&);
 
