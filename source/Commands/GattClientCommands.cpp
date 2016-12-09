@@ -13,6 +13,8 @@
 #include "util/AsyncProcedure.h"
 
 #include "Common.h"
+#include "CLICommand/CommandHelper.h"
+
 
 using mbed::util::SharedPointer;
 
@@ -20,37 +22,24 @@ using mbed::util::SharedPointer;
 
 // isolation
 namespace {
-struct DiscoverAllServicesAndCharacteristicsCommand : public BaseCommand {
-    static const char* name() {
-        return "discoverAllServicesAndCharacteristics";
-    }
 
-    static const char* help() {
-        return "discover all services and characteristics available on a peer device";
-    }
+DECLARE_CMD(DiscoverAllServicesAndCharacteristicsCommand) {
+    CMD_NAME("discoverAllServicesAndCharacteristics")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_HELP("discover all services and characteristics available on a peer device")
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        // get the connection handle
-        uint16_t connectionHandle;
-        if (!fromString(args[0], connectionHandle)) {
-            response->invalidParameters("the connection handle is ill formed");
-            return;
-        }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure")
+    )
 
+    CMD_HANDLER(uint16_t connectionHandle, CommandResponsePtr& response) {
         startProcedure<DiscoverAllServicesAndCharacteristicsProcedure>(
             response, /* timeout */ 30 * 1000, connectionHandle
         );
     }
 
     struct DiscoverAllServicesAndCharacteristicsProcedure : public AsyncProcedure {
-        DiscoverAllServicesAndCharacteristicsProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, uint16_t handle) :
+        DiscoverAllServicesAndCharacteristicsProcedure(CommandResponsePtr& res, uint32_t timeout, uint16_t handle) :
             AsyncProcedure(res, timeout), connectionHandle(handle), isFirstServiceDiscovered(true) {
         }
 
@@ -157,37 +146,21 @@ struct DiscoverAllServicesAndCharacteristicsCommand : public BaseCommand {
 };
 
 
-struct DiscoverAllServicesCommand : public BaseCommand {
-    static const char* name() {
-        return "discoverAllServices";
-    }
+DECLARE_CMD(DiscoverAllServicesCommand) {
+    CMD_NAME("discoverAllServices")
+    CMD_HELP("discover all services available on a peer device")
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure")
+    )
 
-    static const char* help() {
-        return "discover all services available on a peer device";
-    }
-
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        // get the connection handle
-        uint16_t connectionHandle;
-        if (!fromString(args[0], connectionHandle)) {
-            response->invalidParameters("the connection handle is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t connectionHandle, CommandResponsePtr& response) {
         startProcedure<DiscoverAllServicesProcedure>(
             response, /* timeout */ 30 * 1000, connectionHandle
         );
     }
 
     struct DiscoverAllServicesProcedure : public AsyncProcedure {
-        DiscoverAllServicesProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, uint16_t handle) :
+        DiscoverAllServicesProcedure(CommandResponsePtr& res, uint32_t timeout, uint16_t handle) :
             AsyncProcedure(res, timeout), connectionHandle(handle) {
         }
 
@@ -263,44 +236,25 @@ struct DiscoverAllServicesCommand : public BaseCommand {
 };
 
 
-struct DiscoverPrimaryServicesByUUIDCommand : public BaseCommand {
-    static const char* name() {
-        return "discoverPrimaryServicesByUUID";
-    }
 
-    static const char* help() {
-        return "discover a specific kind of services on a peer device";
-    }
+DECLARE_CMD(DiscoverPrimaryServicesByUUIDCommand) {
+    CMD_NAME("discoverPrimaryServicesByUUID")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<serviceUUID>", "The UUID of the services to discover" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_HELP("discover a specific kind of services on a peer device")
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        // get the connection handle
-        uint16_t connectionHandle;
-        if (!fromString(args[0], connectionHandle)) {
-            response->invalidParameters("the connection handle is ill formed");
-            return;
-        }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("UUID", "<serviceUUID>", "The UUID of the services to discover")
+    )
 
-        UUID serviceUUID;
-        if (!fromString(args[1], serviceUUID)) {
-            response->invalidParameters("the UUID is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t connectionHandle, UUID serviceUUID, CommandResponsePtr& response) {
         startProcedure<DiscoverServicesByUUIDProcedure>(
             response, /* timeout */ 30 * 1000, connectionHandle, serviceUUID
         );
     }
 
     struct DiscoverServicesByUUIDProcedure : public AsyncProcedure {
-        DiscoverServicesByUUIDProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, uint16_t handle, const UUID& uuid) :
+        DiscoverServicesByUUIDProcedure(CommandResponsePtr& res, uint32_t timeout, uint16_t handle, const UUID& uuid) :
             AsyncProcedure(res, timeout), connectionHandle(handle), serviceUUID(uuid) {
         }
 
@@ -379,24 +333,17 @@ struct DiscoverPrimaryServicesByUUIDCommand : public BaseCommand {
 
 
 struct FindIncludedServicesCommand : public BaseCommand {
-    static const char* name() {
-        return "findIncludedServices";
-    }
+    CMD_NAME("findIncludedServices")
 
-    static const char* help() {
-        return "Find includded services declaration withn a service definition on the server";
-    }
+    CMD_HELP("Find includded services declaration withn a service definition on the server")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<serviceStartHandle>", "The starting handle of the service" },
-            { "<serviceEndHandle>", "The ending handle of the service" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<serviceStartHandle>", "The starting handle of the service" ),
+        CMD_ARG("uint16_t", "<serviceEndHandle>", "The ending handle of the service")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
@@ -404,95 +351,56 @@ struct FindIncludedServicesCommand : public BaseCommand {
 
 
 struct DiscoverCharacteristicsOfServiceCommand : public BaseCommand {
-    static const char* name() {
-        return "discoverCharacteristicsOfService";
-    }
+    CMD_NAME("discoverCharacteristicsOfService")
 
-    static const char* help() {
-        return "Discover all characteristics of a service, this procedure will find all the"
-               "characteristics declaration within a service definition on a server";
-    }
+    CMD_HELP("Discover all characteristics of a service, this procedure will find all the"
+               "characteristics declaration within a service definition on a server"
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<serviceStartHandle>", "The starting handle of the service" },
-            { "<serviceEndHandle>", "The ending handle of the service" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<serviceStartHandle>", "The starting handle of the service" ),
+        CMD_ARG("uint16_t", "<serviceEndHandle>", "The ending handle of the service")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 
 struct DiscoverCharacteristicsByUUIDCommand : public BaseCommand {
-    static const char* name() {
-        return "discoverCharacteristicsByUUID";
-    }
+    CMD_NAME("discoverCharacteristicsByUUID")
 
-    static const char* help() {
-        return "Discover all characteristics of a service matching a specific UUID.";
-    }
+    CMD_HELP("Discover all characteristics of a service matching a specific UUID.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<serviceStartHandle>", "The starting handle of the service" },
-            { "<serviceEndHandle>", "The ending handle of the service" },
-            { "<serviceUUID>", "The UUID of the characteristics to discover" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<serviceStartHandle>", "The starting handle of the service" ),
+        CMD_ARG("uint16_t", "<serviceEndHandle>", "The ending handle of the service" ),
+        CMD_ARG("UUID", "<serviceUUID>", "The UUID of the characteristics to discover")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 
 struct DiscoverAllCharacteristicsDescriptorsCommand : public BaseCommand {
-    static const char* name() {
-        return "discoverAllCharacteristicsDescriptors";
-    }
+    CMD_NAME("discoverAllCharacteristicsDescriptors")
 
-    static const char* help() {
-        return "Find all the characteristic descriptor’s Attribute Handles and Attribute "
+    CMD_HELP("Find all the characteristic descriptor’s Attribute Handles and Attribute "
                "Types within a characteristic definition. The characteristic specified is "
-               "identified by the characteristic handle range.";
-    }
+               "identified by the characteristic handle range.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicStartHandle>",
-              "The start handle of of the characteristic" },
-            { "<endHandle>", "The ending handle of the characteristic definition" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicStartHandle>", "The start handle of of the characteristic"),
+        CMD_ARG("uint16_t", "<endHandle>", "The ending handle of the characteristic definition")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t connectionHandle;
-        if (!fromString(args[0], connectionHandle)) {
-            response->invalidParameters("the connection handle is ill formed");
-            return;
-        }
-
-        uint16_t startHandle;
-        if (!fromString(args[1], startHandle)) {
-            response->invalidParameters("The value handle is ill formed");
-            return;
-        }
-
-        uint16_t lastHandle;
-        if (!fromString(args[2], lastHandle)) {
-            response->invalidParameters("The end handle for descriptors is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t connectionHandle, uint16_t startHandle, uint16_t lastHandle, CommandResponsePtr& response) {
         if(startHandle >= lastHandle) {
             response->invalidParameters("start handle should not be greater or equal to last handle");
             return;
@@ -512,7 +420,7 @@ struct DiscoverAllCharacteristicsDescriptorsCommand : public BaseCommand {
 
     struct DiscoverAllCharacteristicsDescriptorsProcedure : public AsyncProcedure {
         DiscoverAllCharacteristicsDescriptorsProcedure(
-            const SharedPointer<CommandResponse>& res,
+            CommandResponsePtr& res,
             uint32_t timeout,
             uint16_t connectionHandle,
             uint16_t startHandle,
@@ -626,7 +534,7 @@ struct ReadProcedure : public AsyncProcedure {
     /**
      * @brief Construct a read procedure, this will also attach all callbacks
      */
-    ReadProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, uint16_t _connectionHandle, uint16_t _valueHandle) :
+    ReadProcedure(CommandResponsePtr& res, uint32_t timeout, uint16_t _connectionHandle, uint16_t _valueHandle) :
         AsyncProcedure(res, timeout), connectionHandle(_connectionHandle), valueHandle(_valueHandle) {
     }
 
@@ -663,117 +571,77 @@ private:
 
 
 struct ReadCharacteristicValueCommand : public BaseCommand {
-    static const char* name() {
-        return "readCharacteristicValue";
-    }
+    CMD_NAME("readCharacteristicValue")
 
-    static const char* help() {
-        return "Read a characteristic value from a GATT Server using a characteristic value handle.";
-    }
+    CMD_HELP("Read a characteristic value from a GATT Server using a characteristic value handle.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicValuehandle>", "The handle of characteristic value" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicValuehandle>", "The handle of characteristic value")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t connectionHandle;
-        if (!fromString(args[0], connectionHandle)) {
-            response->invalidParameters("the connection handle is ill formed");
-            return;
-        }
-
-        uint16_t characteristicValueHandle;
-        if (!fromString(args[1], characteristicValueHandle)) {
-            response->invalidParameters("the characteristic value handle is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicValueHandle, CommandResponsePtr& response) {
         startProcedure<ReadProcedure>(response, /* timeout */ 5 * 1000, connectionHandle, characteristicValueHandle);
     }
 };
 
 
 struct ReadUsingCharacteristicUUIDCommand : public BaseCommand {
-    static const char* name() {
-        return "readUsingCharacteristicUUID";
-    }
+    CMD_NAME("readUsingCharacteristicUUID")
 
-    static const char* help() {
-        return "This sub-procedure is used to read a Characteristic Value from a server "
+    CMD_HELP("This sub-procedure is used to read a Characteristic Value from a server "
                "when the client only knows the characteristic UUID and does not know the "
-               "handle of the characteristic.";
-    }
+               "handle of the characteristic.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<serviceStartHandle>", "The starting handle of the service" },
-            { "<serviceEndHandle>", "The ending handle of the service" },
-            { "<characteristicUUID>", "The UUID of the characteristic" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<serviceStartHandle>", "The starting handle of the service" ),
+        CMD_ARG("uint16_t", "<serviceEndHandle>", "The ending handle of the service" ),
+        CMD_ARG("UUID", "<characteristicUUID>", "The UUID of the characteristic")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 
 struct ReadLongCharacteristicValueCommand : public BaseCommand {
-    static const char* name() {
-        return "readLongCharacteristicValue";
-    }
+    CMD_NAME("readLongCharacteristicValue")
 
-    static const char* help() {
-        return "Read a characteristic value from a server when the client knows the "
+    CMD_HELP("Read a characteristic value from a server when the client knows the "
                "characteristic value handle and the length of the characteristic value "
-               "is longer than can be sent in a single read response";
-    }
+               "is longer than can be sent in a single read response")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicValuehandle>", "The handle of characteristic value" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicValuehandle>", "The handle of characteristic value")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 
 struct ReadMultipleCharacteristicValuesCommand : public BaseCommand {
-    static const char* name() {
-        return "readMultipleCharacteristicValues";
-    }
+    CMD_NAME("readMultipleCharacteristicValues")
 
-    static const char* help() {
-        return "Read a multiple characteristics values from a set of characteristics value handle.";
-    }
+    CMD_HELP("Read a multiple characteristics values from a set of characteristics value handle.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicValuehandles...>", "Handles of characteristics values to read" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicValuehandles...>", "Handles of characteristics values to read")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 
 struct WriteProcedure : public AsyncProcedure {
-    WriteProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout,
+    WriteProcedure(CommandResponsePtr& res, uint32_t timeout,
         GattClient::WriteOp_t _cmd, uint16_t _connectionHandle, uint16_t _valueHandle, container::Vector<uint8_t> _dataToWrite) :
         AsyncProcedure(res, timeout), cmd(_cmd), connectionHandle(_connectionHandle),
         valueHandle(_valueHandle), dataToWrite(_dataToWrite) {
@@ -823,42 +691,17 @@ private:
 
 
 struct WriteWithoutResponseCommand : public BaseCommand {
-    static const char* name() {
-        return "writeWithoutResponse";
-    }
+    CMD_NAME("writeWithoutResponse")
 
-    static const char* help() {
-        return "Write a characteristic value to a server, the server will not acknowledge anything.";
-    }
+    CMD_HELP("Write a characteristic value to a server, the server will not acknowledge anything.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
-            { "<value>", "Hexadecimal string representation of the value to write" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicValuehandle>", "Handle of the characteristic value to write" ),
+        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t connectionHandle;
-        if (!fromString(args[0], connectionHandle)) {
-            response->faillure("connection handle is ill formed");
-            return;
-        }
-
-        uint16_t characteristicValuehandle;
-        if (!fromString(args[1], characteristicValuehandle)) {
-            response->faillure("characteristic value handle is ill formed");
-            return;
-        }
-
-        container::Vector<uint8_t> dataToWrite = hexStringToRawData(args[2]);
-        if(dataToWrite.size() == 0) {
-            response->faillure("data to write provided are invalids");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicValuehandle, container::Vector<uint8_t>& dataToWrite, CommandResponsePtr& response) {
         startProcedure<WriteProcedure>(
             response, /* timeout */ 5 * 1000,
             GattClient::GATT_OP_WRITE_CMD, connectionHandle, characteristicValuehandle, dataToWrite
@@ -868,68 +711,36 @@ struct WriteWithoutResponseCommand : public BaseCommand {
 
 
 struct SignedWriteWithoutResponseCommand : public BaseCommand {
-    static const char* name() {
-        return "signedWriteWithoutResponse";
-    }
+    CMD_NAME("signedWriteWithoutResponse")
 
-    static const char* help() {
-        return "Write a characteristic value to a server, the server will not acknowledge anything. "
+    CMD_HELP("Write a characteristic value to a server, the server will not acknowledge anything. "
                "This sub-procedure shall only be used if the CharacteristicProperties authenticated "
-               "bit is enabled and the client and server device share a bond.";
-    }
+               "bit is enabled and the client and server device share a bond.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
-            { "<value>", "Hexadecimal string representation of the value to write" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicValuehandle>", "Handle of the characteristic value to write" ),
+        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 
 struct WriteCommand : public BaseCommand {
-    static const char* name() {
-        return "write";
-    }
+    CMD_NAME("write")
 
-    static const char* help() {
-        return "Write a characteristic value to a server.";
-    }
+    CMD_HELP("Write a characteristic value to a server.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
-            { "<value>", "Hexadecimal string representation of the value to write" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicValuehandle>", "Handle of the characteristic value to write" ),
+        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t connectionHandle;
-        if (!fromString(args[0], connectionHandle)) {
-            response->faillure("connection handle is ill formed");
-            return;
-        }
-
-        uint16_t characteristicValuehandle;
-        if (!fromString(args[1], characteristicValuehandle)) {
-            response->faillure("characteristic value handle is ill formed");
-            return;
-        }
-
-        container::Vector<uint8_t> dataToWrite = hexStringToRawData(args[2]);
-        if(dataToWrite.size() == 0) {
-            response->faillure("data to write provided are invalids");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicValuehandle, RawData_t dataToWrite, CommandResponsePtr& response) {
         startProcedure<WriteProcedure>(
             response, 5 * 1000,
             GattClient::GATT_OP_WRITE_REQ, connectionHandle, characteristicValuehandle, dataToWrite
@@ -939,158 +750,95 @@ struct WriteCommand : public BaseCommand {
 
 
 struct WriteLongCommand : public BaseCommand {
-    static const char* name() {
-        return "writeLong";
-    }
+    CMD_NAME("writeLong")
 
-    static const char* help() {
-        return "Write a characteristic value to a server. This sub-procedure is used when "
+    CMD_HELP("Write a characteristic value to a server. This sub-procedure is used when "
                "the client knows the Characteristic Value Handle but the length of the "
                "Characteristic Value is longer than can be sent in a single Write Request "
-               "Attribute Protocol message.";
-    }
+               "Attribute Protocol message.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
-            { "<value>", "Hexadecimal string representation of the value to write" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicValuehandle>", "Handle of the characteristic value to write" ),
+        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 
 struct ReliableWriteCommand : public BaseCommand {
-    static const char* name() {
-        return "reliableWrite";
-    }
+    CMD_NAME("reliableWrite")
 
-    static const char* help() {
-        return "Write a characteristic value to a server. This sub-procedure is used when "
+    CMD_HELP("Write a characteristic value to a server. This sub-procedure is used when "
                "the client knows the Characteristic Value Handle, and assurance is required "
                "that the correct Characteristic Value is going to be written by transferring "
                "the Characteristic Value to be written in both directions before the write is "
                "performed. This sub-procedure can also be used when multiple values must be "
-               "written, in order, in a single operation";
-    }
+               "written, in order, in a single operation")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicValuehandle>", "Handle of the characteristic value to write" },
-            { "<value>", "Hexadecimal string representation of the value to write" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicValuehandle>", "Handle of the characteristic value to write" ),
+        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 
 struct ReadCharacteristicDescriptorCommand : public BaseCommand {
-    static const char* name() {
-        return "readCharacteristicDescriptor";
-    }
+    CMD_NAME("readCharacteristicDescriptor")
 
-    static const char* help() {
-        return "Read a characteristic descriptor from a server.";
-    }
+    CMD_HELP("Read a characteristic descriptor from a server.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t connectionHandle;
-        if (!fromString(args[0], connectionHandle)) {
-            response->invalidParameters("the connection handle is ill formed");
-            return;
-        }
-
-        uint16_t characteristicDescriptorHandle;
-        if (!fromString(args[1], characteristicDescriptorHandle)) {
-            response->invalidParameters("the characteristic value handle is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicDescriptorHandle, CommandResponsePtr& response) {
         startProcedure<ReadProcedure>(response, /* timeout */ 5 * 1000, connectionHandle, characteristicDescriptorHandle);
     }
 };
 
 
 struct ReadLongCharacteristicDescriptorCommand : public BaseCommand {
-    static const char* name() {
-        return "readLongCharacteristicDescriptor";
-    }
+    CMD_NAME("readLongCharacteristicDescriptor")
 
-    static const char* help() {
-        return "Read a characteristic descriptor from a server. This procedure is used "
-               "when the length of the characteristic descriptor declaration is longer "
-               "than what can be sent in a single read";
-    }
+    CMD_HELP(
+        "Read a characteristic descriptor from a server. This procedure is used "
+        "when the length of the characteristic descriptor declaration is longer "
+        "than what can be sent in a single read"
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 
 struct WriteCharacteristicDescriptorCommand : public BaseCommand {
-    static const char* name() {
-        return "writeCharacteristicDescriptor";
-    }
+    CMD_NAME("writeCharacteristicDescriptor")
 
-    static const char* help() {
-        return "Write a characteristic descriptor to a server.";
-    }
+    CMD_HELP("Write a characteristic descriptor to a server.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" },
-            { "<value>", "Hexadecimal string representation of the value to write" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" ),
+        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t connectionHandle;
-        if (!fromString(args[0], connectionHandle)) {
-            response->faillure("connection handle is ill formed");
-            return;
-        }
-
-        uint16_t characteristicDescriptorhandle;
-        if (!fromString(args[1], characteristicDescriptorhandle)) {
-            response->faillure("characteristic value handle is ill formed");
-            return;
-        }
-
-        container::Vector<uint8_t> dataToWrite = hexStringToRawData(args[2]);
-        if(dataToWrite.size() == 0) {
-            response->faillure("data to write provided are invalids");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicDescriptorhandle, RawData_t dataToWrite, CommandResponsePtr& response) {
         startProcedure<WriteProcedure>(
             response, 5 * 1000,
             GattClient::GATT_OP_WRITE_REQ, connectionHandle, characteristicDescriptorhandle, dataToWrite
@@ -1100,56 +848,46 @@ struct WriteCharacteristicDescriptorCommand : public BaseCommand {
 
 
 struct WriteLongCharacteristicDescriptorCommand : public BaseCommand {
-    static const char* name() {
-        return "writeLongCharacteristicDescriptor";
-    }
+    CMD_NAME("writeLongCharacteristicDescriptor")
 
-    static const char* help() {
-        return "Write a characteristic descriptor to a server. This procedure when the "
+    CMD_HELP("Write a characteristic descriptor to a server. This procedure when the "
         "client knows that the length of the characteristic descriptor value is "
-        "longer than what can be sent in a single write.";
-    }
+        "longer than what can be sent in a single write.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The connection used by this procedure" },
-            { "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" },
-            { "<value>", "Hexadecimal string representation of the value to write" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" ),
+        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 } // end of annonymous namespace
 
-ConstArray<const Command*> GattClientCommandSuiteDescription::commands() {
-    static const Command* const commandHandlers[] = {
-        &CommandAccessor<DiscoverAllServicesAndCharacteristicsCommand>::command,
-        &CommandAccessor<DiscoverAllServicesCommand>::command,
-        &CommandAccessor<DiscoverPrimaryServicesByUUIDCommand>::command,
-        //&CommandAccessor<DiscoverServicesCommand>::command,
-        &CommandAccessor<FindIncludedServicesCommand>::command,
-        &CommandAccessor<DiscoverCharacteristicsOfServiceCommand>::command,
-        &CommandAccessor<DiscoverCharacteristicsByUUIDCommand>::command,
-        &CommandAccessor<DiscoverAllCharacteristicsDescriptorsCommand>::command,
-        &CommandAccessor<ReadCharacteristicValueCommand>::command,
-        &CommandAccessor<ReadUsingCharacteristicUUIDCommand>::command,
-        &CommandAccessor<ReadLongCharacteristicValueCommand>::command,
-        &CommandAccessor<ReadMultipleCharacteristicValuesCommand>::command,
-        &CommandAccessor<WriteWithoutResponseCommand>::command,
-        &CommandAccessor<SignedWriteWithoutResponseCommand>::command,
-        &CommandAccessor<WriteCommand>::command,
-        &CommandAccessor<WriteLongCommand>::command,
-        &CommandAccessor<ReliableWriteCommand>::command,
-        &CommandAccessor<ReadCharacteristicDescriptorCommand>::command,
-        &CommandAccessor<ReadLongCharacteristicDescriptorCommand>::command,
-        &CommandAccessor<WriteCharacteristicDescriptorCommand>::command,
-        &CommandAccessor<WriteLongCharacteristicDescriptorCommand>::command
-    };
 
-    return ConstArray<const Command*>(commandHandlers);
-}
+DECLARE_SUITE_COMMANDS(GattClientCommandSuiteDescription, 
+    CMD_INSTANCE(DiscoverAllServicesAndCharacteristicsCommand),
+    CMD_INSTANCE(DiscoverAllServicesCommand),
+    CMD_INSTANCE(DiscoverPrimaryServicesByUUIDCommand),
+    //CMD_INSTANCE(DiscoverServicesCommand),
+    CMD_INSTANCE(FindIncludedServicesCommand),
+    CMD_INSTANCE(DiscoverCharacteristicsOfServiceCommand),
+    CMD_INSTANCE(DiscoverCharacteristicsByUUIDCommand),
+    CMD_INSTANCE(DiscoverAllCharacteristicsDescriptorsCommand),
+    CMD_INSTANCE(ReadCharacteristicValueCommand),
+    CMD_INSTANCE(ReadUsingCharacteristicUUIDCommand),
+    CMD_INSTANCE(ReadLongCharacteristicValueCommand),
+    CMD_INSTANCE(ReadMultipleCharacteristicValuesCommand),
+    CMD_INSTANCE(WriteWithoutResponseCommand),
+    CMD_INSTANCE(SignedWriteWithoutResponseCommand),
+    CMD_INSTANCE(WriteCommand),
+    CMD_INSTANCE(WriteLongCommand),
+    CMD_INSTANCE(ReliableWriteCommand),
+    CMD_INSTANCE(ReadCharacteristicDescriptorCommand),
+    CMD_INSTANCE(ReadLongCharacteristicDescriptorCommand),
+    CMD_INSTANCE(WriteCharacteristicDescriptorCommand),
+    CMD_INSTANCE(WriteLongCharacteristicDescriptorCommand)
+)
