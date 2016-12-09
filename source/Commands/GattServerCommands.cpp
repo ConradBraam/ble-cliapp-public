@@ -14,6 +14,8 @@
 
 #include "Common.h"
 
+#include "CLICommand/CommandHelper.h"
+
 using mbed::util::SharedPointer;
 
 // isolation
@@ -61,32 +63,18 @@ static bool initServiceBuilder(const UUID& uuid) {
 }
 
 
-struct DeclareServiceCommand : public BaseCommand {
-    static const char* name() {
-        return "declareService";
-    }
+DECLARE_CMD(DeclareServiceCommand) {
+    CMD_NAME("declareService")
 
-    static const char* help() {
-        return "Start the declaration of a service, after this call, user can call declareCharacteristic to declare "
+    CMD_HELP("Start the declaration of a service, after this call, user can call declareCharacteristic to declare "
                "a characteristic inside the service, commitService to commit the service or cancelServiceDeclaration "
-               "to cancel the service declaration";
-    }
+               "to cancel the service declaration")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<UUID>", "The UUID of the service" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("UUID", "<UUID>", "The UUID of the service")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        UUID serviceUUID;
-
-        if(!fromString(args[0], serviceUUID)) {
-            response->invalidParameters("The service UUID is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(UUID serviceUUID, CommandResponsePtr& response) {
         if(initServiceBuilder(serviceUUID)) {
             response->success();
         } else {
@@ -96,32 +84,18 @@ struct DeclareServiceCommand : public BaseCommand {
 };
 
 
-struct DeclareCharacteristicCommand : public BaseCommand {
-    static const char* name() {
-        return "declareCharacteristic";
-    }
+DECLARE_CMD(DeclareCharacteristicCommand) {
+    CMD_NAME("declareCharacteristic")
 
-    static const char* help() {
-        return "Start the declaration of a characteristic, after this call, user can call declareCharacteristic to declare "
+    CMD_HELP("Start the declaration of a characteristic, after this call, user can call declareCharacteristic to declare "
                "another characteristic inside the service, declareDescriptor to add a descriptor inside this characteristic, "
-               "commitService to commit the service or cancelServiceDeclaration to cancel the service declaration";
-    }
+               "commitService to commit the service or cancelServiceDeclaration to cancel the service declaration")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<UUID>", "The UUID of the characteristic" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("UUID", "<UUID>", "The UUID of the characteristic")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        UUID characteristicUUID;
-
-        if(!fromString(args[0], characteristicUUID)) {
-            response->invalidParameters("The characteristic UUID is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(UUID characteristicUUID, CommandResponsePtr& response) {
         if(!serviceBuilder) {
             response->faillure("Their is no service being declared");
             return;
@@ -134,30 +108,16 @@ struct DeclareCharacteristicCommand : public BaseCommand {
 };
 
 
-struct SetCharacteristicValueCommand : public BaseCommand {
-    static const char* name() {
-        return "setCharacteristicValue";
-    }
+DECLARE_CMD(SetCharacteristicValueCommand) {
+    CMD_NAME("setCharacteristicValue")
 
-    static const char* help() {
-        return "Set the value of the characteristic being declared";
-    }
+    CMD_HELP("Set the value of the characteristic being declared")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<HexString>", "The value of the characteristic" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("RawData_t", "<HexString>", "The value of the characteristic")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        container::Vector<uint8_t> characteristicValue = hexStringToRawData(args[0]);
-
-        if(characteristicValue.size() == 0) {
-            response->invalidParameters("The characteristic value is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(RawData_t characteristicValue, CommandResponsePtr& response) {
         if(!serviceBuilder) {
             response->faillure("Their is no service being declared");
             return;
@@ -172,23 +132,19 @@ struct SetCharacteristicValueCommand : public BaseCommand {
 };
 
 
-struct SetCharacteristicPropertiesCommand : public BaseCommand {
-    static const char* name() {
-        return "setCharacteristicProperties";
-    }
+DECLARE_CMD(SetCharacteristicPropertiesCommand) {
+    CMD_NAME("setCharacteristicProperties")
 
-    static const char* help() {
-        return "Set the properties of a characteristic being declared, this function expect a list of "
+    CMD_HELP("Set the properties of a characteristic being declared, this function expect a list of "
                "properties such as 'broadcast', 'read', 'writeWoResp', 'write', 'notify', 'indicate' and "
-               "'authSignedWrite'";
-    }
+               "'authSignedWrite'")
 
     template<typename T>
     static std::size_t maximumArgsRequired() {
         return 0xFF;
     }
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         uint8_t properties;
         if(!characteristicPropertiesFromStrings(args, properties)) {
             response->invalidParameters("Properties are ill formed");
@@ -209,30 +165,17 @@ struct SetCharacteristicPropertiesCommand : public BaseCommand {
 };
 
 
-struct SetCharacteristicVariableLengthCommand : public BaseCommand {
-    static const char* name() {
-        return "setCharacteristicVariableLength";
-    }
+DECLARE_CMD(SetCharacteristicVariableLengthCommand) {
+    CMD_NAME("setCharacteristicVariableLength")
 
-    static const char* help() {
-        return "Set a boolean value which indicate if the characteristic has a variable len. If the "
-               "characteristic has a variable len, max len could be set to bound the length to a maximum";
-    }
+    CMD_HELP("Set a boolean value which indicate if the characteristic has a variable len. If the "
+               "characteristic has a variable len, max len could be set to bound the length to a maximum")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<bool>", "The value of the variable length property" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("bool", "<bool>", "The value of the variable length property")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        bool variableLen;
-        if(!fromString(args[0], variableLen)) {
-            response->invalidParameters("Variable len is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(bool variableLen, CommandResponsePtr& response) {
         if(!serviceBuilder) {
             response->faillure("Their is no service being declared");
             return;
@@ -247,29 +190,16 @@ struct SetCharacteristicVariableLengthCommand : public BaseCommand {
 };
 
 
-struct SetCharacteristicMaxLengthCommand : public BaseCommand {
-    static const char* name() {
-        return "setCharacteristicMaxLength";
-    }
+DECLARE_CMD(SetCharacteristicMaxLengthCommand) {
+    CMD_NAME("setCharacteristicMaxLength")
 
-    static const char* help() {
-        return "Set the maximum lenght that is allowed for the value of the characteristic being declared";
-    }
+    CMD_HELP("Set the maximum lenght that is allowed for the value of the characteristic being declared")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<uint16_t>", "Maximum length of the value of the characteristic being declared" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<uint16_t>", "Maximum length of the value of the characteristic being declared")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t maxLen;
-        if(!fromString(args[0], maxLen)) {
-            response->invalidParameters("Max len is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t maxLen, CommandResponsePtr& response) {
         if(!serviceBuilder) {
             response->faillure("Their is no service being declared");
             return;
@@ -285,35 +215,20 @@ struct SetCharacteristicMaxLengthCommand : public BaseCommand {
 };
 
 
-struct DeclareDescriptorCommand : public BaseCommand {
-    static const char* name() {
-        return "declareDescriptor";
-    }
+DECLARE_CMD(DeclareDescriptorCommand) {
+    CMD_NAME("declareDescriptor")
 
-    static const char* help() {
-        return "Start the declaration of a descriptor which will be attached to the characteristic being declared";
-    }
+    CMD_HELP("Start the declaration of a descriptor which will be attached to the characteristic being declared")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<UUID>", "The UUID of the descriptor" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("UUID", "<UUID>", "The UUID of the descriptor")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        UUID descriptorUUID;
-
-        if(!fromString(args[0], descriptorUUID)) {
-            response->invalidParameters("The descriptor UUID is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(UUID descriptorUUID, CommandResponsePtr& response) {
         if(!serviceBuilder) {
             response->faillure("Their is no service being declared");
             return;
         }
-
 
         if(serviceBuilder->declareDescriptor(descriptorUUID)) {
             response->success();
@@ -324,30 +239,16 @@ struct DeclareDescriptorCommand : public BaseCommand {
 };
 
 
-struct SetDescriptorValueCommand : public BaseCommand {
-    static const char* name() {
-        return "setDescriptorValue";
-    }
+DECLARE_CMD(SetDescriptorValueCommand) {
+    CMD_NAME("setDescriptorValue")
 
-    static const char* help() {
-        return "Set the value of the descriptor being declared";
-    }
+    CMD_HELP("Set the value of the descriptor being declared")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<HexString>", "The value of the descriptor" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("RawData_t", "<HexString>", "The value of the descriptor")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        container::Vector<uint8_t> descriptorValue = hexStringToRawData(args[0]);
-
-        if(descriptorValue.size() == 0) {
-            response->invalidParameters("The descriptor value is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(RawData_t descriptorValue, CommandResponsePtr& response) {
         if(!serviceBuilder) {
             response->faillure("Their is no service being declared");
             return;
@@ -362,30 +263,17 @@ struct SetDescriptorValueCommand : public BaseCommand {
 };
 
 
-struct SetDescriptorVariableLengthCommand : public BaseCommand {
-    static const char* name() {
-        return "setDescriptorVariableLength";
-    }
+DECLARE_CMD(SetDescriptorVariableLengthCommand) {
+    CMD_NAME("setDescriptorVariableLength")
 
-    static const char* help() {
-        return "Set a boolean value which indicate if the descriptor has a variable len. If the "
-               "descriptor has a variable len, max len could be set to bound the length to a maximum";
-    }
+    CMD_HELP("Set a boolean value which indicate if the descriptor has a variable len. If the "
+               "descriptor has a variable len, max len could be set to bound the length to a maximum")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<bool>", "The value of the variable length property" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("bool", "<bool>", "The value of the variable length property")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        bool variableLen;
-        if(!fromString(args[0], variableLen)) {
-            response->invalidParameters("Variable len is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(bool variableLen, CommandResponsePtr& response) {
         if(!serviceBuilder) {
             response->faillure("Their is no service being declared");
             return;
@@ -400,29 +288,16 @@ struct SetDescriptorVariableLengthCommand : public BaseCommand {
 };
 
 
-struct SetDescriptorMaxLengthCommand : public BaseCommand {
-    static const char* name() {
-        return "setDescriptorMaxLength";
-    }
+DECLARE_CMD(SetDescriptorMaxLengthCommand) {
+    CMD_NAME("setDescriptorMaxLength")
 
-    static const char* help() {
-        return "Set the maximum lenght that is allowed for the value of the descriptor being declared";
-    }
+    CMD_HELP("Set the maximum lenght that is allowed for the value of the descriptor being declared")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<uint16_t>", "Maximum length of the value of the descriptor being declared" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<uint16_t>", "Maximum length of the value of the descriptor being declared")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t maxLen;
-        if(!fromString(args[0], maxLen)) {
-            response->invalidParameters("Max len is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t maxLen, CommandResponsePtr& response) {
         if(!serviceBuilder) {
             response->faillure("Their is no service being declared");
             return;
@@ -437,16 +312,12 @@ struct SetDescriptorMaxLengthCommand : public BaseCommand {
 };
 
 
-struct CommitServiceCommand : public BaseCommand {
-    static const char* name() {
-        return "commitService";
-    }
+DECLARE_CMD(CommitServiceCommand) {
+    CMD_NAME("commitService")
 
-    static const char* help() {
-        return "commit the service declaration";
-    }
+    CMD_HELP("commit the service declaration")
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         using namespace serialization;
 
         if(!serviceBuilder) {
@@ -535,16 +406,12 @@ struct CommitServiceCommand : public BaseCommand {
 };
 
 
-struct CancelServiceDeclarationCommand : public BaseCommand {
-    static const char* name() {
-        return "cancelServiceDeclaration";
-    }
+DECLARE_CMD(CancelServiceDeclarationCommand) {
+    CMD_NAME("cancelServiceDeclaration")
 
-    static const char* help() {
-        return "cancel the service declaration";
-    }
+    CMD_HELP("cancel the service declaration")
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         if(!serviceBuilder) {
             response->faillure("Their is no service being declared");
             return;
@@ -555,30 +422,23 @@ struct CancelServiceDeclarationCommand : public BaseCommand {
 };
 
 
-struct ReadCommand : public BaseCommand {
-    static const char* name() {
-        return "read";
-    }
+DECLARE_CMD(ReadCommand) {
+    CMD_NAME("read")
 
-    static const char* help() {
-        return "read the value of an attribute of the GATT server, this function take the"
+    CMD_HELP("read the value of an attribute of the GATT server, this function take the"
                "attribute of the handle to read as first parameter. It is also possible to"
-               "supply a connection handle has second parameter.";
-    }
+               "supply a connection handle has second parameter.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<uint16_t>", "The handle of the attribute to read" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<uint16_t>", "The handle of the attribute to read")
+    )
 
     template<typename T>
     static std::size_t maximumArgsRequired() {
         return 2;
     }
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         GattServer& server = gattServer();
 
         if(args.count() > 2) {
@@ -637,32 +497,25 @@ struct ReadCommand : public BaseCommand {
 };
 
 
-struct WriteCommand : public BaseCommand {
-    static const char* name() {
-        return "write";
-    }
+DECLARE_CMD(WriteCommand) {
+    CMD_NAME("write")
 
-    static const char* help() {
-        return "write the value of an attribute of the GATT server, this function take the"
+    CMD_HELP("write the value of an attribute of the GATT server, this function take the"
                "attribute of the handle to write as first parameter and the value to write "
                "as second parameter. It is also possible to supply a connection handle has "
-               "third parameter.";
-    }
+               "third parameter.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<uint16_t>", "The handle of the attribute to write" },
-            { "<HexString>", "The value to write" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<uint16_t>", "The handle of the attribute to write"),
+        CMD_ARG("RawData_t", "<HexString>", "The value to write")
+    )
 
     template<typename T>
     static std::size_t maximumArgsRequired() {
         return 3;
     }
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         GattServer& server = gattServer();
 
         if(args.count() > 3) {
@@ -705,43 +558,18 @@ struct WriteCommand : public BaseCommand {
 };
 
 
-struct WaitForDataWrittenCommand : public BaseCommand {
-    static const char* name() {
-        return "waitForDataWritten";
-    }
+DECLARE_CMD(WaitForDataWrittenCommand) {
+    CMD_NAME("waitForDataWritten")
 
-    static const char* help() {
-        return "Wait for a data to be written on a given characteristic from a given connection.";
-    }
+    CMD_HELP("Wait for a data to be written on a given characteristic from a given connection.")
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<uint16_t>", "The connection ID with the client supposed to write data" },
-            { "<uint16_t>", "The attribute handle which will be written" },
-            { "<timeout>", "Maximum time allowed for this procedure" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "<uint16_t>", "The connection ID with the client supposed to write data"),
+        CMD_ARG("uint16_t", "<uint16_t>", "The attribute handle which will be written"),
+        CMD_ARG("uint16_t", "<timeout>", "Maximum time allowed for this procedure")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        Gap::Handle_t connectionHandle;
-        if(!fromString(args[0], connectionHandle)) {
-            response->invalidParameters("The connection handle is ill formed");
-            return;
-        }
-
-        GattAttribute::Handle_t attributeHandle;
-        if(!fromString(args[1], attributeHandle)) {
-            response->invalidParameters("The attribute handle is ill formed");
-            return;
-        }
-
-        uint16_t procedureTimeout;
-        if (!fromString(args[2], procedureTimeout)) {
-            response->invalidParameters("the procedure timeout is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(Gap::Handle_t connectionHandle, GattAttribute::Handle_t attributeHandle, uint16_t procedureTimeout, CommandResponsePtr& response) {
         startProcedure<WaitForDataWrittenProcedure>(
             response,
             procedureTimeout,
@@ -751,7 +579,7 @@ struct WaitForDataWrittenCommand : public BaseCommand {
     }
 
     struct WaitForDataWrittenProcedure : public AsyncProcedure {
-        WaitForDataWrittenProcedure(const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout,
+        WaitForDataWrittenProcedure(CommandResponsePtr& res, uint32_t procedureTimeout,
             Gap::Handle_t connectionHandle, GattAttribute::Handle_t attributeHandle) :
             AsyncProcedure(res, procedureTimeout),
             connection(connectionHandle),
@@ -784,24 +612,21 @@ struct WaitForDataWrittenCommand : public BaseCommand {
 
 } // end of annonymous namespace
 
-ConstArray<const Command*> GattServerCommandSuiteDescription::commands() {
-    static const Command* const commandHandlers[] = {
-        &CommandAccessor<DeclareServiceCommand>::command,
-        &CommandAccessor<DeclareCharacteristicCommand>::command,
-        &CommandAccessor<SetCharacteristicValueCommand>::command,
-        &CommandAccessor<SetCharacteristicPropertiesCommand>::command,
-        &CommandAccessor<SetCharacteristicVariableLengthCommand>::command,
-        &CommandAccessor<SetCharacteristicMaxLengthCommand>::command,
-        &CommandAccessor<DeclareDescriptorCommand>::command,
-        &CommandAccessor<SetDescriptorValueCommand>::command,
-        &CommandAccessor<SetDescriptorVariableLengthCommand>::command,
-        &CommandAccessor<SetDescriptorMaxLengthCommand>::command,
-        &CommandAccessor<CommitServiceCommand>::command,
-        &CommandAccessor<CancelServiceDeclarationCommand>::command,
-        &CommandAccessor<ReadCommand>::command,
-        &CommandAccessor<WriteCommand>::command,
-        &CommandAccessor<WaitForDataWrittenCommand>::command
-    };
 
-    return ConstArray<const Command*>(commandHandlers);
-}
+DECLARE_SUITE_COMMANDS(GattServerCommandSuiteDescription, 
+    CMD_INSTANCE(DeclareServiceCommand),
+    CMD_INSTANCE(DeclareCharacteristicCommand),
+    CMD_INSTANCE(SetCharacteristicValueCommand),
+    CMD_INSTANCE(SetCharacteristicPropertiesCommand),
+    CMD_INSTANCE(SetCharacteristicVariableLengthCommand),
+    CMD_INSTANCE(SetCharacteristicMaxLengthCommand),
+    CMD_INSTANCE(DeclareDescriptorCommand),
+    CMD_INSTANCE(SetDescriptorValueCommand),
+    CMD_INSTANCE(SetDescriptorVariableLengthCommand),
+    CMD_INSTANCE(SetDescriptorMaxLengthCommand),
+    CMD_INSTANCE(CommitServiceCommand),
+    CMD_INSTANCE(CancelServiceDeclarationCommand),
+    CMD_INSTANCE(ReadCommand),
+    CMD_INSTANCE(WriteCommand),
+    CMD_INSTANCE(WaitForDataWrittenCommand)
+)
