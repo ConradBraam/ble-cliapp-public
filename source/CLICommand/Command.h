@@ -7,6 +7,8 @@
 #include "CommandArgDescription.h"
 #include "mbed_error.h"
 
+typedef const mbed::util::SharedPointer<CommandResponse> CommandResponsePtr;
+
 struct Command {
     const char* (* const name )();
 #if defined(ENABLE_COMMAND_HELP)
