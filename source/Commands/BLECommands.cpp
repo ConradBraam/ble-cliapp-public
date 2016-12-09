@@ -12,11 +12,13 @@ namespace {
 
 DECLARE_CMD(ShutdownCommand) {
     CMD_NAME("shutdown")
+    
     CMD_HELP(
         "Shutdown the current BLE instance, calling ble related function after this"
         "call may lead to faillure."
     )
-    CMD_HANDLER(args, response) {
+    
+    CMD_HANDLER(CommandResponsePtr& response) { 
         ble_error_t err = ble().shutdown();
         if(err) {
             response->faillure(err);
@@ -26,14 +28,15 @@ DECLARE_CMD(ShutdownCommand) {
     }
 };
 
-
 DECLARE_CMD(InitCommand) {
     CMD_NAME("init")
+
     CMD_HELP(
         "Initialize the ble API and underlying BLE stack.\r\n"
         "Be sure to call this function before any other ble API function"
     )
-    CMD_HANDLER(args, response) {
+    
+    CMD_HANDLER(CommandResponsePtr& response) { 
         if(ble().hasInitialized()) {
             response->success();
             return;
@@ -66,11 +69,13 @@ DECLARE_CMD(InitCommand) {
 
 DECLARE_CMD(ResetCommand) {
     CMD_NAME("reset")
+    
     CMD_HELP(
         "Reset the ble API and ble stack.\r\n"
         "This function internaly does a reset and an init"
     )
-    CMD_HANDLER(args, response) {
+    
+    CMD_HANDLER(CommandResponsePtr& response) { 
         ble_error_t err;
         if(ble().hasInitialized()) {
             err = ble().shutdown();
@@ -92,8 +97,10 @@ DECLARE_CMD(ResetCommand) {
 
 DECLARE_CMD(GetVersionCommand) {
     CMD_NAME("getVersion")
+    
     CMD_HELP("Return the version of the BLE API.\r\n")
-    CMD_HANDLER(args, response) {
+    
+    CMD_HANDLER(CommandResponsePtr& response) { 
         const char* version = ble().getVersion();
 
         if(version) {
@@ -106,13 +113,10 @@ DECLARE_CMD(GetVersionCommand) {
 
 } // end of annonymous namespace
 
-ConstArray<const Command*> BLECommandSuiteDescription::commands() {
-    static const Command* const commandHandlers[] = {
-        &CommandAccessor<ShutdownCommand>::command,
-        &CommandAccessor<InitCommand>::command,
-        &CommandAccessor<ResetCommand>::command,
-        &CommandAccessor<GetVersionCommand>::command
-    };
 
-    return ConstArray<const Command*>(commandHandlers);
-}
+DECLARE_SUITE_COMMANDS(BLECommandSuiteDescription, 
+    CMD_INSTANCE(ShutdownCommand),
+    CMD_INSTANCE(InitCommand),
+    CMD_INSTANCE(ResetCommand),
+    CMD_INSTANCE(GetVersionCommand)
+)
