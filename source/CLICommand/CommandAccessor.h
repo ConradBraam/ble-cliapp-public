@@ -557,6 +557,7 @@ const Command CommandAccessor<T>::command =  {
         &T::help,
 #endif
         &T::argsDescription,
+        &T::resultDescription,
         &T::template maximumArgsRequired<T>,
         &CommandHandlerResolver<T>::handler
 };

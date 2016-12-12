@@ -54,6 +54,28 @@
 
 
 /**
+ * @brief Declare the result of the command
+ * 
+ * @param a list of CMD_RESULT
+ */
+#define CMD_RESULTS(...) static ConstArray<CommandArgDescription> resultDescription() { \
+        static const CommandArgDescription resultDescription[] = { __VA_ARGS__  }; \
+        return ConstArray<CommandArgDescription>(resultDescription); \
+    }
+
+
+/**
+ * @brief Declare a result of the command.
+ * 
+ * @param type: type of the argument
+ * @param name: name of the argument
+ * @param desc: description of the argument
+ */
+#define CMD_RESULT(type, name, desc) { type, name, desc }
+
+
+
+/**
  * @brief Declare the handler of a command.
  * 
  * @param ARGS_NAME name of the args in the handler function.

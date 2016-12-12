@@ -47,9 +47,6 @@ int CommandSuiteImplementation::commandHandler(
 
     SharedPointer<CommandResponse> response(new CommandResponse());
 
-    response->setCommandName(commandName);
-    response->setArguments(commandArgs);
-
     const Command* command = getCommand(commandName, builtinCommands, moduleCommands);
     if(!command) {
         response->faillure("invalid command name, you can get all the command name for this module by using the command 'list'");
@@ -96,13 +93,19 @@ void CommandSuiteImplementation::help(
         response->setStatusCode(CommandResponse::SUCCESS);
         JSONOutputStream& stream = response->getResultStream();
         ConstArray<CommandArgDescription> args_desc = command->argsDescription();
+        ConstArray<CommandArgDescription> result_desc = command->resultDescription();
 
         stream << startObject <<
             key("command") << command->name() <<
             key("help") << command->help() << 
             key("arguments") << startArray;
             for (size_t i = 0; i < args_desc.count(); ++i) { 
-                stream.formatValue("%s: %s - %s ", args_desc[i].name, args_desc[i].type, args_desc[i].desc);
+                stream.formatValue("\"%s: %s - %s\"", args_desc[i].name, args_desc[i].type, args_desc[i].desc);
+            }
+            stream << endArray <<
+            key("results") << startArray;
+            for (size_t i = 0; i < result_desc.count(); ++i) { 
+                stream.formatValue("\"%s: %s - %s\"", result_desc[i].name, result_desc[i].type, result_desc[i].desc);
             }
             stream << endArray <<
         endObject;

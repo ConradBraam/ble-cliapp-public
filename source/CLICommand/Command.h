@@ -15,6 +15,9 @@ struct Command {
     const char* (* const help)();
 #endif
     ConstArray<CommandArgDescription> (* const argsDescription)();
+
+    ConstArray<CommandArgDescription> (* const resultDescription)();
+
     std::size_t (* const maximumArgsRequired)();
 
     /**
@@ -72,6 +75,10 @@ struct BaseCommand {
      * return an empty array of args.
      */
     static ConstArray<CommandArgDescription> argsDescription() {
+        return ConstArray<CommandArgDescription>();
+    }
+
+    static ConstArray<CommandArgDescription> resultDescription() {
         return ConstArray<CommandArgDescription>();
     }
 
