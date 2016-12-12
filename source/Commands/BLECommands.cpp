@@ -100,6 +100,10 @@ DECLARE_CMD(GetVersionCommand) {
     
     CMD_HELP("Return the version of the BLE API.\r\n")
     
+    CMD_RESULTS(
+        CMD_RESULT("string", "", "The version of the stack used by BLE API.")
+    )
+
     CMD_HANDLER(CommandResponsePtr& response) { 
         const char* version = ble().getVersion();
 
