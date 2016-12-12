@@ -40,10 +40,12 @@ DECLARE_CMD(SetAddressCommand) {
 DECLARE_CMD(GetAddressCommand) {
     CMD_NAME("getAddress")
     CMD_HELP(
-        "Get the address and the type of address of this device.\r\n"
-        "The result will be a json object containing:\r\n"
-        "   * 'address_type': <type of the address. It is a string representation of BLEProtocol::AddressType_t>\r\n"
-        "   * 'address'     : <the address which is a string representation like 'XX:XX:XX:XX:XX:XX'>\r\n"
+        "Get the address and the type of address of this device."
+    )
+
+    CMD_RESULTS(
+        CMD_RESULT("BLEProtocol::AddressType_t", "address_type", "Type of the address"),
+        CMD_RESULT("MacAddress_t", "address", "The mac address of the device")
     )
 
     CMD_HANDLER(CommandResponsePtr& response) { 
@@ -71,7 +73,9 @@ DECLARE_CMD(GetAddressCommand) {
 DECLARE_CMD(GetMinAdvertisingIntervalCommand) {
     CMD_NAME("getMinAdvertisingInterval")
     CMD_HELP("Return the minimum advertising interval")
-
+    CMD_RESULTS(
+        CMD_RESULT("uint16_t", "", "The minimum advertising interval.")
+    )
     CMD_HANDLER(CommandResponsePtr& response) { 
         response->success(gap().getMinNonConnectableAdvertisingInterval());
     }
@@ -114,18 +118,7 @@ DECLARE_CMD(StopScanCommand) {
 
 DECLARE_CMD(ConnectCommand) {
     CMD_NAME("connect")
-    CMD_HELP( "connect to a device, if this function succeed, a ConnectionCallbackParams_t is returned:\r\n"\
-                "\thandle: The connection handle\r\n"\
-                "\trole: Role of the device in the connection (here, it should be central)\r\n"\
-                "\tpeerAddrType: The addressType of the peer\r\n"\
-                "\tpeerAddr: The address of the peer\r\n"\
-                "\townAddrType: The address type of this device\r\n"\
-                "\townAddr: The address of this device\r\n"\
-                "\tconnectionParams: Object which contain the parameters of the connection\r\n"\
-                "\t\tminConnectionInterval: minimum connection interval for this connection\r\n"\
-                "\t\tmaxConnectionInterval: maximum connection interval for this connection\r\n"\
-                "\t\tslaveLatency: slave latency of the connection\r\n"\
-                "\t\tconnectionSupervisionTimeout: supervision timeout for this connection")
+    CMD_HELP( "connect to a device, if this function succeed, a ConnectionCallbackParams_t is returned.")
 
     CMD_ARGS(
         CMD_ARG("BLEProtocol::AddressType_t", "<addressType>", "The address type to of the peer device. It is a string representation of BLEProtocol::AddressType_t"),
@@ -144,6 +137,19 @@ DECLARE_CMD(ConnectCommand) {
         CMD_ARG("uint16_t", "<timeout>", "Maximum time allowed for this procedure")
     )
 
+    CMD_RESULTS(
+        CMD_RESULT("uint16_t", "handle", "The handle of the connection created"),
+        CMD_RESULT("Gap::Role", "role", "Role of the device in the connection (here, it should be central)"),
+        CMD_RESULT("BLEProtocol::AddressType_t", "peerAddrType", "The addressType of the peer"),
+        CMD_RESULT("MacAddress_t", "peerAddr", "The address of the peer"),
+        CMD_RESULT("BLEProtocol::AddressType_t", "ownAddrType", "The address type of this device"),
+        CMD_RESULT("MacAddress_t", "ownAddr", "The address of this device"),
+        CMD_RESULT("JSON object", "connectionParams", "Object which contain the parameters of the connection"),
+        CMD_RESULT("uint16_t", "connectionParams.minConnectionInterval", "minimum connection interval for this connection"),
+        CMD_RESULT("uint16_t", "connectionParams.maxConnectionInterval", "maximum connection interval for this connection"),
+        CMD_RESULT("uint16_t", "connectionParams.slaveLatency", "slave latency of the connection"),
+        CMD_RESULT("uint16_t", "connectionParams.connectionSupervisionTimeout", "supervision timeout for this connection")
+    )
 
     CMD_HANDLER(BLEProtocol::AddressType_t addressType, MacAddress_t address, uint16_t minConnectionInterval, uint16_t maxConnectionInterval, 
                 uint16_t slaveLatency, uint16_t connectionSupervisionTimeout, uint16_t scanInterval, uint16_t window, uint16_t scanTimeout,
@@ -233,11 +239,26 @@ DECLARE_CMD(ConnectCommand) {
 
 DECLARE_CMD(WaitForConnectionCommand) {
     CMD_NAME("waitForConnection")
-    CMD_HELP("Wait for a connection to occur")
+    CMD_HELP("Wait for a connection to occur. If another device connect, then the command will return the connection parameters.")
 
     CMD_ARGS(
         CMD_ARG("uint16_t", "<timeout>", "Maximum time allowed for this procedure")
     )
+
+    CMD_RESULTS(
+        CMD_RESULT("uint16_t", "handle", "The handle of the connection created"),
+        CMD_RESULT("Gap::Role", "role", "Role of the device in the connection (here, it should be peripheral)"),
+        CMD_RESULT("BLEProtocol::AddressType_t", "peerAddrType", "The addressType of the peer"),
+        CMD_RESULT("MacAddress_t", "peerAddr", "The address of the peer"),
+        CMD_RESULT("BLEProtocol::AddressType_t", "ownAddrType", "The address type of this device"),
+        CMD_RESULT("MacAddress_t", "ownAddr", "The address of this device"),
+        CMD_RESULT("JSON object", "connectionParams", "Object which contain the parameters of the connection"),
+        CMD_RESULT("uint16_t", "connectionParams.minConnectionInterval", "minimum connection interval for this connection"),
+        CMD_RESULT("uint16_t", "connectionParams.maxConnectionInterval", "maximum connection interval for this connection"),
+        CMD_RESULT("uint16_t", "connectionParams.slaveLatency", "slave latency of the connection"),
+        CMD_RESULT("uint16_t", "connectionParams.connectionSupervisionTimeout", "supervision timeout for this connection")
+    )
+
 
     CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) { 
         startProcedure<WaitForConnectionProcedure>(response, timeout);
@@ -287,15 +308,19 @@ DECLARE_CMD(WaitForConnectionCommand) {
 
 DECLARE_CMD(DisconnectCommand) {
     CMD_NAME("disconnect")
-    CMD_HELP("disconnect the device from a specific connection.\r\n"\
-               "If procedure succeed, a JSON object containing the following fields will be returned:\r\n"\
-               "\t* handle: The handle disconnected\r\n"\
-               "\t* reason: The reason of the disconnection (see Gap::DisconnectionReason_t)\r\n"\
-               "In case of error, the reason of the error will be returned.")
+    CMD_HELP("disconnect the device from a specific connection."\
+        "If the procedure succeed, a JSON object containing the following fields will be returned."\
+        "In case of error, the reason of the error will be returned."
+    )
 
     CMD_ARGS(
         CMD_ARG("Gap::Handle_t", "<connectionHandle>", "The id of the connection to terminate."),
         CMD_ARG("Gap::DisconnectionReason_t", "<reason>", "The reason of the termination (see Gap::DisconnectionReason_t)")
+    )
+
+    CMD_RESULTS(
+        CMD_RESULT("uint16_t", "handle", "The connection handle disconnected"),
+        CMD_RESULT("Gap::DisconnectionReason_t", "reason", "The reason of the disconnection")
     )
 
     CMD_HANDLER(Gap::Handle_t connectionHandle, Gap::DisconnectionReason_t reason, CommandResponsePtr& response) {
@@ -773,6 +798,18 @@ DECLARE_CMD(StartScanCommand) {
         CMD_ARG("uint16_t", "<address>", "The address to scan for")
     )
 
+    CMD_RESULTS( 
+        CMD_RESULT("JSON Array", "[]", "Array of scan results"),
+        CMD_RESULT("JSON Object", "[ {} ]", "A scan response"),
+        CMD_RESULT("MacAddress_t", "[].peerAddr", "Address of the peer adverising."),
+        CMD_RESULT("int8_t", "[].rssi", "RSSI of the scan sample."),
+        CMD_RESULT("bool", "[].isScanResponse", "Indicate if it is an advertising or a scan response."),
+        CMD_RESULT("GapAdvertisingParams::AdvertisingType_t", "[].type", "Type of the scan result."),
+        CMD_RESULT("uint32_t", "[].time", "Time (in ms) at which the scan has been acquired since the begining of the start procedure."),
+        CMD_RESULT("JSON object", "[].data", "Object containing the different fields of the advertisement."),
+        CMD_RESULT("HexString_t", "[].data.raw", "Raw payload of the advertising.")
+    )
+
     CMD_HANDLER(uint16_t duration, MacAddress_t address, CommandResponsePtr& response) {
         startProcedure<ScanProcedure>(response, duration, address);
     }
@@ -887,6 +924,13 @@ DECLARE_CMD(GetWhitelistCommand) {
     CMD_NAME("getWhitelist")
     CMD_HELP("Get the internal whitelist to be used by the Link Layer when scanning,"
                "advertising or initiating a connection depending on the filter policies.")
+
+    CMD_RESULTS(
+        CMD_RESULTS("JSON Array", "", "Array of the address in the whitelist"), 
+        CMD_RESULTS("JSON Object", "[]", "Description of an address"), 
+        CMD_RESULTS("AddressType_t", "[].address_type", "Type of the address"),
+        CMD_RESULTS("MacAddress_t", "[].address", "The mac address"),
+    )
 
     CMD_HANDLER(CommandResponsePtr& response) {
         using namespace serialization;
