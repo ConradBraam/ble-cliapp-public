@@ -71,7 +71,7 @@ DECLARE_CMD(DeclareServiceCommand) {
                "to cancel the service declaration")
 
     CMD_ARGS(
-        CMD_ARG("UUID", "<UUID>", "The UUID of the service")
+        CMD_ARG("UUID", "UUID", "The UUID of the service")
     )
 
     CMD_HANDLER(UUID serviceUUID, CommandResponsePtr& response) {
@@ -92,7 +92,7 @@ DECLARE_CMD(DeclareCharacteristicCommand) {
                "commitService to commit the service or cancelServiceDeclaration to cancel the service declaration")
 
     CMD_ARGS(
-        CMD_ARG("UUID", "<UUID>", "The UUID of the characteristic")
+        CMD_ARG("UUID", "UUID", "The UUID of the characteristic")
     )
 
     CMD_HANDLER(UUID characteristicUUID, CommandResponsePtr& response) {
@@ -114,7 +114,7 @@ DECLARE_CMD(SetCharacteristicValueCommand) {
     CMD_HELP("Set the value of the characteristic being declared")
 
     CMD_ARGS(
-        CMD_ARG("RawData_t", "<HexString>", "The value of the characteristic")
+        CMD_ARG("RawData_t", "value", "The value of the characteristic")
     )
 
     CMD_HANDLER(RawData_t characteristicValue, CommandResponsePtr& response) {
@@ -172,7 +172,7 @@ DECLARE_CMD(SetCharacteristicVariableLengthCommand) {
                "characteristic has a variable len, max len could be set to bound the length to a maximum")
 
     CMD_ARGS(
-        CMD_ARG("bool", "<bool>", "The value of the variable length property")
+        CMD_ARG("bool", "bool", "The value of the variable length property")
     )
 
     CMD_HANDLER(bool variableLen, CommandResponsePtr& response) {
@@ -196,7 +196,7 @@ DECLARE_CMD(SetCharacteristicMaxLengthCommand) {
     CMD_HELP("Set the maximum lenght that is allowed for the value of the characteristic being declared")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<uint16_t>", "Maximum length of the value of the characteristic being declared")
+        CMD_ARG("uint16_t", "max_len", "Maximum length of the value of the characteristic being declared")
     )
 
     CMD_HANDLER(uint16_t maxLen, CommandResponsePtr& response) {
@@ -221,7 +221,7 @@ DECLARE_CMD(DeclareDescriptorCommand) {
     CMD_HELP("Start the declaration of a descriptor which will be attached to the characteristic being declared")
 
     CMD_ARGS(
-        CMD_ARG("UUID", "<UUID>", "The UUID of the descriptor")
+        CMD_ARG("UUID", "uuid", "The UUID of the descriptor")
     )
 
     CMD_HANDLER(UUID descriptorUUID, CommandResponsePtr& response) {
@@ -245,7 +245,7 @@ DECLARE_CMD(SetDescriptorValueCommand) {
     CMD_HELP("Set the value of the descriptor being declared")
 
     CMD_ARGS(
-        CMD_ARG("RawData_t", "<HexString>", "The value of the descriptor")
+        CMD_ARG("RawData_t", "value", "The value of the descriptor")
     )
 
     CMD_HANDLER(RawData_t descriptorValue, CommandResponsePtr& response) {
@@ -270,7 +270,7 @@ DECLARE_CMD(SetDescriptorVariableLengthCommand) {
                "descriptor has a variable len, max len could be set to bound the length to a maximum")
 
     CMD_ARGS(
-        CMD_ARG("bool", "<bool>", "The value of the variable length property")
+        CMD_ARG("bool", "variable_length", "The value of the variable length property")
     )
 
     CMD_HANDLER(bool variableLen, CommandResponsePtr& response) {
@@ -294,7 +294,7 @@ DECLARE_CMD(SetDescriptorMaxLengthCommand) {
     CMD_HELP("Set the maximum lenght that is allowed for the value of the descriptor being declared")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<uint16_t>", "Maximum length of the value of the descriptor being declared")
+        CMD_ARG("uint16_t", "max_length", "Maximum length of the value of the descriptor being declared")
     )
 
     CMD_HANDLER(uint16_t maxLen, CommandResponsePtr& response) {
@@ -316,6 +316,27 @@ DECLARE_CMD(CommitServiceCommand) {
     CMD_NAME("commitService")
 
     CMD_HELP("commit the service declaration")
+
+    CMD_RESULTS( 
+        CMD_RESULT("JSON object", "", "The service declared"),
+        CMD_RESULT("UUID", "UUID", "The UUID of the service"),
+        CMD_RESULT("uint16_t", "handle", "The handle of the service declaration."),
+        CMD_RESULT("JSON Array", "characteristics", "List of the characteristics of the service."),
+        CMD_RESULT("UUID", "characteristics[].UUID", "UUID of a characteristic."),
+        CMD_RESULT("uint16_t", "characteristics[].value_handle", "Handle of the value of a characteristic."),
+        CMD_RESULT("JSON Array", "characteristics[].properties", "List of the properties of a characteristic."),
+        CMD_RESULT("uint16_t", "characteristics[].length", "Lenght of the characteristic value."),
+        CMD_RESULT("uint16_t", "characteristics[].max_length", "Maximum lenght of the characteristic value."),
+        CMD_RESULT("bool", "characteristics[].has_variable_length", "Indicate if the characteristic can have a variable length."),
+        CMD_RESULT("HexString", "characteristics[].value", "The value of a characteristic."),
+        CMD_RESULT("JSON Array", "characteristics[].descriptors", "List of the descriptors of the characteristic."),
+        CMD_RESULT("UUID", "characteristics[].descriptors[].UUID", "UUID of the descriptor."),
+        CMD_RESULT("uint16_t", "characteristics[].descriptors[].handle", "Handle of the value of the descriptor."),
+        CMD_RESULT("uint16_t", "characteristics[].descriptors[].length", "Lenght of the descriptor value."),
+        CMD_RESULT("uint16_t", "characteristics[].descriptors[].max_length", "Maximum lenght of the descriptor value."),
+        CMD_RESULT("bool", "characteristics[].descriptors[].has_variable_length", "Indicate if the descriptor can have a variable length."),
+        CMD_RESULT("HexString", "characteristics[].descriptors[].value", "The value of the descriptor.")
+    )
 
     CMD_HANDLER(CommandResponsePtr& response) {
         using namespace serialization;
@@ -430,7 +451,11 @@ DECLARE_CMD(ReadCommand) {
                "supply a connection handle has second parameter.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<uint16_t>", "The handle of the attribute to read")
+        CMD_ARG("uint16_t", "handle", "The handle of the attribute to read")
+    )
+
+    CMD_RESULTS( 
+        CMD_RESULT("HexString", "", "The value read.")
     )
 
     template<typename T>
@@ -506,8 +531,8 @@ DECLARE_CMD(WriteCommand) {
                "third parameter.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<uint16_t>", "The handle of the attribute to write"),
-        CMD_ARG("RawData_t", "<HexString>", "The value to write")
+        CMD_ARG("uint16_t", "handle", "The handle of the attribute to write"),
+        CMD_ARG("HexString", "value", "The value to write")
     )
 
     template<typename T>
@@ -564,9 +589,9 @@ DECLARE_CMD(WaitForDataWrittenCommand) {
     CMD_HELP("Wait for a data to be written on a given characteristic from a given connection.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<uint16_t>", "The connection ID with the client supposed to write data"),
-        CMD_ARG("uint16_t", "<uint16_t>", "The attribute handle which will be written"),
-        CMD_ARG("uint16_t", "<timeout>", "Maximum time allowed for this procedure")
+        CMD_ARG("uint16_t", "connection_handle", "The connection ID with the client supposed to write data"),
+        CMD_ARG("uint16_t", "attribute_handle", "The attribute handle which will be written"),
+        CMD_ARG("uint16_t", "timeout", "Maximum time allowed for this procedure")
     )
 
     CMD_HANDLER(Gap::Handle_t connectionHandle, GattAttribute::Handle_t attributeHandle, uint16_t procedureTimeout, CommandResponsePtr& response) {
