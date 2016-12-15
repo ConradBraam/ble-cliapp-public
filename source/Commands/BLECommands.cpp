@@ -71,7 +71,7 @@ DECLARE_CMD(ResetCommand) {
     CMD_NAME("reset")
     
     CMD_HELP(
-        "Reset the ble API and ble stack.\r\n"
+        "Reset the ble API and ble stack."
         "This function internaly does a reset and an init"
     )
     
@@ -98,7 +98,7 @@ DECLARE_CMD(ResetCommand) {
 DECLARE_CMD(GetVersionCommand) {
     CMD_NAME("getVersion")
     
-    CMD_HELP("Return the version of the BLE API.\r\n")
+    CMD_HELP("Return the version of the BLE API.")
     
     CMD_RESULTS(
         CMD_RESULT("string", "", "The version of the stack used by BLE API.")
