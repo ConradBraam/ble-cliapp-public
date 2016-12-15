@@ -616,6 +616,10 @@ struct ReadCharacteristicValueCommand : public BaseCommand {
         CMD_ARG("uint16_t", "characteristicValuehandle", "The handle of characteristic value")
     )
 
+    CMD_RESULTS(
+        CMD_RESULT("HexString_t", "", "The data read")
+    )
+
     CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicValueHandle, CommandResponsePtr& response) {
         startProcedure<ReadProcedure>(response, /* timeout */ 5 * 1000, connectionHandle, characteristicValueHandle);
     }
