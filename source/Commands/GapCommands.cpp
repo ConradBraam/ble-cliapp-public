@@ -27,8 +27,8 @@ DECLARE_CMD(SetAddressCommand) {
     CMD_NAME("setAddress")
     CMD_HELP("set the address of this device")
     CMD_ARGS(
-        CMD_ARG("BLEProtocol::AddressType_t", "<addressType>", "The type of the address to set."),
-        CMD_ARG("MacAddress_t", "<address>" , "The address to set")
+        CMD_ARG("BLEProtocol::AddressType_t", "addressType", "The type of the address to set."),
+        CMD_ARG("MacAddress_t", "address" , "The address to set")
     )
     CMD_HANDLER(BLEProtocol::AddressType_t addressType, MacAddress_t address, CommandResponsePtr& response) {
         ble_error_t err = gap().setAddress(addressType, address);
@@ -121,20 +121,20 @@ DECLARE_CMD(ConnectCommand) {
     CMD_HELP( "connect to a device, if this function succeed, a ConnectionCallbackParams_t is returned.")
 
     CMD_ARGS(
-        CMD_ARG("BLEProtocol::AddressType_t", "<addressType>", "The address type to of the peer device. It is a string representation of BLEProtocol::AddressType_t"),
-        CMD_ARG("MacAddress_t", "<address>", "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\""),
+        CMD_ARG("BLEProtocol::AddressType_t", "addressType", "The address type to of the peer device."),
+        CMD_ARG("MacAddress_t", "address", "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\""),
             // connection parameters
-        CMD_ARG("uint16_t", "<minConnectionInterval>", "Minimum Connection Interval in 1.25 ms units"),
-        CMD_ARG("uint16_t", "<maxConnectionInterval>", "Maximum Connection Interval in 1.25 ms units"),
-        CMD_ARG("uint16_t", "<slaveLatency>", "Slave Latency in number of connection events"),
-        CMD_ARG("uint16_t", "<connectionSupervisionTimeout>", "Connection Supervision Timeout in 10 ms units"),
+        CMD_ARG("uint16_t", "minConnectionInterval", "Minimum Connection Interval in 1.25 ms units"),
+        CMD_ARG("uint16_t", "maxConnectionInterval", "Maximum Connection Interval in 1.25 ms units"),
+        CMD_ARG("uint16_t", "slaveLatency", "Slave Latency in number of connection events"),
+        CMD_ARG("uint16_t", "connectionSupervisionTimeout", "Connection Supervision Timeout in 10 ms units"),
             // scan parameters
-        CMD_ARG("uint16_t", "<interval>", "The scan interval, it should be a number between 3 and 10420ms."),
-        CMD_ARG("uint16_t", "<window>", "The scan window, it should be a number between 3 and 10420ms."),
-        CMD_ARG("uint16_t", "<scan timeout>", "The scan timeout, it should be a number between 0 and 65534"),
-        CMD_ARG("bool", "<activeScanning>", "A boolean value { true, false } indicating if the device send scan request or not"),
+        CMD_ARG("uint16_t", "interval", "The scan interval, it should be a number between 3 and 10420ms."),
+        CMD_ARG("uint16_t", "window", "The scan window, it should be a number between 3 and 10420ms."),
+        CMD_ARG("uint16_t", "scan timeout", "The scan timeout, it should be a number between 0 and 65534"),
+        CMD_ARG("bool", "activeScanning", "A boolean value { true, false } indicating if the device send scan request or not"),
             // timeout for this procedure
-        CMD_ARG("uint16_t", "<timeout>", "Maximum time allowed for this procedure")
+        CMD_ARG("uint16_t", "timeout", "Maximum time allowed for this procedure")
     )
 
     CMD_RESULTS(
@@ -242,7 +242,7 @@ DECLARE_CMD(WaitForConnectionCommand) {
     CMD_HELP("Wait for a connection to occur. If another device connect, then the command will return the connection parameters.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<timeout>", "Maximum time allowed for this procedure")
+        CMD_ARG("uint16_t", "timeout", "Maximum time allowed for this procedure")
     )
 
     CMD_RESULTS(
@@ -314,8 +314,8 @@ DECLARE_CMD(DisconnectCommand) {
     )
 
     CMD_ARGS(
-        CMD_ARG("Gap::Handle_t", "<connectionHandle>", "The id of the connection to terminate."),
-        CMD_ARG("Gap::DisconnectionReason_t", "<reason>", "The reason of the termination (see Gap::DisconnectionReason_t)")
+        CMD_ARG("Gap::Handle_t", "connectionHandle", "The id of the connection to terminate."),
+        CMD_ARG("Gap::DisconnectionReason_t", "reason", "The reason of the termination (see Gap::DisconnectionReason_t)")
     )
 
     CMD_RESULTS(
@@ -386,7 +386,11 @@ DECLARE_CMD(SetPreferredConnectionParamsCommand) {
     CMD_HELP("set the prefered connection parameters")
 
     CMD_ARGS(
-        CMD_ARG("Gap::ConnectionParams_t", "<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>", "all the parameters, coma separated")
+        CMD_ARG(
+            "Gap::ConnectionParams_t", 
+            "minConnectionInterval,maxConnectionInterval,slaveLatency,connectionSupervisionTimeout", 
+            "all the parameters, coma separated"
+        )
     )
 
     CMD_HANDLER(Gap::ConnectionParams_t connectionParameters, CommandResponsePtr& response) { 
@@ -409,7 +413,7 @@ DECLARE_CMD(SetDeviceNameCommand) {
     CMD_HELP("set the device name")
 
     CMD_ARGS(
-        CMD_ARG("string", "<name>", "the name of the device, it should not have space")
+        CMD_ARG("string", "name", "the name of the device, it should not have space")
     )
 
     CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
@@ -456,7 +460,7 @@ DECLARE_CMD(SetAppearanceCommand) {
     CMD_HELP("set the appearance flag of the device")
 
     CMD_ARGS(
-        CMD_ARG("GapAdvertisingData::Appearance_t", "<appearance>", "the appearance to set (see GapAdvertisingData::Appearance_t)")
+        CMD_ARG("GapAdvertisingData::Appearance_t", "appearance", "the appearance to set (see GapAdvertisingData::Appearance_t)")
     )
 
     CMD_HANDLER(GapAdvertisingData::Appearance_t appearance, CommandResponsePtr& response) {
@@ -483,7 +487,7 @@ DECLARE_CMD(SetTxPowerCommand) {
     CMD_HELP("set the transmission power of the device")
 
     CMD_ARGS(
-        CMD_ARG("int8_t", "<TxPower>", "The transmission power, it is an integer between [-128:127]")
+        CMD_ARG("int8_t", "TxPower", "The transmission power, it is an integer between [-128:127]")
     )
 
     CMD_HANDLER(int8_t txPower, CommandResponsePtr& response) {
@@ -529,7 +533,7 @@ DECLARE_CMD(SetAdvertisingTypeCommand) {
     CMD_NAME("setAdvertisingType")
     CMD_HELP("set the advertising type")
     CMD_ARGS(
-        CMD_ARG("GapAdvertisingParams::AdvertisingType_t", "<advertisingType>", "The advertising type to set")
+        CMD_ARG("GapAdvertisingParams::AdvertisingType_t", "advertisingType", "The advertising type to set")
     )
     CMD_HANDLER(GapAdvertisingParams::AdvertisingType_t advType, CommandResponsePtr& response) {
         gap().setAdvertisingType(advType);
@@ -543,7 +547,7 @@ DECLARE_CMD(SetAdvertisingIntervalCommand) {
     CMD_HELP("set the advertising interval")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<interval>", "The interval in ms, if 0, the advertising is disabled")
+        CMD_ARG("uint16_t", "interval", "The interval in ms, if 0, the advertising is disabled")
     )
 
     CMD_HANDLER(uint16_t interval, CommandResponsePtr& response) {
@@ -558,7 +562,7 @@ DECLARE_CMD(SetAdvertisingTimeoutCommand) {
     CMD_HELP("set the advertising timeout, in seconds")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<timeout>", "An integer wich represent the advertising timeout in seconds [0x1 : 0x3FFF]. 0 disable the timeout")
+        CMD_ARG("uint16_t", "timeout", "An integer wich represent the advertising timeout in seconds [0x1 : 0x3FFF]. 0 disable the timeout")
     )
 
     CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) { 
@@ -595,8 +599,8 @@ DECLARE_CMD(AccumulateAdvertisingPayloadCommand) {
     CMD_HELP("add a new field into the advertising payload")
 
     CMD_ARGS(
-        CMD_ARG("AdvertisingPayloadField_t", "<fieldType>", "the field type of the data following (see GapAdvertisingData::DataType_t)"),
-        CMD_ARG("undefined", "<data>", "the value of the field, please see GapAdvertisingData")
+        CMD_ARG("AdvertisingPayloadField_t", "fieldType", "the field type of the data following (see GapAdvertisingData::DataType_t)"),
+        CMD_ARG("undefined", "data", "the value of the field, please see GapAdvertisingData")
     )
 
     template<typename T>
@@ -621,12 +625,12 @@ DECLARE_CMD(AccumulateAdvertisingPayloadCommand) {
 
 DECLARE_CMD(UpdateAdvertisingPayloadCommand) {
     CMD_NAME("updateAdvertisingPayload")
-    CMD_HELP("update a field int the advertising payload.\r\n"
+    CMD_HELP("update a field int the advertising payload."
                "Take care, at the moment, this will only succeed if the new value has the same size as the old one")
 
     CMD_ARGS(
-        CMD_ARG("AdvertisingPayloadField_t", "<fieldType>", "the field type to update (see GapAdvertisingData::DataType_t)"),
-        CMD_ARG("undefined", "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData")
+        CMD_ARG("AdvertisingPayloadField_t", "fieldType", "the field type to update (see GapAdvertisingData::DataType_t)"),
+        CMD_ARG("undefined", "data", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData")
     )
 
     template<typename T>
@@ -676,8 +680,8 @@ DECLARE_CMD(AccumulateScanResponseCommand) {
     CMD_HELP("add a field into the scan response payload")
 
     CMD_ARGS(
-        CMD_ARG("AdvertisingPayloadField_t", "<fieldType>", "the field type to update (see GapAdvertisingData::DataType_t)"),
-        CMD_ARG("undefined", "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData")
+        CMD_ARG("AdvertisingPayloadField_t", "fieldType", "the field type to update (see GapAdvertisingData::DataType_t)"),
+        CMD_ARG("undefined", "data", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData")
     )
 
     template<typename T>
@@ -716,10 +720,10 @@ DECLARE_CMD(SetScanParamsCommand) {
     CMD_HELP("Set the scan parameters")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<interval>", "The scan interval, it should be a number between 3 and 10420ms"),
-        CMD_ARG("uint16_t", "<window>", "The scan window, it should be a number between 3 and 10420ms"),
-        CMD_ARG("uint16_t", "<timeout>", "The scan timeout, it should be a number between 0 and 65534 "),
-        CMD_ARG("uint16_t", "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not")
+        CMD_ARG("uint16_t", "interval", "The scan interval, it should be a number between 3 and 10420ms"),
+        CMD_ARG("uint16_t", "window", "The scan window, it should be a number between 3 and 10420ms"),
+        CMD_ARG("uint16_t", "timeout", "The scan timeout, it should be a number between 0 and 65534 "),
+        CMD_ARG("uint16_t", "activeScanning", "A boolean value { true, false } indeicating if the device send scan request or not")
     )
 
     CMD_HANDLER(uint16_t interval, uint16_t window, uint16_t timeout, uint16_t activeScanning, CommandResponsePtr& response) {
@@ -734,7 +738,7 @@ DECLARE_CMD(SetScanIntervalCommand) {
     CMD_HELP("set the scan interval")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<interval>", "The interval between each scan, it should be a number between 3 and 10240ms")
+        CMD_ARG("uint16_t", "interval", "The interval between each scan, it should be a number between 3 and 10240ms")
     )
 
     CMD_HANDLER(uint16_t interval, CommandResponsePtr& response) { 
@@ -749,7 +753,7 @@ DECLARE_CMD(SetScanWindowCommand) {
     CMD_HELP("set the scan windows")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<window>", "The interval between each scan, it should be a number between 3 and 10240ms")
+        CMD_ARG("uint16_t", "window", "The interval between each scan, it should be a number between 3 and 10240ms")
     )
 
     CMD_HANDLER(uint16_t window, CommandResponsePtr& response) {
@@ -764,7 +768,7 @@ DECLARE_CMD(SetScanTimeoutCommand) {
     CMD_HELP("Set the scane timeout")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<timeout>", "The scan timeout, it should be a number between 0 and 65534 ")
+        CMD_ARG("uint16_t", "timeout", "The scan timeout, it should be a number between 0 and 65534 ")
     )
 
     CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) {
@@ -779,7 +783,7 @@ DECLARE_CMD(SetActiveScanningCommand) {
     CMD_HELP("Enable or disable active scanning")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not")
+        CMD_ARG("uint16_t", "activeScanning", "A boolean value { true, false } indeicating if the device send scan request or not")
     )
 
     CMD_HANDLER(bool activeScanning, CommandResponsePtr& response) {
@@ -794,20 +798,20 @@ DECLARE_CMD(StartScanCommand) {
     CMD_HELP("start the scan process")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<duration>", "The duration of the scan"),
-        CMD_ARG("uint16_t", "<address>", "The address to scan for")
+        CMD_ARG("uint16_t", "duration", "The duration of the scan"),
+        CMD_ARG("uint16_t", "address", "The address to scan for")
     )
 
     CMD_RESULTS( 
-        CMD_RESULT("JSON Array", "[]", "Array of scan results"),
-        CMD_RESULT("JSON Object", "[ {} ]", "A scan response"),
-        CMD_RESULT("MacAddress_t", "[].peerAddr", "Address of the peer adverising."),
-        CMD_RESULT("int8_t", "[].rssi", "RSSI of the scan sample."),
-        CMD_RESULT("bool", "[].isScanResponse", "Indicate if it is an advertising or a scan response."),
-        CMD_RESULT("GapAdvertisingParams::AdvertisingType_t", "[].type", "Type of the scan result."),
-        CMD_RESULT("uint32_t", "[].time", "Time (in ms) at which the scan has been acquired since the begining of the start procedure."),
-        CMD_RESULT("JSON object", "[].data", "Object containing the different fields of the advertisement."),
-        CMD_RESULT("HexString_t", "[].data.raw", "Raw payload of the advertising.")
+        CMD_RESULT("JSON Array", "", "Array of scan results"),
+        CMD_RESULT("JSON Object", "[x]", "A scan result"),
+        CMD_RESULT("MacAddress_t", "[x].peerAddr", "Address of the peer adverising."),
+        CMD_RESULT("int8_t", "[x].rssi", "RSSI of the scan sample."),
+        CMD_RESULT("bool", "[x].isScanResponse", "Indicate if it is an advertising or a scan response."),
+        CMD_RESULT("GapAdvertisingParams::AdvertisingType_t", "[x].type", "Type of the scan result."),
+        CMD_RESULT("uint32_t", "[x].time", "Time (in ms) at which the scan has been acquired since the begining of the start procedure."),
+        CMD_RESULT("JSON object", "[x].data", "Object containing the different fields of the advertisement."),
+        CMD_RESULT("HexString_t", "[x].data.raw", "Raw payload of the advertising.")
     )
 
     CMD_HANDLER(uint16_t duration, MacAddress_t address, CommandResponsePtr& response) {
@@ -898,9 +902,9 @@ DECLARE_CMD(SetAdvertisingParamsCommand) {
     CMD_HELP("set the advertising parameters")
 
     CMD_ARGS(
-        CMD_ARG("GapAdvertisingParams::AdvertisingType_t", "<advertisingType>", "The Advertising type, please refer to GapAdvertisingParams::AdvertisingType_t"),
-        CMD_ARG("uint16_t", "<interval>", "The advertising interval, it should be a number between 0 and 65534"),
-        CMD_ARG("uint16_t", "<timeout>", "The timeout, it should be a number between 0 and 65534")
+        CMD_ARG("GapAdvertisingParams::AdvertisingType_t", "advertisingType", "The Advertising type, please refer to GapAdvertisingParams::AdvertisingType_t"),
+        CMD_ARG("uint16_t", "interval", "The advertising interval, it should be a number between 0 and 65534"),
+        CMD_ARG("uint16_t", "timeout", "The timeout, it should be a number between 0 and 65534")
     )
 
     CMD_HANDLER(GapAdvertisingParams::AdvertisingType_t advertisingType, uint16_t interval, uint16_t timeout, CommandResponsePtr& response) {
@@ -926,10 +930,10 @@ DECLARE_CMD(GetWhitelistCommand) {
                "advertising or initiating a connection depending on the filter policies.")
 
     CMD_RESULTS(
-        CMD_RESULTS("JSON Array", "", "Array of the address in the whitelist"), 
-        CMD_RESULTS("JSON Object", "[]", "Description of an address"), 
-        CMD_RESULTS("AddressType_t", "[].address_type", "Type of the address"),
-        CMD_RESULTS("MacAddress_t", "[].address", "The mac address"),
+        CMD_RESULT("JSON Array", "", "Array of the address in the whitelist"), 
+        CMD_RESULT("JSON Object", "[i]", "Description of an address"), 
+        CMD_RESULT("AddressType_t", "[i].address_type", "Type of the address"),
+        CMD_RESULT("MacAddress_t", "[i].address", "The mac address"),
     )
 
     CMD_HANDLER(CommandResponsePtr& response) {
@@ -1019,7 +1023,7 @@ DECLARE_CMD(SetAdvertisingPolicyModeCommand) {
                "to startAdvertising().")
 
     CMD_ARGS(
-        CMD_ARG("Gap::AdvertisingPolicyMode_t", "<AdvertisingPolicyMode_t>", "The advertising policy mode to set")
+        CMD_ARG("Gap::AdvertisingPolicyMode_t", "AdvertisingPolicyMode_t", "The advertising policy mode to set")
     )
 
     CMD_HANDLER(Gap::AdvertisingPolicyMode_t mode, CommandResponsePtr& response) {
@@ -1033,7 +1037,7 @@ DECLARE_CMD(SetScanningPolicyModeCommand) {
     CMD_HELP("Set the scan policy filter mode to be used in the next call to startScan().")
 
     CMD_ARGS(
-        CMD_ARG("Gap::ScanningPolicyMode_t", "<ScanningPolicyMode_t>", "The scanning policy mode to set")
+        CMD_ARG("Gap::ScanningPolicyMode_t", "ScanningPolicyMode_t", "The scanning policy mode to set")
     )
 
     CMD_HANDLER(Gap::ScanningPolicyMode_t mode, CommandResponsePtr& response) {
@@ -1047,7 +1051,7 @@ DECLARE_CMD(SetInitiatorPolicyModeCommand) {
     CMD_HELP("Set the initiator policy filter mode to be used.")
 
     CMD_ARGS(
-        CMD_ARG("Gap::InitiatorPolicyMode_t", "<InitiatorPolicyMode_t>", "The scanning policy mode to set")
+        CMD_ARG("Gap::InitiatorPolicyMode_t", "InitiatorPolicyMode_t", "The scanning policy mode to set")
     )
 
     CMD_HANDLER(Gap::InitiatorPolicyMode_t mode, CommandResponsePtr& response) {

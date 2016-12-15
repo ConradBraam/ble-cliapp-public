@@ -15,8 +15,7 @@ public:
     }
 
     static const char* man() {
-        return "gap <command> <command arguments>\r\n"\
-               "    * gap shutdown : shutdown the ble instance of this device\r\n";
+        return "gap <command> <command arguments>.";
     }
 
     // see implementation
