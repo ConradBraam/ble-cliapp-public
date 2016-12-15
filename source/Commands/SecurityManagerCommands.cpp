@@ -31,10 +31,10 @@ DECLARE_CMD(InitCommand) {
     CMD_HELP("Enable the BLE stack's Security Manager.")
 
     CMD_ARGS(
-        CMD_ARG("", "<bool>", "enableBonding: Allow for bonding."),
-        CMD_ARG("", "<bool>", "requireMITM   Require protection for man-in-the-middle attacks."),
-        CMD_ARG("", "<SecurityManager::SecurityIOCapabilities_t>", "iocaps :To specify the I/O capabilities of this peripheral."),
-        CMD_ARG("", "<Passkey_t>", "passkey: To specify a static passkey..")
+        CMD_ARG("bool","enableBonding", "Allow bonding."),
+        CMD_ARG("bool", "requireMITM", "Require protection for man-in-the-middle attacks."),
+        CMD_ARG("SecurityManager::SecurityIOCapabilities_t", "iocaps", "Specify the I/O capabilities of this peripheral."),
+        CMD_ARG("Passkey_t", "passkey", "Specify a static passkey.")
     )
 
     CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
@@ -77,7 +77,13 @@ DECLARE_CMD(GetAddressesFromBondTableCommand) {
     CMD_HELP("Get a list of addresses from all peers in the bond table.")
 
     CMD_ARGS(
-        CMD_ARG("uint8_t", "<uint8_t>", "addressesCount count of addresses to get")
+        CMD_ARG("uint8_t", "addresses_count", "count of addresses to get")
+    )
+
+    CMD_RESULTS(
+        CMD_RESULT("JSON Array", "", "List of the addresses in the bond table."),
+        CMD_RESULT("BLEProtocol::AddressType_t", "[].address_type", "Address type of the address."),
+        CMD_RESULT("MacAddress", "[].address", "Mac address."),
     )
 
     CMD_HANDLER(uint8_t addrCount, CommandResponsePtr& response) {
