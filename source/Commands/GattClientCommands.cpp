@@ -26,10 +26,24 @@ namespace {
 DECLARE_CMD(DiscoverAllServicesAndCharacteristicsCommand) {
     CMD_NAME("discoverAllServicesAndCharacteristics")
 
-    CMD_HELP("discover all services and characteristics available on a peer device")
+    CMD_HELP("Discover all services and characteristics available on a peer device")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure")
+    )
+
+    CMD_RESULTS(
+        CMD_RESULT("JSON Array", "", "Array of the services discovered."),
+        CMD_RESULT("JSON Object", "[i]", "A service"),
+        CMD_RESULT("UUID", "[i].UUID", "UUID of the service"),
+        CMD_RESULT("uint16_t", "[i].start_handle", "First handle of the service."),
+        CMD_RESULT("uint16_t", "[i].end_handle", "Last handle of the service."),
+        CMD_RESULT("JSON Array", "[i].characteristics", "Characteristics included in the service."),
+        CMD_RESULT("UUID", "[i].characteristics[j].UUID", "UUID of the characteristic."),
+        CMD_RESULT("JSON Array", "[i].characteristics[j].properties", "List of properties associated with the characteristic."),
+        CMD_RESULT("uint16_t", "[i].characteristics[j].start_handle", "First handle of the characteristic."),
+        CMD_RESULT("uint16_t", "[i].characteristics[j].value_handle", "Handle pointing to the value of the characteristic."),
+        CMD_RESULT("uint16_t", "[i].characteristics[j].end_handle", "Last handle of the characteristic.")
     )
 
     CMD_HANDLER(uint16_t connectionHandle, CommandResponsePtr& response) {
@@ -150,7 +164,15 @@ DECLARE_CMD(DiscoverAllServicesCommand) {
     CMD_NAME("discoverAllServices")
     CMD_HELP("discover all services available on a peer device")
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure")
+    )
+
+    CMD_RESULTS(
+        CMD_RESULT("JSON Array", "", "Array of the services discovered."),
+        CMD_RESULT("JSON Object", "[i]", "A service"),
+        CMD_RESULT("UUID", "[i].UUID", "UUID of the service"),
+        CMD_RESULT("uint16_t", "[i].start_handle", "First handle of the service."),
+        CMD_RESULT("uint16_t", "[i].end_handle", "Last handle of the service.")
     )
 
     CMD_HANDLER(uint16_t connectionHandle, CommandResponsePtr& response) {
@@ -243,8 +265,16 @@ DECLARE_CMD(DiscoverPrimaryServicesByUUIDCommand) {
     CMD_HELP("discover a specific kind of services on a peer device")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("UUID", "<serviceUUID>", "The UUID of the services to discover")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("UUID", "serviceUUID", "The UUID of the services to discover")
+    )
+
+    CMD_RESULTS(
+        CMD_RESULT("JSON Array", "", "Array of the services discovered."),
+        CMD_RESULT("JSON Object", "[i]", "A service"),
+        CMD_RESULT("UUID", "[i].UUID", "UUID of the service"),
+        CMD_RESULT("uint16_t", "[i].start_handle", "First handle of the service."),
+        CMD_RESULT("uint16_t", "[i].end_handle", "Last handle of the service.")
     )
 
     CMD_HANDLER(uint16_t connectionHandle, UUID serviceUUID, CommandResponsePtr& response) {
@@ -338,9 +368,9 @@ struct FindIncludedServicesCommand : public BaseCommand {
     CMD_HELP("Find includded services declaration withn a service definition on the server")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<serviceStartHandle>", "The starting handle of the service" ),
-        CMD_ARG("uint16_t", "<serviceEndHandle>", "The ending handle of the service")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "serviceStartHandle", "The starting handle of the service" ),
+        CMD_ARG("uint16_t", "serviceEndHandle", "The ending handle of the service")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
@@ -358,9 +388,9 @@ struct DiscoverCharacteristicsOfServiceCommand : public BaseCommand {
     )
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<serviceStartHandle>", "The starting handle of the service" ),
-        CMD_ARG("uint16_t", "<serviceEndHandle>", "The ending handle of the service")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "serviceStartHandle", "The starting handle of the service" ),
+        CMD_ARG("uint16_t", "serviceEndHandle", "The ending handle of the service")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
@@ -375,10 +405,10 @@ struct DiscoverCharacteristicsByUUIDCommand : public BaseCommand {
     CMD_HELP("Discover all characteristics of a service matching a specific UUID.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<serviceStartHandle>", "The starting handle of the service" ),
-        CMD_ARG("uint16_t", "<serviceEndHandle>", "The ending handle of the service" ),
-        CMD_ARG("UUID", "<serviceUUID>", "The UUID of the characteristics to discover")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "serviceStartHandle", "The starting handle of the service" ),
+        CMD_ARG("uint16_t", "serviceEndHandle", "The ending handle of the service" ),
+        CMD_ARG("UUID", "serviceUUID", "The UUID of the characteristics to discover")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
@@ -395,9 +425,15 @@ struct DiscoverAllCharacteristicsDescriptorsCommand : public BaseCommand {
                "identified by the characteristic handle range.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicStartHandle>", "The start handle of of the characteristic"),
-        CMD_ARG("uint16_t", "<endHandle>", "The ending handle of the characteristic definition")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicStartHandle", "The start handle of of the characteristic"),
+        CMD_ARG("uint16_t", "endHandle", "The ending handle of the characteristic definition")
+    )
+
+    CMD_RESULTS(
+        CMD_RESULT("JSON Array", "", "Array of the descriptors discovered."),
+        CMD_RESULT("UUID", "[i].UUID", "UUID of the descriptor"),
+        CMD_RESULT("uint16_t", "[i].handle", "Handle of the descriptor.")
     )
 
     CMD_HANDLER(uint16_t connectionHandle, uint16_t startHandle, uint16_t lastHandle, CommandResponsePtr& response) {
@@ -576,8 +612,8 @@ struct ReadCharacteristicValueCommand : public BaseCommand {
     CMD_HELP("Read a characteristic value from a GATT Server using a characteristic value handle.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicValuehandle>", "The handle of characteristic value")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicValuehandle", "The handle of characteristic value")
     )
 
     CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicValueHandle, CommandResponsePtr& response) {
@@ -594,10 +630,10 @@ struct ReadUsingCharacteristicUUIDCommand : public BaseCommand {
                "handle of the characteristic.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<serviceStartHandle>", "The starting handle of the service" ),
-        CMD_ARG("uint16_t", "<serviceEndHandle>", "The ending handle of the service" ),
-        CMD_ARG("UUID", "<characteristicUUID>", "The UUID of the characteristic")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "serviceStartHandle", "The starting handle of the service" ),
+        CMD_ARG("uint16_t", "serviceEndHandle", "The ending handle of the service" ),
+        CMD_ARG("UUID", "characteristicUUID", "The UUID of the characteristic")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
@@ -614,8 +650,8 @@ struct ReadLongCharacteristicValueCommand : public BaseCommand {
                "is longer than can be sent in a single read response")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicValuehandle>", "The handle of characteristic value")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicValuehandle", "The handle of characteristic value")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
@@ -630,8 +666,8 @@ struct ReadMultipleCharacteristicValuesCommand : public BaseCommand {
     CMD_HELP("Read a multiple characteristics values from a set of characteristics value handle.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicValuehandles...>", "Handles of characteristics values to read")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicValuehandles...", "Handles of characteristics values to read")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
@@ -696,9 +732,9 @@ struct WriteWithoutResponseCommand : public BaseCommand {
     CMD_HELP("Write a characteristic value to a server, the server will not acknowledge anything.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicValuehandle>", "Handle of the characteristic value to write" ),
-        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicValuehandle", "Handle of the characteristic value to write" ),
+        CMD_ARG("RawData_t", "value", "Hexadecimal string representation of the value to write")
     )
 
     CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicValuehandle, container::Vector<uint8_t>& dataToWrite, CommandResponsePtr& response) {
@@ -718,9 +754,9 @@ struct SignedWriteWithoutResponseCommand : public BaseCommand {
                "bit is enabled and the client and server device share a bond.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicValuehandle>", "Handle of the characteristic value to write" ),
-        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicValuehandle", "Handle of the characteristic value to write" ),
+        CMD_ARG("RawData_t", "value", "Hexadecimal string representation of the value to write")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
@@ -735,9 +771,9 @@ struct WriteCommand : public BaseCommand {
     CMD_HELP("Write a characteristic value to a server.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicValuehandle>", "Handle of the characteristic value to write" ),
-        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicValuehandle", "Handle of the characteristic value to write" ),
+        CMD_ARG("RawData_t", "value", "Hexadecimal string representation of the value to write")
     )
 
     CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicValuehandle, RawData_t dataToWrite, CommandResponsePtr& response) {
@@ -758,9 +794,9 @@ struct WriteLongCommand : public BaseCommand {
                "Attribute Protocol message.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicValuehandle>", "Handle of the characteristic value to write" ),
-        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicValuehandle", "Handle of the characteristic value to write" ),
+        CMD_ARG("RawData_t", "value", "Hexadecimal string representation of the value to write")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
@@ -780,9 +816,9 @@ struct ReliableWriteCommand : public BaseCommand {
                "written, in order, in a single operation")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicValuehandle>", "Handle of the characteristic value to write" ),
-        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicValuehandle", "Handle of the characteristic value to write" ),
+        CMD_ARG("RawData_t", "value", "Hexadecimal string representation of the value to write")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
@@ -797,8 +833,8 @@ struct ReadCharacteristicDescriptorCommand : public BaseCommand {
     CMD_HELP("Read a characteristic descriptor from a server.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicDescriptorhandle", "Handle of the characteristic descriptor to read")
     )
 
     CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicDescriptorHandle, CommandResponsePtr& response) {
@@ -817,8 +853,8 @@ struct ReadLongCharacteristicDescriptorCommand : public BaseCommand {
     )
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to read")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicDescriptorhandle", "Handle of the characteristic descriptor to read")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
@@ -833,9 +869,9 @@ struct WriteCharacteristicDescriptorCommand : public BaseCommand {
     CMD_HELP("Write a characteristic descriptor to a server.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" ),
-        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicDescriptorhandle", "Handle of the characteristic descriptor to write" ),
+        CMD_ARG("RawData_t", "value", "Hexadecimal string representation of the value to write")
     )
 
     CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicDescriptorhandle, RawData_t dataToWrite, CommandResponsePtr& response) {
@@ -855,9 +891,9 @@ struct WriteLongCharacteristicDescriptorCommand : public BaseCommand {
         "longer than what can be sent in a single write.")
 
     CMD_ARGS(
-        CMD_ARG("uint16_t", "<connectionHandle>", "The connection used by this procedure" ),
-        CMD_ARG("uint16_t", "<characteristicDescriptorhandle>", "Handle of the characteristic descriptor to write" ),
-        CMD_ARG("RawData_t", "<value>", "Hexadecimal string representation of the value to write")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "characteristicDescriptorhandle", "Handle of the characteristic descriptor to write" ),
+        CMD_ARG("RawData_t", "value", "Hexadecimal string representation of the value to write")
     )
 
     CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
