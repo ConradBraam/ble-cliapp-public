@@ -4,7 +4,7 @@
 #include "util/ConstArray.h"
 #include "CommandArgs.h"
 #include "Command.h"
-#include "CommandAccessor.h"
+#include "CommandGenerator.h"
 
 /**
  * @brief Implementation of command suite. This is used to reduce template instantiations.

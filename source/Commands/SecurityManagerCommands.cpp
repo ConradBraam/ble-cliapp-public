@@ -5,7 +5,6 @@
 #include <ble/BLE.h>
 #include <ble/SecurityManager.h>
 
-#include "SecurityManagerCommands.h"
 #include "Serialization/Serializer.h"
 #include "Serialization/SecurityManagerSerialization.h"
 #include "Serialization/BLECommonSerializer.h"
@@ -13,6 +12,7 @@
 
 #include "Common.h"
 
+#include "SecurityManagerCommands.h"
 #include "CLICommand/CommandHelper.h"
 
 using mbed::util::SharedPointer;

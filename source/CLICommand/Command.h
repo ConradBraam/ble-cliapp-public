@@ -93,7 +93,7 @@ struct Command {
      * This means that as long as the response exist in the system others command will
      * be rejected.
      * 
-     * @note You don't have to manually the response,  just let the destructor handle 
+     * @note You don't have to manually close the response,  just let the destructor handle 
      * this task.
      */
     void (* const handler)(

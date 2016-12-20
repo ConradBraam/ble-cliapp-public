@@ -6,13 +6,13 @@
  */
 struct CommandArgDescription {
 #if defined(ENABLE_COMMAND_ARG_DESCRIPTION)
-    const char* type;
+    const char* type;                                /// The type of the argument 
     const char* name;                                /// The name of the argument
     const char* desc;                                /// The description of the argument
 #else
-    const bool type:1;                                /// The type of the argument 
-    const bool name:1;                                /// The name of the argument
-    const bool desc:1;                                /// The description of the argument
+    const bool type:1;                               /// The type of the argument 
+    const bool name:1;                               /// The name of the argument
+    const bool desc:1;                               /// The description of the argument
 #endif
 };
 

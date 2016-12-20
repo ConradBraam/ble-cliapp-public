@@ -108,7 +108,7 @@
  * @param COMMAND_CLASS_NAME The name of the command class.
  */
 #define CMD_INSTANCE(COMMAND_CLASS_NAME) \
-    &CommandAccessor<COMMAND_CLASS_NAME>::command
+    &CommandGenerator<COMMAND_CLASS_NAME>::command
 
 
 #endif //BLE_CLIAPP_CLICOMMAND_COMMAND_HELPER_H_

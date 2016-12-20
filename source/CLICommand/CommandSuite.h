@@ -6,7 +6,7 @@
 #include "Command.h"
 #include "BaseCommand.h"
 #include "CommandSuiteImplementation.h"
-#include "CommandAccessor.h"
+#include "CommandGenerator.h"
 
 
 /**
@@ -43,8 +43,8 @@
  *
  * static ConstArray<Command*> commands() {
  *  	static const Command* commandHandlers[] = {
- *      	&&CommandAccessor<FooCommand>::command,
- *          &&CommandAccessor<BarCommand>::command
+ *      	&&CommandGenerator<FooCommand>::command,
+ *          &&CommandGenerator<BarCommand>::command
  *      };
  *
  *      return ConstArray<Command*>(commandHandlers);
@@ -100,8 +100,8 @@ private:
     static ConstArray<const Command*> getBuiltinCommands() {
 #ifdef ENABLE_BUILTIN_COMMANDS
         static const Command* const builtinCommands[] = {
-            &CommandAccessor<HelpCommand>::command,
-            &CommandAccessor<ListCommand>::command
+            &CommandGenerator<HelpCommand>::command,
+            &CommandGenerator<ListCommand>::command
         };
         return ConstArray<const Command*>(builtinCommands);
 #else

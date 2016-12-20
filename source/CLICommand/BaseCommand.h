@@ -12,7 +12,7 @@
  * the static member function to override. 
  * 
  * To translate BaseCommand and classes into Command instances, a c++ template 
- * generator class is used: CommandAccessor<T>::command is the runtime Command
+ * generator class is used: CommandGenerator<T>::command is the runtime Command
  * instance of the class T.
  * 
  * @code
@@ -33,7 +33,7 @@
  * };
  * 
  * // Access to the command 
- * Command& myCommand = CommandAccessor<MyCommand>::command;
+ * Command& myCommand = CommandGenerator<MyCommand>::command;
  * @endcode
  */
 struct BaseCommand {
@@ -83,7 +83,7 @@ struct BaseCommand {
      * result in a linker error.
      * @see Command::handler
      * @note The signature is not fixed for the implementation. If the  command 
-     * is accessed via CommandAccessor<T>::command and the arguments can be 
+     * is accessed via CommandGenerator<T>::command and the arguments can be 
      * deserialized via a fromString function then it become possible to let the 
      * system handle the deserialization process: 
      * 
@@ -101,7 +101,6 @@ struct BaseCommand {
      * }; 
      * 
      * @endcode
-     * 
      */
     static void handler(const CommandArgs& args, const CommandResponsePtr& res);
 };

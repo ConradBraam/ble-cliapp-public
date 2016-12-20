@@ -1,4 +1,4 @@
-#include "GattServerCommands.h"
+
 #include "ble/BLE.h"
 #include "ble/Gap.h"
 #include "ble/services/HeartRateService.h"
@@ -14,6 +14,7 @@
 
 #include "Common.h"
 
+#include "GattServerCommands.h"
 #include "CLICommand/CommandHelper.h"
 
 using mbed::util::SharedPointer;

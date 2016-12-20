@@ -1,8 +1,8 @@
-#include "GattClientCommands.h"
+
 #include "ble/BLE.h"
 #include "ble/DiscoveredService.h"
 #include "ble/DiscoveredCharacteristic.h"
-#include "CLICommand/CommandSuite.h"
+
 
 #include "Serialization/Serializer.h"
 #include "Serialization/BLECommonSerializer.h"
@@ -12,9 +12,12 @@
 #include "Serialization/GattCallbackParamTypes.h"
 #include "util/AsyncProcedure.h"
 
+#include "CLICommand/CommandSuite.h"
+
 #include "Common.h"
 #include "CLICommand/CommandHelper.h"
 
+#include "GattClientCommands.h"
 
 using mbed::util::SharedPointer;
 

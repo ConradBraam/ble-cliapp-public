@@ -1,4 +1,4 @@
-#include "GapCommands.h"
+
 
 #include "ble/BLE.h"
 #include "ble/Gap.h"
@@ -16,6 +16,8 @@
 #else
 #include "Timer.h"
 #endif
+
+#include "GapCommands.h"
 
 using mbed::util::SharedPointer;
 

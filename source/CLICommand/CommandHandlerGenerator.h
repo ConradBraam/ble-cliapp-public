@@ -1,66 +1,55 @@
-#ifndef BLE_CLIAPP_CLICOMMAND_COMMAND_ACCESSOR_H_
-#define BLE_CLIAPP_CLICOMMAND_COMMAND_ACCESSOR_H_
+#ifndef BLE_CLIAPP_CLICOMMAND_COMMAND_HANDLER_GENERATOR_H_
+#define BLE_CLIAPP_CLICOMMAND_COMMAND_HANDLER_GENERATOR_H_
 
 #include "Command.h"
 #include "Serializer.h"
 #include "Hex.h"
 
-template<typename T>
-struct CommandAccessor { 
-    static const Command command;
-};
 
-template<typename T>
-struct remove_reference { 
-    typedef T type;
-};
+struct CommandHandlerGenerator { 
 
-template<typename T>
-struct remove_reference<T&> { 
-    typedef T type;
-};
-
-
-struct CommandHandlerSynthetizer { 
-
-    static void print_error(const mbed::util::SharedPointer<CommandResponse>& response, 
-        uint32_t index, ConstArray<CommandArgDescription> (*argsDescription)()) { 
-        using namespace serialization;
-
-        response->setStatusCode(CommandResponse::INVALID_PARAMETERS);
-
-        JSONOutputStream& out = response->getResultStream();
-
-        out << startObject <<
-            key("index") << index;
-
-        ConstArray<CommandArgDescription> args_desc = argsDescription();
-        if (args_desc.count() > index) { 
-            out <<
-            key("name") << args_desc[index].name <<
-            key("type") << args_desc[index].type <<
-            key("description") << args_desc[index].desc;
-        } 
-        out << endObject;
+    template<typename CommandType>
+    static void handler(const CommandArgs& args, const CommandResponsePtr& response) { 
+        CommandHandlerGenerator::generated_handler(args, response, CommandType::handler, CommandType::argsDescription);
     }
 
+private:
+    template<typename T>
+    struct remove_reference { 
+        typedef T type;
+    };
 
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(const CommandArgs&, const mbed::util::SharedPointer<CommandResponse>&),
+
+    template<typename T>
+    struct remove_reference<T&> { 
+        typedef T type;
+    };
+
+
+    static void print_error(
+        const CommandResponsePtr& response, 
+        uint32_t index, 
+        ConstArray<CommandArgDescription> (*argsDescription)()
+    );
+
+
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(const CommandArgs&, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         _real_handler(args, response);
     }
 
 
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         _real_handler(response);
     }
 
+
     template<typename A0>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -73,8 +62,8 @@ struct CommandHandlerSynthetizer {
 
 
     template<typename A0, typename A1>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, A1, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, A1, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -91,9 +80,10 @@ struct CommandHandlerSynthetizer {
         _real_handler(arg0, arg1, response);
     }
 
+
     template<typename A0, typename A1, typename A2>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, A1, A2, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, A1, A2, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -117,8 +107,8 @@ struct CommandHandlerSynthetizer {
 
 
     template<typename A0, typename A1, typename A2, typename A3>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, A1, A2, A3, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, A1, A2, A3, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -147,9 +137,10 @@ struct CommandHandlerSynthetizer {
         _real_handler(arg0, arg1, arg2, arg3, response);
     }
 
+
     template<typename A0, typename A1, typename A2, typename A3, typename A4>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, A1, A2, A3, A4, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, A1, A2, A3, A4, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -184,9 +175,10 @@ struct CommandHandlerSynthetizer {
         _real_handler(arg0, arg1, arg2, arg3, arg4, response);
     }
 
+
     template<typename A0, typename A1, typename A2, typename A3, typename A4, typename A5>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -228,11 +220,10 @@ struct CommandHandlerSynthetizer {
     }
 
 
-
     template<typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, 
              typename A6>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, A6, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, A6, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -282,8 +273,8 @@ struct CommandHandlerSynthetizer {
 
     template<typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, 
              typename A6, typename A7>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, A6, A7, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, A6, A7, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -336,10 +327,11 @@ struct CommandHandlerSynthetizer {
         _real_handler(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, response);
     }
 
+
     template<typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, 
              typename A6, typename A7, typename A8>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, A6, A7, A8, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, A6, A7, A8, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -398,10 +390,11 @@ struct CommandHandlerSynthetizer {
         _real_handler(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, response);
     }
 
+
     template<typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, 
              typename A6, typename A7, typename A8, typename A9>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -466,10 +459,11 @@ struct CommandHandlerSynthetizer {
         _real_handler(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, response);
     }
 
+
     template<typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, 
              typename A6, typename A7, typename A8, typename A9, typename A10>
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response, 
-                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, const mbed::util::SharedPointer<CommandResponse>&),
+    static void generated_handler(const CommandArgs& args, const CommandResponsePtr& response, 
+                        void(*_real_handler)(A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, const CommandResponsePtr&),
                         ConstArray<CommandArgDescription> (*argsDescription)()) { 
         typename remove_reference<A0>::type arg0;
         if (!fromString(args[0], arg0)) {
@@ -542,26 +536,4 @@ struct CommandHandlerSynthetizer {
 };
 
 
-template<typename Command>
-struct CommandHandlerResolver { 
-    static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) { 
-        CommandHandlerSynthetizer::handler(args, response, Command::handler, Command::argsDescription);
-    }
-};
-
-
-template<typename T>
-const Command CommandAccessor<T>::command =  {
-        &T::name,
-#if defined(ENABLE_COMMAND_HELP)
-        &T::help,
-#endif
-        &T::argsDescription,
-        &T::resultDescription,
-        &T::template maximumArgsRequired<T>,
-        &CommandHandlerResolver<T>::handler
-};
-
-typedef const Command* (*CommandAccessor_t)();
-
-#endif //BLE_CLIAPP_CLICOMMAND_COMMAND_ACCESSOR_H_
+#endif //BLE_CLIAPP_CLICOMMAND_COMMAND_HANDLER_GENERATOR_H_
