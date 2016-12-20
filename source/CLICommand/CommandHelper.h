@@ -2,7 +2,7 @@
 #define BLE_CLIAPP_CLICOMMAND_COMMAND_HELPER_H_
 
 #include "Command.h"
-
+#include "BaseCommand.h"
 
 /**
  * @brief Start the declaration of a new command

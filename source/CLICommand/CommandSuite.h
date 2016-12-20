@@ -4,8 +4,10 @@
 #include "util/ConstArray.h"
 #include "CommandArgs.h"
 #include "Command.h"
+#include "BaseCommand.h"
 #include "CommandSuiteImplementation.h"
 #include "CommandAccessor.h"
+
 
 /**
  * @brief Allow to easily group and add a suite of commands into the cli system.
