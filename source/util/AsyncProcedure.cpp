@@ -3,7 +3,7 @@
 // TODO: ugly, should be injected
 extern eq::EventQueue& taskQueue;
 
-AsyncProcedure::AsyncProcedure(const mbed::util::SharedPointer<CommandResponse>& res, uint32_t t) :
+AsyncProcedure::AsyncProcedure(const CommandResponsePtr& res, uint32_t t) :
     response(res), timeoutHandle(NULL), timeout(t) {
 }
 

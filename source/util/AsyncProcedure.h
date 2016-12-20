@@ -33,7 +33,7 @@ protected:
      * @param res The response wich will be written during the procedure life.
      * @param timeout The maximum amount of time before the procedure termination
      */
-    AsyncProcedure(const mbed::util::SharedPointer<CommandResponse>& res, uint32_t timeout);
+    AsyncProcedure(const CommandResponsePtr& res, uint32_t timeout);
 
     /**
      * @brief destructor for a procedure.
@@ -61,7 +61,7 @@ protected:
     /**
      * @brief response of the procedure
      */
-    mbed::util::SharedPointer<CommandResponse> response;
+    CommandResponsePtr response;
 
 private:
     /**
