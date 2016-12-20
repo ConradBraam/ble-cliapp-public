@@ -1,9 +1,8 @@
 #ifndef BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
 #define BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
 
-#include <core-util/SharedPointer.h>
 #include "EventQueue/EventQueue.h"
-#include "CLICommand/CommandResponse.h"
+#include "CLICommand/Command.h"
 
 struct AsyncProcedure {
 
