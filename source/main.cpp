@@ -8,6 +8,7 @@
 #include "mbed-client-cli/ns_cmdline.h"
 #include "mbed-trace/mbed_trace.h"
 
+#include "CLICommand/CommandEventQueue.h"
 #include "CLICommand/CommandSuite.h"
 #include "Commands/BLECommands.h"
 #include "Commands/GapCommands.h"
@@ -115,6 +116,10 @@ void cmd_ready_cb(int retcode)
 }
 
 void initialize_app_commands(void) {
+    // setup the event queue for the CLICommand module
+    initCLICommandEventQueue(&taskQueue);
+
+    // register command suite in the system
     registerCommandSuite<BLECommandSuiteDescription>();
     registerCommandSuite<GapCommandSuiteDescription>();
     registerCommandSuite<GattServerCommandSuiteDescription>();

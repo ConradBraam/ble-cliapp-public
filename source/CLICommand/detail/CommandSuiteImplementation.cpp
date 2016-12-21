@@ -1,18 +1,16 @@
 #include <stdint.h>
 #include "EventQueue/EventQueue.h"
 
+#include "CommandEventQueue.h"
 #include "CommandSuiteImplementation.h"
 #include <string.h>
 
 using mbed::util::SharedPointer;
 
-// TODO: ugly, should be injected
-extern eq::EventQueue& taskQueue;
-
 namespace {
 
 static void whenAsyncCommandEnd(const CommandResponse* response) {
-    taskQueue.post(&cmd_ready, response->getStatusCode());
+    getCLICommandEventQueue()->post(&cmd_ready, response->getStatusCode());
 }
 
 static const Command* getCommand(
