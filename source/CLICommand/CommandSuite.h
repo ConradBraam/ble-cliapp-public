@@ -5,8 +5,10 @@
 #include "CommandArgs.h"
 #include "Command.h"
 #include "BaseCommand.h"
-#include "CommandSuiteImplementation.h"
+#include "detail/CommandSuiteImplementation.h"
 #include "CommandGenerator.h"
+#include "detail/ListCommandBase.h"
+#include "detail/HelpCommandBase.h"
 
 
 /**
@@ -97,39 +99,22 @@ private:
         return SuiteDescription::commands();
     }
 
+
+#ifndef ENABLE_BUILTIN_COMMANDS
     static ConstArray<const Command*> getBuiltinCommands() {
-#ifdef ENABLE_BUILTIN_COMMANDS
+        return ConstArray<const Command*>();
+    }
+
+#else // ifdef ENABLE_BUILTIN_COMMANDS
+    static ConstArray<const Command*> getBuiltinCommands() {
         static const Command* const builtinCommands[] = {
             &CommandGenerator<HelpCommand>::command,
             &CommandGenerator<ListCommand>::command
         };
         return ConstArray<const Command*>(builtinCommands);
-#else
-        return ConstArray<const Command*>();
-#endif
     }
 
-#ifdef ENABLE_BUILTIN_COMMANDS
-    struct HelpCommand : public BaseCommand {
-        static const char* name() {
-            return "help";
-        }
-
-        static const char* help() {
-            return "Print help about a command, you can list the command by using the command 'list'";
-        }
-
-        static ConstArray<CommandArgDescription> argsDescription() {
-            static const CommandArgDescription argsDescription[] = {
-                {
-                    "string",
-                    "<commandName>",
-                    "the name of a command you want help for, use the command 'list' to have a list of available commands"
-                }
-            };
-            return ConstArray<CommandArgDescription>(argsDescription);
-        }
-
+    struct HelpCommand : public HelpCommandBase {
         static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::help(
                 args,
@@ -140,16 +125,7 @@ private:
         }
     };
 
-
-    struct ListCommand : public BaseCommand {
-        static const char* name() {
-            return "list";
-        }
-
-        static const char* help() {
-            return "list all the command in a module";
-        }
-
+    struct ListCommand : public ListCommandBase {
         static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::list(
                 args,
