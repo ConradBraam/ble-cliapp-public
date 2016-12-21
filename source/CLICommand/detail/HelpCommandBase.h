@@ -3,6 +3,11 @@
 
 #include "Command.h"
 
+/**
+ * @brief Abstract base implementation for the Help Command. 
+ * @details Avoid the redeclaration of the name, help and argsDescription functions for 
+ * every instantiated class of the HelpCommand.
+ */
 struct HelpCommandBase : public BaseCommand {
     static const char* name() {
         return "help";
