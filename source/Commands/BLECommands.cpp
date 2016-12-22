@@ -2,28 +2,23 @@
 #include "Serialization/BLECommonSerializer.h"
 #include "ble/FunctionPointerWithContext.h"
 #include "util/AsyncProcedure.h"
+#include "CLICommand/CommandHelper.h"
+#include "Common.h"
 
 using mbed::util::SharedPointer;
 
 // isolation
 namespace {
 
-static BLE& ble() {
-    return BLE::Instance();
-}
-
-
-struct ShutdownCommand : public BaseCommand {
-    static const char* name() {
-        return "shutdown";
-    }
-
-    static const char* help() {
-        return "Shutdown the current BLE instance, calling ble related function after this"
-               "call may lead to faillure.";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+DECLARE_CMD(ShutdownCommand) {
+    CMD_NAME("shutdown")
+    
+    CMD_HELP(
+        "Shutdown the current BLE instance, calling ble related function after this"
+        "call may lead to faillure."
+    )
+    
+    CMD_HANDLER(CommandResponsePtr& response) { 
         ble_error_t err = ble().shutdown();
         if(err) {
             response->faillure(err);
@@ -33,18 +28,15 @@ struct ShutdownCommand : public BaseCommand {
     }
 };
 
+DECLARE_CMD(InitCommand) {
+    CMD_NAME("init")
 
-struct InitCommand : public BaseCommand {
-    static const char* name() {
-        return "init";
-    }
-
-    static const char* help() {
-        return "Initialize the ble API and underlying BLE stack.\r\n"
-        "Be sure to call this function before any other ble API function";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HELP(
+        "Initialize the ble API and underlying BLE stack.\r\n"
+        "Be sure to call this function before any other ble API function"
+    )
+    
+    CMD_HANDLER(CommandResponsePtr& response) { 
         if(ble().hasInitialized()) {
             response->success();
             return;
@@ -75,17 +67,15 @@ struct InitCommand : public BaseCommand {
 };
 
 
-struct ResetCommand : public BaseCommand {
-    static const char* name() {
-        return "reset";
-    }
-
-    static const char* help() {
-        return "Reset the ble API and ble stack.\r\n"
-               "This function internaly does a reset and an init";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+DECLARE_CMD(ResetCommand) {
+    CMD_NAME("reset")
+    
+    CMD_HELP(
+        "Reset the ble API and ble stack."
+        "This function internaly does a reset and an init"
+    )
+    
+    CMD_HANDLER(CommandResponsePtr& response) { 
         ble_error_t err;
         if(ble().hasInitialized()) {
             err = ble().shutdown();
@@ -105,16 +95,16 @@ struct ResetCommand : public BaseCommand {
 };
 
 
-struct GetVersionCommand : public BaseCommand {
-    static const char* name() {
-        return "getVersion";
-    }
+DECLARE_CMD(GetVersionCommand) {
+    CMD_NAME("getVersion")
+    
+    CMD_HELP("Return the version of the BLE API.")
+    
+    CMD_RESULTS(
+        CMD_RESULT("string", "", "The version of the stack used by BLE API.")
+    )
 
-    static const char* help() {
-        return "Return the version of the BLE API.\r\n";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) { 
         const char* version = ble().getVersion();
 
         if(version) {
@@ -127,13 +117,10 @@ struct GetVersionCommand : public BaseCommand {
 
 } // end of annonymous namespace
 
-ConstArray<const Command*> BLECommandSuiteDescription::commands() {
-    static const Command* const commandHandlers[] = {
-        &CommandAccessor<ShutdownCommand>::command,
-        &CommandAccessor<InitCommand>::command,
-        &CommandAccessor<ResetCommand>::command,
-        &CommandAccessor<GetVersionCommand>::command
-    };
 
-    return ConstArray<const Command*>(commandHandlers);
-}
+DECLARE_SUITE_COMMANDS(BLECommandSuiteDescription, 
+    CMD_INSTANCE(ShutdownCommand),
+    CMD_INSTANCE(InitCommand),
+    CMD_INSTANCE(ResetCommand),
+    CMD_INSTANCE(GetVersionCommand)
+)

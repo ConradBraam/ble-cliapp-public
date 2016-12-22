@@ -2,6 +2,7 @@
 #define BLE_CLIAPP_SECURITY_MANAGER_SERIALIZER_H_
 
 #include <ble/SecurityManager.h>
+#include "JSONOutputStream.h"
 #include "Serializer.h"
 
 template<>

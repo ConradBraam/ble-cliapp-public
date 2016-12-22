@@ -1,18 +1,16 @@
 #include <stdint.h>
 #include "EventQueue/EventQueue.h"
 
+#include "CommandEventQueue.h"
 #include "CommandSuiteImplementation.h"
 #include <string.h>
 
 using mbed::util::SharedPointer;
 
-// TODO: ugly, should be injected
-extern eq::EventQueue& taskQueue;
-
 namespace {
 
 static void whenAsyncCommandEnd(const CommandResponse* response) {
-    taskQueue.post(&cmd_ready, response->getStatusCode());
+    getCLICommandEventQueue()->post(&cmd_ready, response->getStatusCode());
 }
 
 static const Command* getCommand(
@@ -46,9 +44,6 @@ int CommandSuiteImplementation::commandHandler(
     const CommandArgs commandArgs(args.drop(2));
 
     SharedPointer<CommandResponse> response(new CommandResponse());
-
-    response->setCommandName(commandName);
-    response->setArguments(commandArgs);
 
     const Command* command = getCommand(commandName, builtinCommands, moduleCommands);
     if(!command) {
@@ -90,8 +85,28 @@ void CommandSuiteImplementation::help(
     if(!command) {
         response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
     } else {
-#if defined(ENABLE_COMMAND_HELP)
-        response->success(command->help());
+#if defined(ENABLE_COMMAND_HELP)        
+        using namespace serialization;
+
+        response->setStatusCode(CommandResponse::SUCCESS);
+        JSONOutputStream& stream = response->getResultStream();
+        ConstArray<CommandArgDescription> args_desc = command->argsDescription();
+        ConstArray<CommandArgDescription> result_desc = command->resultDescription();
+
+        stream << startObject <<
+            key("command") << command->name() <<
+            key("help") << command->help() << 
+            key("arguments") << startArray;
+            for (size_t i = 0; i < args_desc.count(); ++i) { 
+                stream.formatValue("\"%s: %s - %s\"", args_desc[i].name, args_desc[i].type, args_desc[i].desc);
+            }
+            stream << endArray <<
+            key("results") << startArray;
+            for (size_t i = 0; i < result_desc.count(); ++i) { 
+                stream.formatValue("\"%s: %s - %s\"", result_desc[i].name, result_desc[i].type, result_desc[i].desc);
+            }
+            stream << endArray <<
+        endObject;
 #else
         response->success("Commands help is deactivated, recompile with ENABLE_COMMAND_HELP defined");
 #endif
@@ -119,30 +134,4 @@ void CommandSuiteImplementation::list(
     }
 
     os << endArray;
-}
-
-void CommandSuiteImplementation::args(
-    const CommandArgs& args, const SharedPointer<CommandResponse>& response,
-    const ConstArray<const Command*>& builtinCommands,
-    const ConstArray<const Command*>& moduleCommands) {
-    using namespace serialization;
-
-    const Command* command = getCommand(args[0], builtinCommands, moduleCommands);
-    if(!command) {
-        response->invalidParameters("the name of this command does not exist, you can list the command by using the command 'list'");
-        return;
-    }
-
-#if defined(ENABLE_COMMAND_ARG_DESCRIPTION)
-    serialization::JSONOutputStream& os = response->getResultStream();
-
-    os << startArray;
-    ConstArray<CommandArgDescription> argsDescription = command->argsDescription();
-    for(size_t i = 0; i < argsDescription.count(); ++i) {
-        os << startObject << key(argsDescription[i].name) << argsDescription[i].desc << endObject;
-    }
-    os << endArray;
-#else
-    response->success("Commands args is deactivated, recompile with ENABLE_COMMAND_HENABLE_COMMAND_ARG_DESCRIPTIONELP defined");
-#endif
 }

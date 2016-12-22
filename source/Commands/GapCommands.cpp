@@ -1,4 +1,4 @@
-#include "GapCommands.h"
+
 
 #include "ble/BLE.h"
 #include "ble/Gap.h"
@@ -8,6 +8,8 @@
 #include "Serialization/BLECommonSerializer.h"
 #include "CLICommand/CommandSuite.h"
 #include "util/AsyncProcedure.h"
+#include "Common.h"
+#include "CLICommand/CommandHelper.h"
 
 #ifdef YOTTA_CFG
 #include "mbed-drivers/Timer.h"
@@ -15,94 +17,40 @@
 #include "Timer.h"
 #endif
 
+#include "GapCommands.h"
+
 using mbed::util::SharedPointer;
 
 // isolation ...
 namespace {
 
-/**
- * return the ble instance of this device
- */
-static BLE& ble() {
-    return BLE::Instance();
-}
 
-/**
- * return the Gap instance of this device
- */
-static Gap& gap() {
-    return ble().gap();
-}
-
-static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err) {
-    if(err) {
-        response->faillure(err);
-    } else {
-        response->success();
-    }
-}
-
-
-template<typename T>
-static void reportErrorOrSuccess(const SharedPointer<CommandResponse>& response, ble_error_t err, const T& res) {
-    if(err) {
-        response->faillure(err);
-    } else {
-        response->success(res);
-    }
-}
-
-
-struct SetAddressCommand : public BaseCommand {
-    static const char* name() {
-        return "setAddress";
-    }
-
-    static const char* help() {
-        return "set the address of this device";
-    }
-
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<addressType>", "The address type to set. It is a string representation of BLEProtocol::AddressType_t" },
-            { "<address>"    , "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        // extract first args
-        BLEProtocol::AddressType_t addressType;
-        if(!fromString(args[0], addressType)) {
-            response->invalidParameters("first argument should match BLEProtocol::AddressType_t");
-            return;
-        }
-
-        Gap::Address_t address;
-        if(!macAddressFromString(args[1], address)) {
-            response->invalidParameters("second argument should is a mac address which should match XX:XX:XX:XX:XX:XX format");
-            return;
-        }
-
+DECLARE_CMD(SetAddressCommand) {
+    CMD_NAME("setAddress")
+    CMD_HELP("set the address of this device")
+    CMD_ARGS(
+        CMD_ARG("BLEProtocol::AddressType_t", "addressType", "The type of the address to set."),
+        CMD_ARG("MacAddress_t", "address" , "The address to set")
+    )
+    CMD_HANDLER(BLEProtocol::AddressType_t addressType, MacAddress_t address, CommandResponsePtr& response) {
         ble_error_t err = gap().setAddress(addressType, address);
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct GetAddressCommand : public BaseCommand {
-    static const char* name() {
-        return "getAddress";
-    }
+DECLARE_CMD(GetAddressCommand) {
+    CMD_NAME("getAddress")
+    CMD_HELP(
+        "Get the address and the type of address of this device."
+    )
 
-    static const char* help() {
-        return "Get the address and the type of address of this device.\r\n"
-               "The result will be a json object containing:\r\n"
-               "   * 'address_type': <type of the address. It is a string representation of BLEProtocol::AddressType_t>\r\n"
-               "   * 'address'     : <the address which is a string representation like 'XX:XX:XX:XX:XX:XX'>\r\n";
-    }
+    CMD_RESULTS(
+        CMD_RESULT("BLEProtocol::AddressType_t", "address_type", "Type of the address"),
+        CMD_RESULT("MacAddress_t", "address", "The mac address of the device")
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) { 
         using namespace serialization;
 
         BLEProtocol::AddressType_t addressType;
@@ -124,181 +72,90 @@ struct GetAddressCommand : public BaseCommand {
 };
 
 
-struct GetMinAdvertisingIntervalCommand : public BaseCommand {
-    static const char* name() {
-        return "getMinAdvertisingInterval";
-    }
-
-    static const char* help() {
-        return "Return the minimum advertising interval";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+DECLARE_CMD(GetMinAdvertisingIntervalCommand) {
+    CMD_NAME("getMinAdvertisingInterval")
+    CMD_HELP("Return the minimum advertising interval")
+    CMD_RESULTS(
+        CMD_RESULT("uint16_t", "", "The minimum advertising interval.")
+    )
+    CMD_HANDLER(CommandResponsePtr& response) { 
         response->success(gap().getMinNonConnectableAdvertisingInterval());
     }
 };
 
 
-struct GetMinNonConnectableAdvertisingIntervalCommand : public BaseCommand {
-    static const char* name() {
-        return "getMinNonConnectableAdvertisingInterval";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+DECLARE_CMD(GetMinNonConnectableAdvertisingIntervalCommand) {
+    CMD_NAME("getMinNonConnectableAdvertisingInterval")
+    CMD_HANDLER(CommandResponsePtr& response) { 
         response->success(gap().getMinNonConnectableAdvertisingInterval());
     }
 };
 
 
-struct GetMaxAdvertisingIntervalCommand : public BaseCommand {
-    static const char* name() {
-        return "getMaxAdvertisingInterval";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+DECLARE_CMD(GetMaxAdvertisingIntervalCommand) {
+    CMD_NAME("getMaxAdvertisingInterval")
+    CMD_HANDLER(CommandResponsePtr& response) { 
         response->success(gap().getMaxAdvertisingInterval());
     }
 };
 
 
-struct StopAdvertisingCommand : public BaseCommand {
-    static const char* name() {
-        return "stopAdvertising";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+DECLARE_CMD(StopAdvertisingCommand) {
+    CMD_NAME("stopAdvertising")
+    CMD_HANDLER(CommandResponsePtr& response) { 
         ble_error_t err = gap().stopAdvertising();
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct StopScanCommand : public BaseCommand {
-    static const char* name() {
-        return "stopScan";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+DECLARE_CMD(StopScanCommand) {
+    CMD_NAME("stopScan")
+    CMD_HANDLER(CommandResponsePtr& response) { 
         ble_error_t err = gap().stopScan();
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct ConnectCommand : public BaseCommand {
-    static const char* name() {
-        return "connect";
-    }
+DECLARE_CMD(ConnectCommand) {
+    CMD_NAME("connect")
+    CMD_HELP( "connect to a device, if this function succeed, a ConnectionCallbackParams_t is returned.")
 
-    static const char* help() {
-        return  "connect to a device, if this function succeed, a ConnectionCallbackParams_t is returned:\r\n"\
-                "\thandle: The connection handle\r\n"\
-                "\trole: Role of the device in the connection (here, it should be central)\r\n"\
-                "\tpeerAddrType: The addressType of the peer\r\n"\
-                "\tpeerAddr: The address of the peer\r\n"\
-                "\townAddrType: The address type of this device\r\n"\
-                "\townAddr: The address of this device\r\n"\
-                "\tconnectionParams: Object which contain the parameters of the connection\r\n"\
-                "\t\tminConnectionInterval: minimum connection interval for this connection\r\n"\
-                "\t\tmaxConnectionInterval: maximum connection interval for this connection\r\n"\
-                "\t\tslaveLatency: slave latency of the connection\r\n"\
-                "\t\tconnectionSupervisionTimeout: supervision timeout for this connection";
-    }
-
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<addressType>", "The address type to of the peer device."\
-                               "It is a string representation of BLEProtocol::AddressType_t" },
-            { "<address>", "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\"" },
+    CMD_ARGS(
+        CMD_ARG("BLEProtocol::AddressType_t", "addressType", "The address type to of the peer device."),
+        CMD_ARG("MacAddress_t", "address", "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\""),
             // connection parameters
-            { "<minConnectionInterval>", "Minimum Connection Interval in 1.25 ms units" },
-            { "<maxConnectionInterval>", "Maximum Connection Interval in 1.25 ms units" },
-            { "<slaveLatency>", "Slave Latency in number of connection events" },
-            { "<connectionSupervisionTimeout>", "Connection Supervision Timeout in 10 ms units" },
+        CMD_ARG("uint16_t", "minConnectionInterval", "Minimum Connection Interval in 1.25 ms units"),
+        CMD_ARG("uint16_t", "maxConnectionInterval", "Maximum Connection Interval in 1.25 ms units"),
+        CMD_ARG("uint16_t", "slaveLatency", "Slave Latency in number of connection events"),
+        CMD_ARG("uint16_t", "connectionSupervisionTimeout", "Connection Supervision Timeout in 10 ms units"),
             // scan parameters
-            { "<interval>", "The scan interval, it should be a number between 3 and 10420ms." },
-            { "<window>", "The scan window, it should be a number between 3 and 10420ms." },
-            { "<scan timeout>", "The scan timeout, it should be a number between 0 and 65534" },
-            { "<activeScanning>", "A boolean value { true, false } indicating if the device send scan request or not" },
+        CMD_ARG("uint16_t", "interval", "The scan interval, it should be a number between 3 and 10420ms."),
+        CMD_ARG("uint16_t", "window", "The scan window, it should be a number between 3 and 10420ms."),
+        CMD_ARG("uint16_t", "scan timeout", "The scan timeout, it should be a number between 0 and 65534"),
+        CMD_ARG("bool", "activeScanning", "A boolean value { true, false } indicating if the device send scan request or not"),
             // timeout for this procedure
-            { "<timeout>", "Maximum time allowed for this procedure" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+        CMD_ARG("uint16_t", "timeout", "Maximum time allowed for this procedure")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        // extract Address and address type
-        BLEProtocol::AddressType_t addressType;
-        if (!fromString(args[0], addressType)) {
-            response->invalidParameters("first argument should match BLEProtocol::AddressType_t");
-            return;
-        }
+    CMD_RESULTS(
+        CMD_RESULT("uint16_t", "handle", "The handle of the connection created"),
+        CMD_RESULT("Gap::Role", "role", "Role of the device in the connection (here, it should be central)"),
+        CMD_RESULT("BLEProtocol::AddressType_t", "peerAddrType", "The addressType of the peer"),
+        CMD_RESULT("MacAddress_t", "peerAddr", "The address of the peer"),
+        CMD_RESULT("BLEProtocol::AddressType_t", "ownAddrType", "The address type of this device"),
+        CMD_RESULT("MacAddress_t", "ownAddr", "The address of this device"),
+        CMD_RESULT("JSON object", "connectionParams", "Object which contain the parameters of the connection"),
+        CMD_RESULT("uint16_t", "connectionParams.minConnectionInterval", "minimum connection interval for this connection"),
+        CMD_RESULT("uint16_t", "connectionParams.maxConnectionInterval", "maximum connection interval for this connection"),
+        CMD_RESULT("uint16_t", "connectionParams.slaveLatency", "slave latency of the connection"),
+        CMD_RESULT("uint16_t", "connectionParams.connectionSupervisionTimeout", "supervision timeout for this connection")
+    )
 
-        Gap::Address_t address;
-        if (!macAddressFromString(args[1], address)) {
-            response->invalidParameters(
-                "second argument should is a mac address which should match XX:XX:XX:XX:XX:XX format"
-            );
-            return;
-        }
-
-        // extract connection parameters
-        uint16_t minConnectionInterval;
-        if (!fromString(args[2], minConnectionInterval)) {
-            response->invalidParameters("the minimum connection interval is ill formed");
-            return;
-        }
-
-        uint16_t maxConnectionInterval;
-        if (!fromString(args[3], maxConnectionInterval)) {
-            response->invalidParameters("the maximum connection interval is ill formed");
-            return;
-        }
-
-        uint16_t slaveLatency;
-        if (!fromString(args[4], slaveLatency)) {
-            response->invalidParameters("the slave latency is ill formed");
-            return;
-        }
-
-        uint16_t connectionSupervisionTimeout;
-        if (!fromString(args[5], connectionSupervisionTimeout)) {
-            response->invalidParameters("the connection supervision timeout is ill formed");
-            return;
-        }
-
-        // extract scan parameters
-        uint16_t scanInterval;
-        if (!fromString(args[6], scanInterval)) {
-            response->invalidParameters("the scan interval is ill formed");
-            return;
-        }
-
-        uint16_t window;
-        if (!fromString(args[7], window)) {
-            response->invalidParameters("the scan window is ill formed");
-            return;
-        }
-
-        uint16_t scanTimeout;
-        if (!fromString(args[8], scanTimeout)) {
-            response->invalidParameters("the scan timeout is ill formed");
-            return;
-        }
-
-        bool activeScanning;
-        if (!fromString(args[9], activeScanning)) {
-            response->invalidParameters("the active scanning is ill formed");
-            return;
-        }
-
-        // timeout for this procedure
-        uint16_t procedureTimeout;
-        if (!fromString(args[10], procedureTimeout)) {
-            response->invalidParameters("the procedure timeout is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(BLEProtocol::AddressType_t addressType, MacAddress_t address, uint16_t minConnectionInterval, uint16_t maxConnectionInterval, 
+                uint16_t slaveLatency, uint16_t connectionSupervisionTimeout, uint16_t scanInterval, uint16_t window, uint16_t scanTimeout,
+                bool activeScanning, uint16_t procedureTimeout, CommandResponsePtr& response) {
         // everything is alright, launching the procedure
         Gap::ConnectionParams_t connectionParams = {
             minConnectionInterval,
@@ -382,31 +239,31 @@ struct ConnectCommand : public BaseCommand {
 };
 
 
-struct WaitForConnectionCommand : public BaseCommand {
-    static const char* name() {
-        return "waitForConnection";
-    }
+DECLARE_CMD(WaitForConnectionCommand) {
+    CMD_NAME("waitForConnection")
+    CMD_HELP("Wait for a connection to occur. If another device connect, then the command will return the connection parameters.")
 
-    static const char* help() {
-        return "Wait for a connection to occur";
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "timeout", "Maximum time allowed for this procedure")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<timeout>", "Maximum time allowed for this procedure" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_RESULTS(
+        CMD_RESULT("uint16_t", "handle", "The handle of the connection created"),
+        CMD_RESULT("Gap::Role", "role", "Role of the device in the connection (here, it should be peripheral)"),
+        CMD_RESULT("BLEProtocol::AddressType_t", "peerAddrType", "The addressType of the peer"),
+        CMD_RESULT("MacAddress_t", "peerAddr", "The address of the peer"),
+        CMD_RESULT("BLEProtocol::AddressType_t", "ownAddrType", "The address type of this device"),
+        CMD_RESULT("MacAddress_t", "ownAddr", "The address of this device"),
+        CMD_RESULT("JSON object", "connectionParams", "Object which contain the parameters of the connection"),
+        CMD_RESULT("uint16_t", "connectionParams.minConnectionInterval", "minimum connection interval for this connection"),
+        CMD_RESULT("uint16_t", "connectionParams.maxConnectionInterval", "maximum connection interval for this connection"),
+        CMD_RESULT("uint16_t", "connectionParams.slaveLatency", "slave latency of the connection"),
+        CMD_RESULT("uint16_t", "connectionParams.connectionSupervisionTimeout", "supervision timeout for this connection")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        // timeout for this procedure
-        uint16_t procedureTimeout;
-        if (!fromString(args[0], procedureTimeout)) {
-            response->invalidParameters("the procedure timeout is ill formed");
-            return;
-        }
 
-        startProcedure<WaitForConnectionProcedure>(response, procedureTimeout);
+    CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) { 
+        startProcedure<WaitForConnectionProcedure>(response, timeout);
     }
 
     struct WaitForConnectionProcedure : public AsyncProcedure {
@@ -451,40 +308,24 @@ struct WaitForConnectionCommand : public BaseCommand {
 };
 
 
-struct DisconnectCommand : public BaseCommand {
-    static const char* name() {
-        return "disconnect";
-    }
+DECLARE_CMD(DisconnectCommand) {
+    CMD_NAME("disconnect")
+    CMD_HELP("disconnect the device from a specific connection."\
+        "If the procedure succeed, a JSON object containing the following fields will be returned."\
+        "In case of error, the reason of the error will be returned."
+    )
 
-    static const char* help() {
-        return "disconnect the device from a specific connection.\r\n"\
-               "If procedure succeed, a JSON object containing the following fields will be returned:\r\n"\
-               "\t* handle: The handle disconnected\r\n"\
-               "\t* reason: The reason of the disconnection (see Gap::DisconnectionReason_t)\r\n"\
-               "In case of error, the reason of the error will be returned.";
-    }
+    CMD_ARGS(
+        CMD_ARG("Gap::Handle_t", "connectionHandle", "The id of the connection to terminate."),
+        CMD_ARG("Gap::DisconnectionReason_t", "reason", "The reason of the termination (see Gap::DisconnectionReason_t)")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<connectionHandle>", "The id of the connection to terminate." },
-            { "<reason>", "The reason of the termination (see Gap::DisconnectionReason_t)" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_RESULTS(
+        CMD_RESULT("uint16_t", "handle", "The connection handle disconnected"),
+        CMD_RESULT("Gap::DisconnectionReason_t", "reason", "The reason of the disconnection")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        static Gap::Handle_t connectionHandle;
-        if (!fromString(args[0], connectionHandle)) {
-            response->invalidParameters("the connection handle is ill formed");
-            return;
-        }
-
-        Gap::DisconnectionReason_t reason;
-        if (!fromString(args[1], reason)) {
-            response->invalidParameters("the disconnection reason is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(Gap::Handle_t connectionHandle, Gap::DisconnectionReason_t reason, CommandResponsePtr& response) {
         // Set the timeout to the maximum supervision timeout allowed in BLE
         startProcedure<DisconnectionProcedure>(connectionHandle, reason, response, 10240);
     }
@@ -532,12 +373,9 @@ struct DisconnectCommand : public BaseCommand {
 };
 
 
-struct GetPreferredConnectionParamsCommand : public BaseCommand {
-    static const char* name() {
-        return "getPreferredConnectionParams";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+DECLARE_CMD(GetPreferredConnectionParamsCommand) {
+    CMD_NAME("getPreferredConnectionParams")
+    CMD_HANDLER(CommandResponsePtr& response) {
         Gap::ConnectionParams_t connectionParameters;
         ble_error_t err = gap().getPreferredConnectionParams(&connectionParameters);
         reportErrorOrSuccess(response, err, connectionParameters);
@@ -545,80 +383,53 @@ struct GetPreferredConnectionParamsCommand : public BaseCommand {
 };
 
 
-struct SetPreferredConnectionParamsCommand : public BaseCommand {
-    static const char* name() {
-        return "setPreferredConnectionParams";
-    }
+DECLARE_CMD(SetPreferredConnectionParamsCommand) {
+    CMD_NAME("setPreferredConnectionParams")
+    CMD_HELP("set the prefered connection parameters")
 
-    static const char* help() {
-        return "set the prefered connection parameters";
-    }
+    CMD_ARGS(
+        CMD_ARG(
+            "Gap::ConnectionParams_t", 
+            "minConnectionInterval,maxConnectionInterval,slaveLatency,connectionSupervisionTimeout", 
+            "all the parameters, coma separated"
+        )
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>", "all the parameters, coma separated" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        Gap::ConnectionParams_t connectionParameters;
-        if(!connectionParamsFromCLI(args[0], connectionParameters)) {
-            response->invalidParameters("malformed connection parameters, should be like"\
-                "<minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>");
-            return;
-        }
-
+    CMD_HANDLER(Gap::ConnectionParams_t connectionParameters, CommandResponsePtr& response) { 
         ble_error_t err =  gap().setPreferredConnectionParams(&connectionParameters);
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct UpdateConnectionParamsCommand : public BaseCommand {
-    static const char* name() {
-        return "updateConnectionParams";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+DECLARE_CMD(UpdateConnectionParamsCommand) {
+    CMD_NAME("updateConnectionParams")
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->notImplemented();
     }
 };
 
 
-struct SetDeviceNameCommand : public BaseCommand {
-    static const char* name() {
-        return "setDeviceName";
-    }
+DECLARE_CMD(SetDeviceNameCommand) {
+    CMD_NAME("setDeviceName")
+    CMD_HELP("set the device name")
 
-    static const char* help() {
-        return "set the devce name";
-    }
+    CMD_ARGS(
+        CMD_ARG("string", "name", "the name of the device, it should not have space")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<name>", "the name of the device, it should not have space" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         ble_error_t err = gap().setDeviceName((const uint8_t*) args[0]);
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct GetDeviceNameCommand : public BaseCommand {
-    static const char* name() {
-        return "getDeviceName";
-    }
+DECLARE_CMD(GetDeviceNameCommand) {
+    CMD_NAME("getDeviceName")
+    CMD_HELP("return the device name as a string")
 
-    static const char* help() {
-        return "return the device name as a string";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         // first : collect the size of the name
         unsigned deviceNameLength = 0;
         ble_error_t err = gap().getDeviceName(NULL, &deviceNameLength);
@@ -646,45 +457,26 @@ struct GetDeviceNameCommand : public BaseCommand {
 };
 
 
-struct SetAppearanceCommand : public BaseCommand {
-    static const char* name() {
-        return "setAppearance";
-    }
+DECLARE_CMD(SetAppearanceCommand) {
+    CMD_NAME("setAppearance")
+    CMD_HELP("set the appearance flag of the device")
 
-    static const char* help() {
-        return "set the appearance flag of the device";
-    }
+    CMD_ARGS(
+        CMD_ARG("GapAdvertisingData::Appearance_t", "appearance", "the appearance to set (see GapAdvertisingData::Appearance_t)")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<appearance>", "the appearance to set (see GapAdvertisingData::Appearance_t)" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
-        if(!fromString(args[0], appearance)) {
-            response->invalidParameters("the appearance to set is illformed (see GapAdvertisingData::Appearance_t)");
-            return;
-        }
-
+    CMD_HANDLER(GapAdvertisingData::Appearance_t appearance, CommandResponsePtr& response) {
         ble_error_t err = gap().setAppearance(appearance);
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct GetAppearanceCommand : public BaseCommand {
-    static const char* name() {
-        return "getAppearance";
-    }
+DECLARE_CMD(GetAppearanceCommand) {
+    CMD_NAME("getAppearance")
+    CMD_HELP("get the appearance of the device")
 
-    static const char* help() {
-        return "get the appearance of the device";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         GapAdvertisingData::Appearance_t appearance = GapAdvertisingData::UNKNOWN;
         ble_error_t err = gap().getAppearance(&appearance);
         reportErrorOrSuccess(response, err, appearance);
@@ -692,45 +484,26 @@ struct GetAppearanceCommand : public BaseCommand {
 };
 
 
-struct SetTxPowerCommand : public BaseCommand {
-    static const char* name() {
-        return "setTxPower";
-    }
+DECLARE_CMD(SetTxPowerCommand) {
+    CMD_NAME("setTxPower")
+    CMD_HELP("set the transmission power of the device")
 
-    static const char* help() {
-        return "set the transmission power of the device";
-    }
+    CMD_ARGS(
+        CMD_ARG("int8_t", "TxPower", "The transmission power, it is an integer between [-128:127]")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<TxPower>", "The transmission power, it is an integer between [-128:127]"}
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        int8_t txPower = 0;
-        if(!fromString(args[0], txPower)) {
-            response->invalidParameters("the txPower is malformed (should be between [-127:128])");
-            return;
-        }
-
+    CMD_HANDLER(int8_t txPower, CommandResponsePtr& response) {
         ble_error_t err = gap().setTxPower(txPower);
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct GetPermittedTxPowerValuesCommand : public BaseCommand {
-    static const char* name() {
-        return "getPermittedTxPowerValues";
-    }
+DECLARE_CMD(GetPermittedTxPowerValuesCommand) {
+    CMD_NAME("getPermittedTxPowerValues")
+    CMD_HELP("return an array of the authorized Tx power values")
 
-    static const char* help() {
-        return "return an array of the authorized Tx power values";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         using namespace serialization;
         const int8_t* permittedTxPowerValues = NULL;
         size_t permittedTxPowerValuesCount = 0;
@@ -748,164 +521,96 @@ struct GetPermittedTxPowerValuesCommand : public BaseCommand {
 };
 
 
-struct GetStateCommand : public BaseCommand {
-    static const char* name() {
-        return "getState";
-    }
+DECLARE_CMD(GetStateCommand) {
+    CMD_NAME("getState")
+    CMD_HELP("return the state of the device as defined in Gap::GapState_t")
 
-    static const char* help() {
-        return "return the state of the device as defined in Gap::GapState_t";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->success(gap().getState());
     }
 };
 
 
-struct SetAdvertisingTypeCommand : public BaseCommand {
-    static const char* name() {
-        return "setAdvertisingType";
-    }
-
-    static const char* help() {
-        return "set the advertising type";
-    }
-
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<advertisingType>", "The advertising type as defined in GapAdvertisingParams::AdvertisingType_t" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        GapAdvertisingParams::AdvertisingType_t advType;
-
-        if(!fromString(args[0], advType)) {
-            response->invalidParameters("the advertising type is incorrect (see GapAdvertisingParams::AdvertisingType_t)");
-            return;
-        }
-
+DECLARE_CMD(SetAdvertisingTypeCommand) {
+    CMD_NAME("setAdvertisingType")
+    CMD_HELP("set the advertising type")
+    CMD_ARGS(
+        CMD_ARG("GapAdvertisingParams::AdvertisingType_t", "advertisingType", "The advertising type to set")
+    )
+    CMD_HANDLER(GapAdvertisingParams::AdvertisingType_t advType, CommandResponsePtr& response) {
         gap().setAdvertisingType(advType);
         response->success();
     }
 };
 
 
-struct SetAdvertisingIntervalCommand : public BaseCommand {
-    static const char* name() {
-        return "setAdvertisingInterval";
-    }
+DECLARE_CMD(SetAdvertisingIntervalCommand) {
+    CMD_NAME("setAdvertisingInterval")
+    CMD_HELP("set the advertising interval")
 
-    static const char* help() {
-        return "set the advertising interval";
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "interval", "The interval in ms, if 0, the advertising is disabled")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<interval>", "The interval in ms, if 0, the advertising is disabled" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t interval = 0;
-        if(!fromString(args[0], interval)) {
-            response->invalidParameters("the advertising interval is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t interval, CommandResponsePtr& response) {
         gap().setAdvertisingInterval(interval);
         response->success();
     }
 };
 
 
-struct SetAdvertisingTimeoutCommand : public BaseCommand {
-    static const char* name() {
-        return "setAdvertisingTimeout";
-    }
+DECLARE_CMD(SetAdvertisingTimeoutCommand) {
+    CMD_NAME("setAdvertisingTimeout")
+    CMD_HELP("set the advertising timeout, in seconds")
 
-    static const char* help() {
-        return "set the advertising timeout, in seconds";
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "timeout", "An integer wich represent the advertising timeout in seconds [0x1 : 0x3FFF]. 0 disable the timeout")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<timeout>", "An integer wich represent the advertising timeout in seconds [0x1 : 0x3FFF]. 0 disable the timeout" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t timeout = 0;
-        if(!fromString(args[0], timeout)) {
-            response->invalidParameters("the advertising timeout is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) { 
         gap().setAdvertisingTimeout(timeout);
         response->success();
     }
 };
 
 
-struct StartAdvertisingCommand : public BaseCommand {
-    static const char* name() {
-        return "startAdvertising";
-    }
+DECLARE_CMD(StartAdvertisingCommand) {
+    CMD_NAME("startAdvertising")
+    CMD_HELP("start the advertising")
 
-    static const char* help() {
-        return "start the advertising";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         ble_error_t err = gap().startAdvertising();
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct ClearAdvertisingPayloadCommand : public BaseCommand {
-    static const char* name() {
-        return "clearAdvertisingPayload";
-    }
+DECLARE_CMD(ClearAdvertisingPayloadCommand) {
+    CMD_NAME("clearAdvertisingPayload")
+    CMD_HELP("clear the advertising payload")
 
-    static const char* help() {
-        return "clear the advertising payload";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         gap().clearAdvertisingPayload();
         response->success();
     }
 };
 
 
-struct AccumulateAdvertisingPayloadCommand : public BaseCommand {
-    static const char* name() {
-        return "accumulateAdvertisingPayload";
-    }
+DECLARE_CMD(AccumulateAdvertisingPayloadCommand) {
+    CMD_NAME("accumulateAdvertisingPayload")
+    CMD_HELP("add a new field into the advertising payload")
 
-    static const char* help() {
-        return "add a new field into the advertising payload";
-    }
-
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<fieldType>", "the field type of the data following (see GapAdvertisingData::DataType_t)" },
-            { "<data>", "the value of the field, please see GapAdvertisingData" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("AdvertisingPayloadField_t", "fieldType", "the field type of the data following (see GapAdvertisingData::DataType_t)"),
+        CMD_ARG("undefined", "data", "the value of the field, please see GapAdvertisingData")
+    )
 
     template<typename T>
     static std::size_t maximumArgsRequired() {
         return 0xFF;
     }
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         AdvertisingPayloadField_t payloadField;
         const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -920,30 +625,22 @@ struct AccumulateAdvertisingPayloadCommand : public BaseCommand {
 };
 
 
-struct UpdateAdvertisingPayloadCommand : public BaseCommand {
-    static const char* name() {
-        return "updateAdvertisingPayload";
-    }
+DECLARE_CMD(UpdateAdvertisingPayloadCommand) {
+    CMD_NAME("updateAdvertisingPayload")
+    CMD_HELP("update a field int the advertising payload."
+               "Take care, at the moment, this will only succeed if the new value has the same size as the old one")
 
-    static const char* help() {
-        return "update a field int the advertising payload.\r\n"
-               "Take care, at the moment, this will only succeed if the new value has the same size as the old one";
-    }
-
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<fieldType>", "the field type to update (see GapAdvertisingData::DataType_t)" },
-            { "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("AdvertisingPayloadField_t", "fieldType", "the field type to update (see GapAdvertisingData::DataType_t)"),
+        CMD_ARG("undefined", "data", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData")
+    )
 
     template<typename T>
     static std::size_t maximumArgsRequired() {
         return 0xFF;
     }
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         AdvertisingPayloadField_t payloadField;
         const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -958,16 +655,11 @@ struct UpdateAdvertisingPayloadCommand : public BaseCommand {
 };
 
 
-struct SetAdvertisingPayloadCommand : public BaseCommand {
-    static const char* name() {
-        return "setAdvertisingPayload";
-    }
+DECLARE_CMD(SetAdvertisingPayloadCommand) {
+    CMD_NAME("setAdvertisingPayload")
+    CMD_HELP("set the advertising payload")
 
-    static const char* help() {
-        return "set the advertising payload";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         // TODO
         //ble_error_t setAdvertisingPayload(const GapAdvertisingData &payload)
         response->notImplemented();
@@ -975,44 +667,31 @@ struct SetAdvertisingPayloadCommand : public BaseCommand {
 };
 
 
-struct GetAdvertisingPayloadCommand : public BaseCommand {
-    static const char* name() {
-        return "getAdvertisingPayload";
-    }
+DECLARE_CMD(GetAdvertisingPayloadCommand) {
+    CMD_NAME("getAdvertisingPayload")
+    CMD_HELP("get the current advertising payload")
 
-    static const char* help() {
-        return "get the current advertising payload";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->success(gap().getAdvertisingPayload());
     }
 };
 
 
-struct AccumulateScanResponseCommand : public BaseCommand {
-    static const char* name() {
-        return "accumulateScanResponse";
-    }
+DECLARE_CMD(AccumulateScanResponseCommand) {
+    CMD_NAME("accumulateScanResponse")
+    CMD_HELP("add a field into the scan response payload")
 
-    static const char* help() {
-        return "add a field into the scan response payload";
-    }
-
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<fieldType>", "the field type to update (see GapAdvertisingData::DataType_t)" },
-            { "<data>", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_ARGS(
+        CMD_ARG("AdvertisingPayloadField_t", "fieldType", "the field type to update (see GapAdvertisingData::DataType_t)"),
+        CMD_ARG("undefined", "data", "the value of the field, it should have the same size as the previous value. please see GapAdvertisingData")
+    )
 
     template<typename T>
     static std::size_t maximumArgsRequired() {
         return 0xFF;
     }
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         AdvertisingPayloadField_t payloadField;
         const char* parsingError = advertisingPayloadFieldFromCLI(args, payloadField);
 
@@ -1027,218 +706,117 @@ struct AccumulateScanResponseCommand : public BaseCommand {
 };
 
 
-struct ClearScanResponseCommand : public BaseCommand {
-    static const char* name() {
-        return "clearScanResponse";
-    }
+DECLARE_CMD(ClearScanResponseCommand) {
+    CMD_NAME("clearScanResponse")
+    CMD_HELP("clear the scan response")
 
-    static const char* help() {
-        return "clear the scan response";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         gap().clearScanResponse();
         response->success();
     }
 };
 
 
-struct SetScanParamsCommand : public BaseCommand {
-    static const char* name() {
-        return "setScanParams";
-    }
+DECLARE_CMD(SetScanParamsCommand) {
+    CMD_NAME("setScanParams")
+    CMD_HELP("Set the scan parameters")
 
-    static const char* help() {
-        return "Set the scan parameters";
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "interval", "The scan interval, it should be a number between 3 and 10420ms"),
+        CMD_ARG("uint16_t", "window", "The scan window, it should be a number between 3 and 10420ms"),
+        CMD_ARG("uint16_t", "timeout", "The scan timeout, it should be a number between 0 and 65534 "),
+        CMD_ARG("uint16_t", "activeScanning", "A boolean value { true, false } indeicating if the device send scan request or not")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<interval>", "The scan interval, it should be a number between 3 and 10420ms" },
-            { "<window>", "The scan window, it should be a number between 3 and 10420ms" },
-            { "<timeout>", "The scan timeout, it should be a number between 0 and 65534 " },
-            { "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t interval = 0xFFFF;
-        if(!fromString(args[0], interval)) {
-            response->invalidParameters("invalid interval, it should be a number between 3 and 10240ms");
-            return;
-        }
-
-        uint16_t window = 0xFFFF;
-        if(!fromString(args[1], window)) {
-            response->invalidParameters("invalid window, it should be a number between 3 and 10240ms");
-            return;
-        }
-
-        uint16_t timeout = 0;
-        if(!fromString(args[2], timeout)) {
-            response->invalidParameters("invalid timeout, it should be a number between 0 and 65534");
-            return;
-        }
-
-        uint16_t activeScanning = 0;
-        if(!fromString(args[3], activeScanning)) {
-            response->invalidParameters("invalid activeScaning, it should be a number boolean value");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t interval, uint16_t window, uint16_t timeout, uint16_t activeScanning, CommandResponsePtr& response) {
         ble_error_t err = gap().setScanParams(interval, window, timeout, activeScanning);
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct SetScanIntervalCommand : public BaseCommand {
-    static const char* name() {
-        return "setScanInterval";
-    }
+DECLARE_CMD(SetScanIntervalCommand) {
+    CMD_NAME("setScanInterval")
+    CMD_HELP("set the scan interval")
 
-    static const char* help() {
-        return "set the scan interval";
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "interval", "The interval between each scan, it should be a number between 3 and 10240ms")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<interval>", "The interval between each scan, it should be a number between 3 and 10240ms" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t interval = 0;
-        if(!fromString(args[0], interval)) {
-            response->invalidParameters("the interval is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t interval, CommandResponsePtr& response) { 
         ble_error_t err = gap().setScanInterval(interval);
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct SetScanWindowCommand : public BaseCommand {
-    static const char* name() {
-        return "setScanWindow";
-    }
+DECLARE_CMD(SetScanWindowCommand) {
+    CMD_NAME("setScanWindow")
+    CMD_HELP("set the scan windows")
 
-    static const char* help() {
-        return "set the scan windows";
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "window", "The interval between each scan, it should be a number between 3 and 10240ms")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<window>", "The interval between each scan, it should be a number between 3 and 10240ms" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t window = 0;
-        if(!fromString(args[0], window)) {
-            response->invalidParameters("the window is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t window, CommandResponsePtr& response) {
         ble_error_t err = gap().setScanWindow(window);
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct SetScanTimeoutCommand : public BaseCommand {
-    static const char* name() {
-        return "setScanTimeout";
-    }
+DECLARE_CMD(SetScanTimeoutCommand) {
+    CMD_NAME("setScanTimeout")
+    CMD_HELP("Set the scane timeout")
 
-    static const char* help() {
-        return "Set the scane timeout";
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "timeout", "The scan timeout, it should be a number between 0 and 65534 ")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<timeout>", "The scan timeout, it should be a number between 0 and 65534 " }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t timeout = 0;
-        if(!fromString(args[0], timeout)) {
-            response->invalidParameters("the timeout is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) {
         ble_error_t err = gap().setScanTimeout(timeout);
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct SetActiveScanningCommand : public BaseCommand {
-    static const char* name() {
-        return "setActiveScanning";
-    }
+DECLARE_CMD(SetActiveScanningCommand) {
+    CMD_NAME("setActiveScanning")
+    CMD_HELP("Enable or disable active scanning")
 
-    static const char* help() {
-        return "Enable or disable active scanning";
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "activeScanning", "A boolean value { true, false } indeicating if the device send scan request or not")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<activeScanning>", "A boolean value { true, false } indeicating if the device send scan request or not" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        bool activeScanning = 0;
-        if(!fromString(args[0], activeScanning)) {
-            response->invalidParameters("the active scanning state is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(bool activeScanning, CommandResponsePtr& response) {
         ble_error_t err = gap().setActiveScanning(activeScanning);
         reportErrorOrSuccess(response, err);
     }
 };
 
 
-struct StartScanCommand : public BaseCommand {
-    static const char* name() {
-        return "startScan";
-    }
+DECLARE_CMD(StartScanCommand) {
+    CMD_NAME("startScan")
+    CMD_HELP("start the scan process")
 
-    static const char* help() {
-        return "start the scan process";
-    }
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "duration", "The duration of the scan"),
+        CMD_ARG("uint16_t", "address", "The address to scan for")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<duration>", "The duration of the scan" },
-            { "<address>", "The address to scan for" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
+    CMD_RESULTS( 
+        CMD_RESULT("JSON Array", "", "Array of scan results"),
+        CMD_RESULT("JSON Object", "[x]", "A scan result"),
+        CMD_RESULT("MacAddress_t", "[x].peerAddr", "Address of the peer adverising."),
+        CMD_RESULT("int8_t", "[x].rssi", "RSSI of the scan sample."),
+        CMD_RESULT("bool", "[x].isScanResponse", "Indicate if it is an advertising or a scan response."),
+        CMD_RESULT("GapAdvertisingParams::AdvertisingType_t", "[x].type", "Type of the scan result."),
+        CMD_RESULT("uint32_t", "[x].time", "Time (in ms) at which the scan has been acquired since the begining of the start procedure."),
+        CMD_RESULT("JSON object", "[x].data", "Object containing the different fields of the advertisement."),
+        CMD_RESULT("HexString_t", "[x].data.raw", "Raw payload of the advertising.")
+    )
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        uint16_t duration = 0;
-        if(!fromString(args[0], duration)) {
-            response->invalidParameters("first argument should be the duration of the scan in milliseconds");
-            return;
-        }
-
-        Gap::Address_t address;
-        if(!macAddressFromString(args[1], address)) {
-            response->invalidParameters("second argument should be a mac address which should match XX:XX:XX:XX:XX:XX format");
-            return;
-        }
-
+    CMD_HANDLER(uint16_t duration, MacAddress_t address, CommandResponsePtr& response) {
         startProcedure<ScanProcedure>(response, duration, address);
     }
 
@@ -1299,16 +877,11 @@ struct StartScanCommand : public BaseCommand {
 };
 
 
-struct InitRadioNotificationCommand : public BaseCommand {
-    static const char* name() {
-        return "initRadioNotification";
-    }
+DECLARE_CMD(InitRadioNotificationCommand) {
+    CMD_NAME("initRadioNotification")
+    CMD_HELP("initialize radio notifications")
 
-    static const char* help() {
-        return "initialize radio notifications";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         // TODO (maybe)
         //ble_error_t initRadioNotification(void)
         response->notImplemented();
@@ -1316,90 +889,56 @@ struct InitRadioNotificationCommand : public BaseCommand {
 };
 
 
-struct GetAdvertisingParamsCommand : public BaseCommand {
-    static const char* name() {
-        return "getAdvertisingParams";
-    }
+DECLARE_CMD(GetAdvertisingParamsCommand) {
+    CMD_NAME("getAdvertisingParams")
+    CMD_HELP("return the current advertising params")
 
-    static const char* help() {
-        return "return the current advertising params";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->success(gap().getAdvertisingParams());
     }
 };
 
 
-struct SetAdvertisingParamsCommand : public BaseCommand {
-    static const char* name() {
-        return "setAdvertisingParams";
-    }
+DECLARE_CMD(SetAdvertisingParamsCommand) {
+    CMD_NAME("setAdvertisingParams")
+    CMD_HELP("set the advertising parameters")
 
-    static const char* help() {
-        return "set the advertising parameters";
-    }
+    CMD_ARGS(
+        CMD_ARG("GapAdvertisingParams::AdvertisingType_t", "advertisingType", "The Advertising type, please refer to GapAdvertisingParams::AdvertisingType_t"),
+        CMD_ARG("uint16_t", "interval", "The advertising interval, it should be a number between 0 and 65534"),
+        CMD_ARG("uint16_t", "timeout", "The timeout, it should be a number between 0 and 65534")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<advertisingType>", "The Advertising type, please refer to GapAdvertisingParams::AdvertisingType_t" },
-            { "<interval>", "The advertising interval, it should be a number between 0 and 65534" },
-            { "<timeout>", "The timeout, it should be a number between 0 and 65534" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        GapAdvertisingParams::AdvertisingType_t advertisingType;
-        if(!fromString(args[0], advertisingType)) {
-            response->invalidParameters("Advertising type is malformed, please refer to GapAdvertisingParams::AdvertisingType_t");
-            return;
-        }
-
-        uint16_t interval;
-        if(!fromString(args[1], interval)) {
-            response->invalidParameters("Advertising interval is malformed, should be a number between 0 and 65534");
-            return;
-        }
-
-        uint16_t timeout;
-        if(!fromString(args[2], timeout)) {
-            response->invalidParameters("Advertising timeout is malformed, should be a number between 0 and 65534");
-            return;
-        }
-
+    CMD_HANDLER(GapAdvertisingParams::AdvertisingType_t advertisingType, uint16_t interval, uint16_t timeout, CommandResponsePtr& response) {
         gap().setAdvertisingParams(GapAdvertisingParams(advertisingType, interval, timeout));
         response->success();
     }
 };
 
 
-struct GetMaxWhitelistSizeCommand : public BaseCommand {
-    static const char* name() {
-        return "getMaxWhitelistSize";
-    }
+DECLARE_CMD(GetMaxWhitelistSizeCommand) {
+    CMD_NAME("getMaxWhitelistSize")
+    CMD_HELP("get the maximum size the whitelist can take")
 
-    static const char* help() {
-        return "get the maximum size the whitelist can take";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->success(gap().getMaxWhitelistSize());
     }
 };
 
 
-struct GetWhitelistCommand : public BaseCommand {
-    static const char* name() {
-        return "getWhitelist";
-    }
+DECLARE_CMD(GetWhitelistCommand) {
+    CMD_NAME("getWhitelist")
+    CMD_HELP("Get the internal whitelist to be used by the Link Layer when scanning,"
+               "advertising or initiating a connection depending on the filter policies.")
 
-    static const char* help() {
-        return "Get the internal whitelist to be used by the Link Layer when scanning,"
-               "advertising or initiating a connection depending on the filter policies.";
-    }
+    CMD_RESULTS(
+        CMD_RESULT("JSON Array", "", "Array of the address in the whitelist"), 
+        CMD_RESULT("JSON Object", "[i]", "Description of an address"), 
+        CMD_RESULT("AddressType_t", "[i].address_type", "Type of the address"),
+        CMD_RESULT("MacAddress_t", "[i].address", "The mac address"),
+    )
 
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         using namespace serialization;
 
         BLEProtocol::Address_t* addresses = new BLEProtocol::Address_t[gap().getMaxWhitelistSize()]();
@@ -1433,22 +972,17 @@ struct GetWhitelistCommand : public BaseCommand {
 };
 
 
-struct SetWhitelistCommand : public BaseCommand {
-    static const char* name() {
-        return "setWhitelist";
-    }
-
-    static const char* help() {
-        return "Set the internal whitelist to be used by the Link Layer when scanning,"
-               "advertising or initiating a connection depending on the filter policies.";
-    }
+DECLARE_CMD(SetWhitelistCommand) {
+    CMD_NAME("setWhitelist")
+    CMD_HELP("Set the internal whitelist to be used by the Link Layer when scanning,"
+               "advertising or initiating a connection depending on the filter policies.")
 
     template<typename T>
     static std::size_t maximumArgsRequired() {
         return 0xFF;
     }
 
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         if(args.count() % 2) {
             response->invalidParameters("[ <addressType> <address> ] expected");
             return;
@@ -1485,134 +1019,77 @@ struct SetWhitelistCommand : public BaseCommand {
 };
 
 
-struct SetAdvertisingPolicyModeCommand : public BaseCommand {
-    static const char* name() {
-        return "setAdvertisingPolicyMode";
-    }
+DECLARE_CMD(SetAdvertisingPolicyModeCommand) {
+    CMD_NAME("setAdvertisingPolicyMode")
+    CMD_HELP("Set the advertising policy filter mode to be used in the next call"
+               "to startAdvertising().")
 
-    static const char* help() {
-        return "Set the advertising policy filter mode to be used in the next call"
-               "to startAdvertising().";
-    }
+    CMD_ARGS(
+        CMD_ARG("Gap::AdvertisingPolicyMode_t", "AdvertisingPolicyMode_t", "The advertising policy mode to set")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<AdvertisingPolicyMode_t>", "The advertising policy mode to set" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        Gap::AdvertisingPolicyMode_t mode;
-        if(!fromString(args[0], mode)) {
-            response->invalidParameters("The policy mode in input is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(Gap::AdvertisingPolicyMode_t mode, CommandResponsePtr& response) {
         reportErrorOrSuccess(response, gap().setAdvertisingPolicyMode(mode));
     }
 };
 
 
-struct SetScanningPolicyModeCommand : public BaseCommand {
-    static const char* name() {
-        return "setScanningPolicyMode";
-    }
+DECLARE_CMD(SetScanningPolicyModeCommand) {
+    CMD_NAME("setScanningPolicyMode")
+    CMD_HELP("Set the scan policy filter mode to be used in the next call to startScan().")
 
-    static const char* help() {
-        return "Set the scan policy filter mode to be used in the next call to startScan().";
-    }
+    CMD_ARGS(
+        CMD_ARG("Gap::ScanningPolicyMode_t", "ScanningPolicyMode_t", "The scanning policy mode to set")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<ScanningPolicyMode_t>", "The scanning policy mode to set" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        Gap::ScanningPolicyMode_t mode;
-        if(!fromString(args[0], mode)) {
-            response->invalidParameters("The policy mode in input is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(Gap::ScanningPolicyMode_t mode, CommandResponsePtr& response) {
         reportErrorOrSuccess(response, gap().setScanningPolicyMode(mode));
     }
 };
 
 
-struct SetInitiatorPolicyModeCommand : public BaseCommand {
-    static const char* name() {
-        return "setInitiatorPolicyMode";
-    }
+DECLARE_CMD(SetInitiatorPolicyModeCommand) {
+    CMD_NAME("setInitiatorPolicyMode")
+    CMD_HELP("Set the initiator policy filter mode to be used.")
 
-    static const char* help() {
-        return "Set the initiator policy filter mode to be used.";
-    }
+    CMD_ARGS(
+        CMD_ARG("Gap::InitiatorPolicyMode_t", "InitiatorPolicyMode_t", "The scanning policy mode to set")
+    )
 
-    static ConstArray<CommandArgDescription> argsDescription() {
-        static const CommandArgDescription argsDescription[] = {
-            { "<InitiatorPolicyMode_t>", "The scanning policy mode to set" }
-        };
-        return ConstArray<CommandArgDescription>(argsDescription);
-    }
-
-    static void handler(const CommandArgs& args, const SharedPointer<CommandResponse>& response) {
-        Gap::InitiatorPolicyMode_t mode;
-        if(!fromString(args[0], mode)) {
-            response->invalidParameters("The policy mode in input is ill formed");
-            return;
-        }
-
+    CMD_HANDLER(Gap::InitiatorPolicyMode_t mode, CommandResponsePtr& response) {
         reportErrorOrSuccess(response, gap().setInitiatorPolicyMode(mode));
     }
 };
 
 
 
-struct GetAdvertisingPolicyModeCommand : public BaseCommand {
-    static const char* name() {
-        return "getAdvertisingPolicyMode";
-    }
+DECLARE_CMD(GetAdvertisingPolicyModeCommand) {
+    CMD_NAME("getAdvertisingPolicyMode")
+    CMD_HELP("Get the advertising policy filter mode that will be used in the next"
+               "call to startAdvertising()")
 
-    static const char* help() {
-        return "Get the advertising policy filter mode that will be used in the next"
-               "call to startAdvertising()";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->success(gap().getAdvertisingPolicyMode());
     }
 };
 
 
-struct GetScanningPolicyModeCommand : public BaseCommand {
-    static const char* name() {
-        return "getScanningPolicyMode";
-    }
+DECLARE_CMD(GetScanningPolicyModeCommand) {
+    CMD_NAME("getScanningPolicyMode")
+    CMD_HELP("Get the scan policy filter mode that will be used in the next"
+               "call to startScan().")
 
-    static const char* help() {
-        return "Get the scan policy filter mode that will be used in the next"
-               "call to startScan().";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->success(gap().getScanningPolicyMode());
     }
 };
 
 
-struct GetInitiatorPolicyModeCommand : public BaseCommand {
-    static const char* name() {
-        return "getInitiatorPolicyMode";
-    }
+DECLARE_CMD(GetInitiatorPolicyModeCommand) {
+    CMD_NAME("getInitiatorPolicyMode")
+    CMD_HELP("Get the initiator policy filter mode that will be used.")
 
-    static const char* help() {
-        return "Get the initiator policy filter mode that will be used.";
-    }
-
-    static void handler(const CommandArgs&, const SharedPointer<CommandResponse>& response) {
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->success(gap().getInitiatorPolicyMode());
     }
 };
@@ -1621,58 +1098,54 @@ struct GetInitiatorPolicyModeCommand : public BaseCommand {
 } // end of annonymous namespace
 
 
-ConstArray<const Command*> GapCommandSuiteDescription::commands() {
-    static const Command* const commandHandlers[] = {
-        &CommandAccessor<SetAddressCommand>::command,
-        &CommandAccessor<GetAddressCommand>::command,
-        &CommandAccessor<GetMinAdvertisingIntervalCommand>::command,
-        &CommandAccessor<GetMinNonConnectableAdvertisingIntervalCommand>::command,
-        &CommandAccessor<GetMaxAdvertisingIntervalCommand>::command,
-        &CommandAccessor<StopAdvertisingCommand>::command,
-        &CommandAccessor<StopScanCommand>::command,
-        &CommandAccessor<ConnectCommand>::command,
-        &CommandAccessor<WaitForConnectionCommand>::command,
-        &CommandAccessor<DisconnectCommand>::command,
-        &CommandAccessor<GetPreferredConnectionParamsCommand>::command,
-        &CommandAccessor<SetPreferredConnectionParamsCommand>::command,
-        &CommandAccessor<UpdateConnectionParamsCommand>::command,
-        &CommandAccessor<SetDeviceNameCommand>::command,
-        &CommandAccessor<GetDeviceNameCommand>::command,
-        &CommandAccessor<SetAppearanceCommand>::command,
-        &CommandAccessor<GetAppearanceCommand>::command,
-        &CommandAccessor<SetTxPowerCommand>::command,
-        &CommandAccessor<GetPermittedTxPowerValuesCommand>::command,
-        &CommandAccessor<GetStateCommand>::command,
-        &CommandAccessor<SetAdvertisingTypeCommand>::command,
-        &CommandAccessor<SetAdvertisingIntervalCommand>::command,
-        &CommandAccessor<SetAdvertisingTimeoutCommand>::command,
-        &CommandAccessor<StartAdvertisingCommand>::command,
-        &CommandAccessor<ClearAdvertisingPayloadCommand>::command,
-        &CommandAccessor<AccumulateAdvertisingPayloadCommand>::command,
-        &CommandAccessor<UpdateAdvertisingPayloadCommand>::command,
-        &CommandAccessor<SetAdvertisingPayloadCommand>::command,
-        &CommandAccessor<GetAdvertisingPayloadCommand>::command,
-        &CommandAccessor<AccumulateScanResponseCommand>::command,
-        &CommandAccessor<ClearScanResponseCommand>::command,
-        &CommandAccessor<SetScanParamsCommand>::command,
-        &CommandAccessor<SetScanIntervalCommand>::command,
-        &CommandAccessor<SetScanWindowCommand>::command,
-        &CommandAccessor<SetScanTimeoutCommand>::command,
-        &CommandAccessor<SetActiveScanningCommand>::command,
-        &CommandAccessor<StartScanCommand>::command,
-        &CommandAccessor<InitRadioNotificationCommand>::command,
-        &CommandAccessor<GetAdvertisingParamsCommand>::command,
-        &CommandAccessor<SetAdvertisingParamsCommand>::command,
-        &CommandAccessor<GetMaxWhitelistSizeCommand>::command,
-        &CommandAccessor<GetWhitelistCommand>::command,
-        &CommandAccessor<SetWhitelistCommand>::command,
-        &CommandAccessor<SetAdvertisingPolicyModeCommand>::command,
-        &CommandAccessor<SetScanningPolicyModeCommand>::command,
-        &CommandAccessor<SetInitiatorPolicyModeCommand>::command,
-        &CommandAccessor<GetAdvertisingPolicyModeCommand>::command,
-        &CommandAccessor<GetScanningPolicyModeCommand>::command,
-        &CommandAccessor<GetInitiatorPolicyModeCommand>::command
-    };
-
-    return ConstArray<const Command*>(commandHandlers);
-}
+DECLARE_SUITE_COMMANDS(GapCommandSuiteDescription, 
+    CMD_INSTANCE(SetAddressCommand),
+    CMD_INSTANCE(GetAddressCommand),
+    CMD_INSTANCE(GetMinAdvertisingIntervalCommand),
+    CMD_INSTANCE(GetMinNonConnectableAdvertisingIntervalCommand),
+    CMD_INSTANCE(GetMaxAdvertisingIntervalCommand),
+    CMD_INSTANCE(StopAdvertisingCommand),
+    CMD_INSTANCE(StopScanCommand),
+    CMD_INSTANCE(ConnectCommand),
+    CMD_INSTANCE(WaitForConnectionCommand),
+    CMD_INSTANCE(DisconnectCommand),
+    CMD_INSTANCE(GetPreferredConnectionParamsCommand),
+    CMD_INSTANCE(SetPreferredConnectionParamsCommand),
+    CMD_INSTANCE(UpdateConnectionParamsCommand),
+    CMD_INSTANCE(SetDeviceNameCommand),
+    CMD_INSTANCE(GetDeviceNameCommand),
+    CMD_INSTANCE(SetAppearanceCommand),
+    CMD_INSTANCE(GetAppearanceCommand),
+    CMD_INSTANCE(SetTxPowerCommand),
+    CMD_INSTANCE(GetPermittedTxPowerValuesCommand),
+    CMD_INSTANCE(GetStateCommand),
+    CMD_INSTANCE(SetAdvertisingTypeCommand),
+    CMD_INSTANCE(SetAdvertisingIntervalCommand),
+    CMD_INSTANCE(SetAdvertisingTimeoutCommand),
+    CMD_INSTANCE(StartAdvertisingCommand),
+    CMD_INSTANCE(ClearAdvertisingPayloadCommand),
+    CMD_INSTANCE(AccumulateAdvertisingPayloadCommand),
+    CMD_INSTANCE(UpdateAdvertisingPayloadCommand),
+    CMD_INSTANCE(SetAdvertisingPayloadCommand),
+    CMD_INSTANCE(GetAdvertisingPayloadCommand),
+    CMD_INSTANCE(AccumulateScanResponseCommand),
+    CMD_INSTANCE(ClearScanResponseCommand),
+    CMD_INSTANCE(SetScanParamsCommand),
+    CMD_INSTANCE(SetScanIntervalCommand),
+    CMD_INSTANCE(SetScanWindowCommand),
+    CMD_INSTANCE(SetScanTimeoutCommand),
+    CMD_INSTANCE(SetActiveScanningCommand),
+    CMD_INSTANCE(StartScanCommand),
+    CMD_INSTANCE(InitRadioNotificationCommand),
+    CMD_INSTANCE(GetAdvertisingParamsCommand),
+    CMD_INSTANCE(SetAdvertisingParamsCommand),
+    CMD_INSTANCE(GetMaxWhitelistSizeCommand),
+    CMD_INSTANCE(GetWhitelistCommand),
+    CMD_INSTANCE(SetWhitelistCommand),
+    CMD_INSTANCE(SetAdvertisingPolicyModeCommand),
+    CMD_INSTANCE(SetScanningPolicyModeCommand),
+    CMD_INSTANCE(SetInitiatorPolicyModeCommand),
+    CMD_INSTANCE(GetAdvertisingPolicyModeCommand),
+    CMD_INSTANCE(GetScanningPolicyModeCommand),
+    CMD_INSTANCE(GetInitiatorPolicyModeCommand)
+)

@@ -16,27 +16,27 @@ JSONOutputStream& JSONOutputStream::operator<<(bool value) {
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(int8_t value) {
-    return formatValue("%" PRId8, value);
+    return formatValue("%d", static_cast<int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(uint8_t value) {
-    return formatValue("%" PRIu8, value);
+    return formatValue("%u", static_cast<unsigned int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(int16_t value) {
-    return formatValue("%" PRId16, value);
+    return formatValue("%d", static_cast<int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(uint16_t value) {
-    return formatValue("%" PRIu16, value);
+    return formatValue("%u", static_cast<unsigned int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(int32_t value) {
-    return formatValue("%" PRId32, value);
+    return formatValue("%d", static_cast<int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(uint32_t value) {
-    return formatValue("%" PRIu32, value);
+    return formatValue("%u", static_cast<unsigned int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(int64_t value) {
@@ -52,24 +52,34 @@ JSONOutputStream& JSONOutputStream::operator<<(const char* value) {
 }
 
 JSONOutputStream& startArray(JSONOutputStream& os) {
-    os.put('[');
+    os.write("[\r\n");
+    ++os.indentation;
+    os.indent();
     return os;
 }
 
 JSONOutputStream& endArray(JSONOutputStream& os) {
     os.startNewValue = false;
+    os.write("\r\n");
+    --os.indentation;
+    os.indent();
     os.put(']');
     os.commitValue();
     return os;
 }
 
 JSONOutputStream& startObject(JSONOutputStream& os) {
-    os.put('{');
+    os.write("{\r\n");
+    ++os.indentation;
+    os.indent();
     return os;
 }
 
 JSONOutputStream& endObject(JSONOutputStream& os) {
     os.startNewValue = false;
+    os.write("\r\n");
+    --os.indentation;
+    os.indent();
     os.put('}');
     os.commitValue();
     return os;
@@ -82,7 +92,7 @@ JSONOutputStream& nil(JSONOutputStream& os) {
  }
 
 JSONOutputStream::JSONOutputStream(mbed::RawSerial& output) :
-    out(output), startNewValue(false) {
+    out(output), startNewValue(false), indentation(0) {
 }
 
 JSONOutputStream::~JSONOutputStream() {
@@ -159,13 +169,20 @@ JSONOutputStream& JSONOutputStream::vformatValue(const char *fmt, std::va_list l
 
 void JSONOutputStream::handleNewValue() {
     if(startNewValue) {
-        out.putc(',');
+        out.puts(",\r\n");
+        indent();
         startNewValue = false;
     }
 }
 
+void JSONOutputStream::indent() {
+    for (uint8_t i = 0; i < indentation; ++i) { 
+        out.putc('\t');
+    }
+}
+
 JSONOutputStream& operator<<(JSONOutputStream& os, const Key& k) {
-    return os.format("\"%s\":", k.str);
+    return os.format("\"%s\": ", k.str);
 }
 
 } // namespace serialization

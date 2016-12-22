@@ -4,8 +4,12 @@
 #include "util/ConstArray.h"
 #include "CommandArgs.h"
 #include "Command.h"
-#include "CommandSuiteImplementation.h"
-#include "CommandAccessor.h"
+#include "BaseCommand.h"
+#include "detail/CommandSuiteImplementation.h"
+#include "CommandGenerator.h"
+#include "detail/ListCommandBase.h"
+#include "detail/HelpCommandBase.h"
+
 
 /**
  * @brief Allow to easily group and add a suite of commands into the cli system.
@@ -41,8 +45,8 @@
  *
  * static ConstArray<Command*> commands() {
  *  	static const Command* commandHandlers[] = {
- *      	&&CommandAccessor<FooCommand>::command,
- *          &&CommandAccessor<BarCommand>::command
+ *      	&&CommandGenerator<FooCommand>::command,
+ *          &&CommandGenerator<BarCommand>::command
  *      };
  *
  *      return ConstArray<Command*>(commandHandlers);
@@ -95,39 +99,22 @@ private:
         return SuiteDescription::commands();
     }
 
+
+#ifndef ENABLE_BUILTIN_COMMANDS
     static ConstArray<const Command*> getBuiltinCommands() {
-#ifdef ENABLE_BUILTIN_COMMANDS
-        static const Command* const builtinCommands[] = {
-            &CommandAccessor<HelpCommand>::command,
-            &CommandAccessor<ListCommand>::command,
-            &CommandAccessor<ArgsCommand>::command
-        };
-        return ConstArray<const Command*>(builtinCommands);
-#else
         return ConstArray<const Command*>();
-#endif
     }
 
-#ifdef ENABLE_BUILTIN_COMMANDS
-    struct HelpCommand : public BaseCommand {
-        static const char* name() {
-            return "help";
-        }
+#else // ifdef ENABLE_BUILTIN_COMMANDS
+    static ConstArray<const Command*> getBuiltinCommands() {
+        static const Command* const builtinCommands[] = {
+            &CommandGenerator<HelpCommand>::command,
+            &CommandGenerator<ListCommand>::command
+        };
+        return ConstArray<const Command*>(builtinCommands);
+    }
 
-        static const char* help() {
-            return "Print help about a command, you can list the command by using the command 'list'";
-        }
-
-        static ConstArray<CommandArgDescription> argsDescription() {
-            static const CommandArgDescription argsDescription[] = {
-                {
-                    "<commandName>",
-                    "the name of a command you want help for, use the command 'list' to have a list of available commands"
-                }
-            };
-            return ConstArray<CommandArgDescription>(argsDescription);
-        }
-
+    struct HelpCommand : public HelpCommandBase {
         static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::help(
                 args,
@@ -138,45 +125,9 @@ private:
         }
     };
 
-
-    struct ListCommand : public BaseCommand {
-        static const char* name() {
-            return "list";
-        }
-
-        static const char* help() {
-            return "list all the command in a module";
-        }
-
+    struct ListCommand : public ListCommandBase {
         static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
             CommandSuiteImplementation::list(
-                args,
-                response,
-                getBuiltinCommands(),
-                getModuleCommands()
-            );
-        }
-    };
-
-
-    struct ArgsCommand : public BaseCommand {
-        static const char* name() {
-            return "args";
-        }
-
-        static const char* help() {
-            return "print the args of a command";
-        }
-
-        static ConstArray<CommandArgDescription> argsDescription() {
-            static const CommandArgDescription argsDescription[] = {
-                { "commandName", "The name of the the command you want the args" }
-            };
-            return ConstArray<CommandArgDescription>(argsDescription);
-        }
-
-        static void handler(const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response) {
-            CommandSuiteImplementation::args(
                 args,
                 response,
                 getBuiltinCommands(),
