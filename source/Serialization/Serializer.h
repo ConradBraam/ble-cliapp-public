@@ -15,8 +15,55 @@ struct ValueToStringMapping {
 };
 
 /**
- * @brief Base class for Serializer description, all Serializer description should specialize
- * this type.
+ * @brief Description of the Serialization used by Serializer<T> to create the 
+ * serialization and deserialization function. This class is mostly used to 
+ * generate enum serialization/deserialization functions.
+ * 
+ * @detail Two functions and one typedef should be defined in specialization of 
+ * this class to makes the serialization viable: 
+ *   - typedef T type: yield the type targeted by the description.
+ *   - ConstArray<ValueToStringMapping<type> > mapping(): Mapping between value 
+ *   and serialized values.
+ *   - const char* errorMessage(): Error message that should be return by the 
+ *   toString function if the serialization fail. 
+ *
+ * @code 
+
+   enum Color_t { 
+     BLUE,
+     RED, 
+     GREEN
+   };
+   
+    template<>
+    struct SerializerDescription<Color_t> {
+        typedef Color_t type;
+
+        static const ConstArray<ValueToStringMapping<type> > mapping() {
+            static const ValueToStringMapping<type> map[] = {
+                { BLUE, "blue" },
+                { RED, "red" },
+                { GREEN, "green" }
+            };
+
+            return makeConstArray(map);
+        }
+
+        static const char* errorMessage() {
+            return "unknown Color_t";
+        }
+    };
+
+    // deserialization
+    Color_t c;
+    if (fromString("blue", c) ) { 
+        // handle error
+    }
+
+    // serialization 
+    const char* sc = toString(c);
+
+ * @endcode
  *
  * @tparam T The type on which this descripion apply
  */
@@ -30,13 +77,14 @@ struct SerializerDescription;
  */
 template<typename T>
 struct Serializer {
+    typedef SerializerDescription<T> description;
     typedef typename SerializerDescription<T>::type serialized_type;
 
-    static const char* toString(const serialized_type val) {
+    static const char* toString(const serialized_type& val) {
         return toString(
             val,
-            SerializerDescription<T>::mapping(),
-            SerializerDescription<T>::errorMessage()
+            description::mapping(),
+            description::errorMessage()
         );
     }
 
@@ -44,7 +92,7 @@ struct Serializer {
         return fromString(
             str,
             val,
-            SerializerDescription<T>::mapping()
+            description::mapping()
         );
     }
 
@@ -70,7 +118,8 @@ private:
 };
 
 /**
- * @brief convert a value to a string
+ * @brief convert a value to a string.
+ * SerializerDescription<T> should be specialized to make this function viable.
  */
 template<typename T>
 static const char* toString(const T& value) {
@@ -79,6 +128,7 @@ static const char* toString(const T& value) {
 
 /**
  * @brief Convert a string to a value
+ * SerializerDescription<T> should be specialized to make this function viable.
  */
 template<typename T>
 static bool fromString(const char* str, T& value) {

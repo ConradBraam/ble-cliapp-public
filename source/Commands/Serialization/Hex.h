@@ -37,4 +37,16 @@ serialization::JSONOutputStream& serializeRawDataToHexString(serialization::JSON
  */
 container::Vector<uint8_t> hexStringToRawData(const char* data);
 
+typedef container::Vector<uint8_t> RawData_t;
+
+static inline bool fromString(const char* str, RawData_t& value) { 
+    container::Vector<uint8_t> tmp = hexStringToRawData(str);
+    if (tmp.size() == 0) { 
+        return false;
+    }
+    value = tmp;
+    return true;
+}
+
+
 #endif //BLE_CLIAPP_SERIALIZATION_HEX_H_

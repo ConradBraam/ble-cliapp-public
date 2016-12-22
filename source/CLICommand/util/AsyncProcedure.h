@@ -1,9 +1,66 @@
-#ifndef BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
-#define BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
+#ifndef BLE_CLIAPP_CLICOMMAND_UTIL_ASYNC_PROCEDURE_
+#define BLE_CLIAPP_CLICOMMAND_UTIL_ASYNC_PROCEDURE_
 
-#include <core-util/SharedPointer.h>
 #include "EventQueue/EventQueue.h"
-#include "CLICommand/CommandResponse.h"
+#include "CLICommand/Command.h"
+
+/**
+ * @brief Base class for used to build Asynchronous commands.
+ * @details This base class help command writer to write clean and efficient 
+ * commands requiring asynchronous operations. It manages automatically the 
+ * lifetime of the state associated with the operation, the command response
+ * and timeout automatically if the operation didn't succeed in the expected time.
+ * 
+ * @code 
+    struct MyLongProcedure : public AsyncProcedure {
+        // Construct the procedure. 
+        // The state required by the procedure is passed at construction time. 
+        // It is mandatory to pass a CommandResponse and a timeout as these values are 
+        // needed by the base class AsyncProcedure.
+        MyLongProcedure(A0 stateA, A1 stateB, ..., const CommandResponse& res, uint32_t timeout) :
+            AsyncProcedure(res, procedureTimeout), _stateA(stateA), _stateB(stateB), ... {
+        }
+
+        // Procedure starting point
+        // If the procedure launch was successful returns true otherwise returns false
+        virtual bool doStart() {
+            // start the long operation, 
+            // In this case, once the operation is done, whenResult member function will 
+            // be called.
+            return my_long_operation(_stateA, ..., this, &MyLongProcedure::whenResult)
+        }
+
+        // function called 
+        void whenResult(bool success) { 
+            // asynchronous operation done, fill the response
+            if (success) { 
+                response->success();
+            } else { 
+                response->faillure("Oups!");
+            }
+
+            // terminate the procedure. This step **is** explicit and shouldn't be omitted.
+            terminate();
+        }
+
+        // what to do when timeout occur 
+        void doWhenTimeout() { 
+            // set response 
+            // cleanup resources 
+            // ...
+
+            // DO NOT CALL terminate in this function.
+        }
+
+        A0 _stateA;
+        A1 _stateB;
+        // ... other state needed by the procedure
+    };
+
+    // start the procedure
+    startProcedure<MyLongProcedure>(stateA, ..., response, 10 * 1000);
+ * @endcode
+ */
 
 struct AsyncProcedure {
 
@@ -33,7 +90,7 @@ protected:
      * @param res The response wich will be written during the procedure life.
      * @param timeout The maximum amount of time before the procedure termination
      */
-    AsyncProcedure(const mbed::util::SharedPointer<CommandResponse>& res, uint32_t timeout);
+    AsyncProcedure(const CommandResponsePtr& res, uint32_t timeout);
 
     /**
      * @brief destructor for a procedure.
@@ -41,7 +98,7 @@ protected:
     virtual ~AsyncProcedure();
 
     /**
-     * @brief terminate the procedure any subsequent accedd to procedure member or
+     * @brief terminate the procedure any subsequent access to procedure member or
      * call to procedure member function is undefined.
      */
     void terminate();
@@ -55,13 +112,15 @@ protected:
 
     /**
      * @brief Called when a timeout occur
+     * @note do **not** call terminate in this function. It is automatically 
+     * done by the system.
      */
     virtual void doWhenTimeout();
 
     /**
      * @brief response of the procedure
      */
-    mbed::util::SharedPointer<CommandResponse> response;
+    CommandResponsePtr response;
 
 private:
     /**
@@ -125,4 +184,4 @@ void startProcedure(const T0& arg0, const T1& arg1, const T2& arg2, const T3& ar
 }
 
 
-#endif //BLE_CLIAPP_UTIL_ASYNC_PROCEDURE_
+#endif //BLE_CLIAPP_CLICOMMAND_UTIL_ASYNC_PROCEDURE_

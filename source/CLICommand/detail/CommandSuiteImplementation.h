@@ -4,7 +4,7 @@
 #include "util/ConstArray.h"
 #include "CommandArgs.h"
 #include "Command.h"
-#include "CommandAccessor.h"
+#include "CommandGenerator.h"
 
 /**
  * @brief Implementation of command suite. This is used to reduce template instantiations.
@@ -31,15 +31,6 @@ struct CommandSuiteImplementation {
      */
     static void list(
         const CommandArgs&, const mbed::util::SharedPointer<CommandResponse>& response,
-        const ConstArray<const Command*>& builtinCommands,
-        const ConstArray<const Command*>& moduleCommands
-    );
-
-    /**
-     * @brief builtin args command implementation
-     */
-    static void args(
-        const CommandArgs& args, const mbed::util::SharedPointer<CommandResponse>& response,
         const ConstArray<const Command*>& builtinCommands,
         const ConstArray<const Command*>& moduleCommands
     );

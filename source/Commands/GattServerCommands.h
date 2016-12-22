@@ -15,9 +15,7 @@ public:
     }
 
     static const char* man() {
-        return "gattServer list: list all the commands available in this module\r\n"\
-               "gattServer help <commandName>: display help available for a specific command\r\n"\
-               "gattServer args <commandName>: display description of arguments expected for this command\r\n";
+        return "gattServer <command> <command arguments>.";
     }
 
     static ConstArray<const Command*> commands();

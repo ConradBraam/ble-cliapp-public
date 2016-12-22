@@ -15,9 +15,7 @@ public:
     }
 
     static const char* man() {
-        return "securityManager list: list all the commands available in this module\r\n"\
-               "securityManager help <commandName>: display help available for a specific command\r\n"\
-               "securityManager args <commandName>: display description of arguments expected for this command\r\n";
+        return "securityManager <command> <command arguments>.";
     }
 
     static ConstArray<const Command*> commands();
