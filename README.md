@@ -211,10 +211,8 @@ With ble-cliapp enter the following command to achieve the same result:
 ble init
 ```
 
-> Invoking a command follow the format:  
-> `<command module> <command name> [arguments]`
+> Invoking a command follow the format:  `<command module> <command name> [arguments]`.
 > A module is a cohesive group of command.
-
 
 In this case, `ble` is the ble module and `init` is the initialization command 
 of the ble module. No arguments are supplied.
@@ -530,20 +528,20 @@ Return the minimum advertising interval supported by the device.
 
 * invocation: `gap getMinAdvertisingInterval`
 * arguments: None 
-* result: An [uint16_t](#uint16-t) representing the minimum advertising interval.
+* result: An [uint16_t](#uint16_t) representing the minimum advertising interval.
 * modeled after: `Gap::getMinAdvertisingInterval`
 
 ### getMinNonConnectableAdvertisingInterval
 * invocation: `gap getMinNonConnectableAdvertisingInterval`
 * arguments: None 
-* result: An [uint16_t](#uint16-t) representing the minimum non connectable 
+* result: An [uint16_t](#uint16_t) representing the minimum non connectable 
 advertising interval.
 * modeled after: `Gap::getMinNonConnectableAdvertisingInterval`
 
 ### getMaxAdvertisingIntervalCommand
 * invocation: `gap getMaxAdvertisingIntervalCommand`
 * arguments: None 
-* result: An [uint16_t](#uint16-t) representing the maximum advertising interval.
+* result: An [uint16_t](#uint16_t) representing the maximum advertising interval.
 * modeled after: `Gap::GetMaxAdvertisingIntervalCommand`
 
 ### stopAdvertising
@@ -567,28 +565,28 @@ advertising interval.
   device.
   - [`MacAddress`](#macaddress) **address**: The mac address of the peer.
   - connection parameters: The next four arguments are the connections parameters:
-    + [`uint16_t`](#uint16-t) **min_connection_interval**: Minimum Connection 
+    + [`uint16_t`](#uint16_t) **min_connection_interval**: Minimum Connection 
     Interval in 1.25 ms units
-    + [`uint16_t`](#uint16-t) **max_connection_interval**: Maximum Connection 
+    + [`uint16_t`](#uint16_t) **max_connection_interval**: Maximum Connection 
     Interval in 1.25 ms units
-    + [`uint16_t`](#uint16-t) **slave_latency**: Slave Latency in number of 
+    + [`uint16_t`](#uint16_t) **slave_latency**: Slave Latency in number of 
     connection events
-    + [`uint16_t`](#uint16-t) **connection_supervision_timeout**: Connection 
+    + [`uint16_t`](#uint16_t) **connection_supervision_timeout**: Connection 
     Supervision Timeout in 10 ms units
   - scan parameters: The next four arguments used as scan parameter during peer 
   search.
-    + [`uint16_t`](#uint16-t) **interval**: The scan interval, it should be a number 
+    + [`uint16_t`](#uint16_t) **interval**: The scan interval, it should be a number 
     between 3 and 10420ms.
-    + [`uint16_t`](#uint16-t) **window**: The scan window, it should be a number 
+    + [`uint16_t`](#uint16_t) **window**: The scan window, it should be a number 
     between 3 and 10420ms.
-    + [`uint16_t`](#uint16-t) **scan timeout**: The scan timeout, it should be a 
+    + [`uint16_t`](#uint16_t) **scan timeout**: The scan timeout, it should be a 
     number between 0 and 65534
     + [`bool`](#bool) **activeScanning**: A boolean value indicating if the device 
     send scan request or not
-  - [`uint16_t`](#uint16-t) **timeout**: Maximum time allowed for this procedure; in 
+  - [`uint16_t`](#uint16_t) **timeout**: Maximum time allowed for this procedure; in 
   milliseconds.
 * result: A `json` object containing the following attributes: 
-  - [`uint16_t`](#uint16-t) **handle**: The connection handle
+  - [`uint16_t`](#uint16_t) **handle**: The connection handle
   - [`GapRole`](#gaprole) **role**: Role of the device in the connection (here, it 
   should be central)
   - [`AddressType`](#addresstype) **peerAddrType**: The addressType of the peer
@@ -596,12 +594,12 @@ advertising interval.
   - [`AddressType`](#addresstype) **ownAddrType**: The address type of this device
   - [`MacAddress`](#macaddress) **ownAddr**: The address of this device
   - `JSONDictionary` **connectionParams**: Contain the parameters of the connection:
-    + [`uint16_t`](#uint16-t) **minConnectionInterval**: minimum connection interval 
+    + [`uint16_t`](#uint16_t) **minConnectionInterval**: minimum connection interval 
     for this connection
-    + [`uint16_t`](#uint16-t) **maxConnectionInterval**: maximum connection interval 
+    + [`uint16_t`](#uint16_t) **maxConnectionInterval**: maximum connection interval 
     for this connection
-    + [`uint16_t`](#uint16-t) **slaveLatency**: slave latency of the connection
-    + [`uint16_t`](#uint16-t) **connectionSupervisionTimeout**: supervision timeout 
+    + [`uint16_t`](#uint16_t) **slaveLatency**: slave latency of the connection
+    + [`uint16_t`](#uint16_t) **connectionSupervisionTimeout**: supervision timeout 
     for this connection
 * modeled after: `Gap::connect` and `Gap::onConnection`.
 
@@ -611,11 +609,11 @@ This function instruct the device to wait for a connection and report the
 connection parameters once it is connected.
 
 * invocation: `gap waitForConnection <command_timeout>`
-* argument: [`uint16_t`](#uint16-t) **timeout**: Maximum time allowed for this 
+* argument: [`uint16_t`](#uint16_t) **timeout**: Maximum time allowed for this 
 command; in milliseconds.
 * result: A `json` object identical to the one returned by 
 [connect](#connect). It contains the following attributes : 
-  - [`uint16_t`](#uint16-t) **handle**: The connection handle
+  - [`uint16_t`](#uint16_t) **handle**: The connection handle
   - [`GapRole`](#gaprole) **role**: Role of the device in the connection (here, it 
   should be central)
   - [`AddressType`](#addresstype) **peerAddrType**: The addressType of the peer
@@ -623,12 +621,12 @@ command; in milliseconds.
   - [`AddressType`](#addresstype) **ownAddrType**: The address type of this device
   - [`MacAddress`](#macaddress) **ownAddr**: The address of this device
   - `JSONDictionary` **connectionParams**: Contain the parameters of the connection:
-    + [`uint16_t`](#uint16-t) **minConnectionInterval**: minimum connection interval 
+    + [`uint16_t`](#uint16_t) **minConnectionInterval**: minimum connection interval 
     for this connection
-    + [`uint16_t`](#uint16-t) **maxConnectionInterval**: maximum connection interval 
+    + [`uint16_t`](#uint16_t) **maxConnectionInterval**: maximum connection interval 
     for this connection
-    + [`uint16_t`](#uint16-t) **slaveLatency**: slave latency of the connection
-    + [`uint16_t`](#uint16-t) **connectionSupervisionTimeout**: supervision timeout 
+    + [`uint16_t`](#uint16_t) **slaveLatency**: slave latency of the connection
+    + [`uint16_t`](#uint16_t) **connectionSupervisionTimeout**: supervision timeout 
     for this connection
 * modeled after: `Gap::onConnection` and `Gap::onConnection`.
 
@@ -637,11 +635,11 @@ command; in milliseconds.
 
 * invocation: `gap disconnect <connection_handle> <reason>`
 * arguments: 
-  - [`uint16_t`](#uint16-t) **handle**: The id of the connection to terminate.
+  - [`uint16_t`](#uint16_t) **handle**: The id of the connection to terminate.
   - [`DisconnectionReason`](#DisconnectionReason) **reason**: The reason of the 
   termination.
 * result: A `json` object containing the following attributes: 
-  - [`uint16_t`](#uint16-t) **handle**: The id of the connection terminated.
+  - [`uint16_t`](#uint16_t) **handle**: The id of the connection terminated.
   - [`DisconnectionReason`](#DisconnectionReason) **reason**: The reason of the 
   termination.
 * modeled after: `Gap::disconnect` and `Gap::onDisconnection`.
@@ -652,12 +650,12 @@ command; in milliseconds.
 * invocation: `gap getPreferredConnectionParams`
 * arguments: None
 * result: A `json` object containing the following attributes: 
-  - [`uint16_t`](#uint16-t) **minConnectionInterval**: The preferred minimum 
+  - [`uint16_t`](#uint16_t) **minConnectionInterval**: The preferred minimum 
   connection interval
-  - [`uint16_t`](#uint16-t) **maxConnectionInterval**: The preferred maximum 
+  - [`uint16_t`](#uint16_t) **maxConnectionInterval**: The preferred maximum 
   connection interval
-  - [`uint16_t`](#uint16-t) **slaveLatency**: The preferred slave latency 
-  - [`uint16_t`](#uint16-t) **connectionSupervisionTimeout**: The preferred 
+  - [`uint16_t`](#uint16_t) **slaveLatency**: The preferred slave latency 
+  - [`uint16_t`](#uint16_t) **connectionSupervisionTimeout**: The preferred 
   supervision timeout
 * modeled after: `Gap::getPreferredConnectionParams`
 
@@ -666,12 +664,12 @@ command; in milliseconds.
 
 * invocation: `gap setPreferredConnectionParams <minConnectionInterval>,<maxConnectionInterval>,<slaveLatency>,<connectionSupervisionTimeout>`
 * arguments: All arguments are comma separated without space between them.
-  - [`uint16_t`](#uint16-t) **minConnectionInterval**: The preferred minimum 
+  - [`uint16_t`](#uint16_t) **minConnectionInterval**: The preferred minimum 
   connection interval
-  - [`uint16_t`](#uint16-t) **maxConnectionInterval:** The preferred maximum 
+  - [`uint16_t`](#uint16_t) **maxConnectionInterval:** The preferred maximum 
   connection interval
-  - [`uint16_t`](#uint16-t) **slaveLatency**: The preferred slave latency 
-  - [`uint16_t`](#uint16-t) **connectionSupervisionTimeout**: The preferred 
+  - [`uint16_t`](#uint16_t) **slaveLatency**: The preferred slave latency 
+  - [`uint16_t`](#uint16_t) **connectionSupervisionTimeout**: The preferred 
   supervision timeout
 * result: None
 * modeled after: `Gap::setPreferredConnectionParams`
@@ -755,7 +753,7 @@ an [`int8_t`](#int8_t).
 
 * invocation: `gap setAdvertisingInterval <advertising_interval>`
 * arguments: 
-  - [`uint16_t`](#uint16-t) **advertising_interval**: The interval between two 
+  - [`uint16_t`](#uint16_t) **advertising_interval**: The interval between two 
   advertisements.
 * result: None
 * modeled after: `Gap::setAdvertisingInterval`
@@ -765,7 +763,7 @@ an [`int8_t`](#int8_t).
 
 * invocation: `gap setAdvertisingTimeout <advertising_timeout>`
 * arguments: 
-  - [`uint16_t`](#uint16-t) **advertising_timeout**: The duration of advertisements 
+  - [`uint16_t`](#uint16_t) **advertising_timeout**: The duration of advertisements 
   in seconds. The value should be in the range [0: 0x3FFF]. A value of 0 disable 
   the timeout.
 * result: None
@@ -799,17 +797,17 @@ an [`int8_t`](#int8_t).
     | **Field type**                       | **Data type**                                                 |
     |--------------------------------------|---------------------------------------------------------------|
     | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags) |
-    | `INCOMPLETE_LIST_16BIT_SERVICE_IDS`  | list of [`uint16_t`](#uint16-t)                               |
-    | `COMPLETE_LIST_16BIT_SERVICE_IDS`    | list of [`uint16_t`](#uint16-t)                               |
-    | `INCOMPLETE_LIST_32BIT_SERVICE_IDS`  | list of [`uint32_t`](#uint32-t)                               |
-    | `COMPLETE_LIST_32BIT_SERVICE_IDS`    | list of [`uint32_t`](#uint32-t)                               |
+    | `INCOMPLETE_LIST_16BIT_SERVICE_IDS`  | list of [`uint16_t`](#uint16_t)                               |
+    | `COMPLETE_LIST_16BIT_SERVICE_IDS`    | list of [`uint16_t`](#uint16_t)                               |
+    | `INCOMPLETE_LIST_32BIT_SERVICE_IDS`  | list of [`uint32_t`](#uint32_t)                               |
+    | `COMPLETE_LIST_32BIT_SERVICE_IDS`    | list of [`uint32_t`](#uint32_t)                               |
     | `INCOMPLETE_LIST_128BIT_SERVICE_IDS` | list of [`UUID`](#uuid)                                       |
     | `COMPLETE_LIST_128BIT_SERVICE_IDS`   | list of [`UUID`](#uuid)                                       |
     | `SHORTENED_LOCAL_NAME`               | [`String`](#string)                                           |
     | `COMPLETE_LOCAL_NAME`                | [`String`](#string)                                           |
     | `TX_POWER_LEVEL`                     | [`int8_t`](#int8_t)                                           |
     | `DEVICE_ID`                          | not implemented                                               |
-    | `SLAVE_CONNECTION_INTERVAL_RANGE`    | <interval min [`uint16_t`](#uint16-t)> <interval max [`uint16_t`](#uint16-t)>                                                             |
+    | `SLAVE_CONNECTION_INTERVAL_RANGE`    | <interval min [`uint16_t`](#uint16_t)> <interval max [`uint16_t`](#uint16_t)>                                                             |
     | `SERVICE_DATA`                       | not implemented                                               |
     | `APPEARANCE`                         | [`Appearance`](#appearance)                                   |
     | `ADVERTISING_INTERVAL`               | [`uint16_t`](#uint16_t)                                       |
@@ -830,17 +828,17 @@ an [`int8_t`](#int8_t).
     | **Field type**                       | **Data type**                                                 |
     |--------------------------------------|---------------------------------------------------------------|
     | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags) |
-    | `INCOMPLETE_LIST_16BIT_SERVICE_IDS`  | list of [`uint16_t`](#uint16-t)                               |
-    | `COMPLETE_LIST_16BIT_SERVICE_IDS`    | list of [`uint16_t`](#uint16-t)                               |
-    | `INCOMPLETE_LIST_32BIT_SERVICE_IDS`  | list of [`uint32_t`](#uint32-t)                               |
-    | `COMPLETE_LIST_32BIT_SERVICE_IDS`    | list of [`uint32_t`](#uint32-t)                               |
+    | `INCOMPLETE_LIST_16BIT_SERVICE_IDS`  | list of [`uint16_t`](#uint16_t)                               |
+    | `COMPLETE_LIST_16BIT_SERVICE_IDS`    | list of [`uint16_t`](#uint16_t)                               |
+    | `INCOMPLETE_LIST_32BIT_SERVICE_IDS`  | list of [`uint32_t`](#uint32_t)                               |
+    | `COMPLETE_LIST_32BIT_SERVICE_IDS`    | list of [`uint32_t`](#uint32_t)                               |
     | `INCOMPLETE_LIST_128BIT_SERVICE_IDS` | list of [`UUID`](#uuid)                                       |
     | `COMPLETE_LIST_128BIT_SERVICE_IDS`   | list of [`UUID`](#uuid)                                       |
     | `SHORTENED_LOCAL_NAME`               | [`String`](#string)                                           |
     | `COMPLETE_LOCAL_NAME`                | [`String`](#string)                                           |
     | `TX_POWER_LEVEL`                     | [`int8_t`](#int8_t)                                           |
     | `DEVICE_ID`                          | not implemented                                               |
-    | `SLAVE_CONNECTION_INTERVAL_RANGE`    | <interval min [`uint16_t`](#uint16-t)> <interval max [`uint16_t`](#uint16-t)>                                                             |
+    | `SLAVE_CONNECTION_INTERVAL_RANGE`    | <interval min [`uint16_t`](#uint16_t)> <interval max [`uint16_t`](#uint16_t)>                                                             |
     | `SERVICE_DATA`                       | not implemented                                               |
     | `APPEARANCE`                         | [`Appearance`](#appearance)                                   |
     | `ADVERTISING_INTERVAL`               | [`uint16_t`](#uint16_t)                                       |
@@ -868,17 +866,17 @@ an [`int8_t`](#int8_t).
     | **Field type**                       | **Data type**                                                 |
     |--------------------------------------|---------------------------------------------------------------|
     | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags) |
-    | `INCOMPLETE_LIST_16BIT_SERVICE_IDS`  | list of [`uint16_t`](#uint16-t)                               |
-    | `COMPLETE_LIST_16BIT_SERVICE_IDS`    | list of [`uint16_t`](#uint16-t)                               |
-    | `INCOMPLETE_LIST_32BIT_SERVICE_IDS`  | list of [`uint32_t`](#uint32-t)                               |
-    | `COMPLETE_LIST_32BIT_SERVICE_IDS`    | list of [`uint32_t`](#uint32-t)                               |
+    | `INCOMPLETE_LIST_16BIT_SERVICE_IDS`  | list of [`uint16_t`](#uint16_t)                               |
+    | `COMPLETE_LIST_16BIT_SERVICE_IDS`    | list of [`uint16_t`](#uint16_t)                               |
+    | `INCOMPLETE_LIST_32BIT_SERVICE_IDS`  | list of [`uint32_t`](#uint32_t)                               |
+    | `COMPLETE_LIST_32BIT_SERVICE_IDS`    | list of [`uint32_t`](#uint32_t)                               |
     | `INCOMPLETE_LIST_128BIT_SERVICE_IDS` | list of [`UUID`](#uuid)                                       |
     | `COMPLETE_LIST_128BIT_SERVICE_IDS`   | list of [`UUID`](#uuid)                                       |
     | `SHORTENED_LOCAL_NAME`               | [`String`](#string)                                           |
     | `COMPLETE_LOCAL_NAME`                | [`String`](#string)                                           |
     | `TX_POWER_LEVEL`                     | [`int8_t`](#int8_t)                                           |
     | `DEVICE_ID`                          | not implemented                                               |
-    | `SLAVE_CONNECTION_INTERVAL_RANGE`    | <interval min [`uint16_t`](#uint16-t)> <interval max [`uint16_t`](#uint16-t)>                                                             |
+    | `SLAVE_CONNECTION_INTERVAL_RANGE`    | <interval min [`uint16_t`](#uint16_t)> <interval max [`uint16_t`](#uint16_t)>                                                             |
     | `SERVICE_DATA`                       | not implemented                                               |
     | `APPEARANCE`                         | [`Appearance`](#appearance)                                   |
     | `ADVERTISING_INTERVAL`               | [`uint16_t`](#uint16_t)                                       |
@@ -899,11 +897,11 @@ an [`int8_t`](#int8_t).
 
 * invocation: `gap setScanParam <interval> <window> <timeout> <activeScanning>`
 * arguments: 
-  - [`uint16_t`](#uint16-t) **interval**: The scan interval, it should be a number 
+  - [`uint16_t`](#uint16_t) **interval**: The scan interval, it should be a number 
   between 3 and 10420ms.
-  - [`uint16_t`](#uint16-t) **window**: The scan window, it should be a number 
+  - [`uint16_t`](#uint16_t) **window**: The scan window, it should be a number 
   between 3 and 10420ms.
-  - [`uint16_t`](#uint16-t) **timeout**: The scan timeout, it should be a number 
+  - [`uint16_t`](#uint16_t) **timeout**: The scan timeout, it should be a number 
   between 0 and 65534.
   - [`bool`](#bool) **activeScanning**: Enable or disable scan requests.
 * result: None.
@@ -914,7 +912,7 @@ an [`int8_t`](#int8_t).
 
 * invocation: `gap setScanInterval <interval> <window> <timeout> <activeScanning>`
 * arguments: 
-  - [`uint16_t`](#uint16-t) **interval**: The scan interval, it should be a number 
+  - [`uint16_t`](#uint16_t) **interval**: The scan interval, it should be a number 
   between 3 and 10420ms.
 * result: None.
 * modeled after: `Gap::setScanInterval`
@@ -924,7 +922,7 @@ an [`int8_t`](#int8_t).
 
 * invocation: `gap setScanWindow <window>`
 * arguments: 
-  - [`uint16_t`](#uint16-t) **window**: The scan window, it should be a number 
+  - [`uint16_t`](#uint16_t) **window**: The scan window, it should be a number 
   between 3 and 10420ms.
 * result: None.
 * modeled after: `Gap::setScanWindow`
@@ -934,7 +932,7 @@ an [`int8_t`](#int8_t).
 
 * invocation: `gap setScanTimeout <timeout>`
 * arguments: 
-  - [`uint16_t`](#uint16-t) **timeout**: The scan timeout, it should be a number 
+  - [`uint16_t`](#uint16_t) **timeout**: The scan timeout, it should be a number 
   between 0 and 65534.
 * result: None.
 * modeled after: `Gap::setScanTimeout`
@@ -953,7 +951,7 @@ an [`int8_t`](#int8_t).
 
 * invocation: `gap startScan <duration> <target_address>`
 * arguments: 
-  - [`uint16_t`](#uint16-t) **duration**: Duration of the scan procedure.
+  - [`uint16_t`](#uint16_t) **duration**: Duration of the scan procedure.
   - [`MacAddress`](#macaddress) **target_address**: Address of the peer to scan for.
 * result: A `JSON` object array of scan records. Each records is a 
 JSON object which contains the following attributes: 
@@ -974,8 +972,8 @@ JSON object which contains the following attributes:
 * invocation: `gap getAdvertisingParams`
 * arguments: None.
 * result: A `JSON` object with the following fields: 
-  - [`uint16_t`](#uint16-t) **interval**: Advertising interval.
-  - [`uint16_t`](#uint16-t) **timeout**: Advertisement timeout.
+  - [`uint16_t`](#uint16_t) **interval**: Advertising interval.
+  - [`uint16_t`](#uint16_t) **timeout**: Advertisement timeout.
   - [`AdvertisingType`](#advertisingtype) **type**: type of advertising.
 * modeled after: `Gap::getAdvertisingParams`
 
@@ -985,9 +983,9 @@ JSON object which contains the following attributes:
 * invocation: `gap setAdvertisingParams <advertising_type> <interval> <timeout>`
 * arguments: 
   - [`AdvertisingType`](#advertisingtype) **advertising_type**: type of advertising.
-  - [`uint16_t`](#uint16-t) **interval**: Advertising interval, it should be a 
+  - [`uint16_t`](#uint16_t) **interval**: Advertising interval, it should be a 
   number between 0 and 65534".
-  - [`uint16_t`](#uint16-t) **timeout**: Advertisement timeout, it should be a 
+  - [`uint16_t`](#uint16_t) **timeout**: Advertisement timeout, it should be a 
   number between 0 and 65534".
 * result: None
 * modeled after: `Gap::setAdvertisingParams`
@@ -1090,14 +1088,14 @@ The `gattClient` module expose the following functions from the class
 
 * invocation: `gattClient discoverAllServicesAndCharacteristics <connection_handle>`
 * arguments: 
-   - [`uint16_t`](#uint16-t) **connection_handle**: The connection handle used by 
+   - [`uint16_t`](#uint16_t) **connection_handle**: The connection handle used by 
    the procedure.
 * result: A JSON array of the discovered service. Each service is a JSON object 
 which contains the following fields:
   - [`UUID`](#UUID) **UUID**: The UUID of the service.
-  - [`uint16_t`](#uint16-t) **start_handle**: The first attribute handle of the 
+  - [`uint16_t`](#uint16_t) **start_handle**: The first attribute handle of the 
   service.
-  - [`uint16_t`](#uint16-t) **end_handle**: The last attribute handle of the 
+  - [`uint16_t`](#uint16_t) **end_handle**: The last attribute handle of the 
   service.
   - **characteristics**: an array of JSON objects describing the characteristics 
   of the service. Each characteristics expose the following attributes:
@@ -1111,11 +1109,11 @@ which contains the following fields:
       * "notify"
       * "indicate"
       * "authSignedWrite"
-    + [`uint16_t`](#uint16-t) **start_handle**: The first attribute handle of the 
+    + [`uint16_t`](#uint16_t) **start_handle**: The first attribute handle of the 
     characteristic.
-    + [`uint16_t`](#uint16-t) **value_handle**: The handle used to retrieve the 
+    + [`uint16_t`](#uint16_t) **value_handle**: The handle used to retrieve the 
     value of the characteristic.
-    + [`uint16_t`](#uint16-t) **end_handle**: The last attribute handle of the 
+    + [`uint16_t`](#uint16_t) **end_handle**: The last attribute handle of the 
     characteristic.
 * modeled after: `GattClient::launchServiceDiscovery`, 
 `GattClient::onServiceDiscoveryTermination`.
@@ -1125,14 +1123,14 @@ which contains the following fields:
 
 * invocation: `gattClient discoverAllServices <connection_handle>`
 * arguments: 
-   - [`uint16_t`](#uint16-t) **connection_handle**: The connection handle used 
+   - [`uint16_t`](#uint16_t) **connection_handle**: The connection handle used 
    by the procedure.
 * result: A JSON array of the discovered service. Each service is a JSON object 
 which contains the following fields:
   - [`UUID`](#UUID) **UUID**: The UUID of the service.
-  - [`uint16_t`](#uint16-t) **start_handle**: The first attribute handle of the 
+  - [`uint16_t`](#uint16_t) **start_handle**: The first attribute handle of the 
   service.
-  - [`uint16_t`](#uint16-t) **end_handle**: The last attribute handle of the 
+  - [`uint16_t`](#uint16_t) **end_handle**: The last attribute handle of the 
   service.
 * modeled after: `GattClient::launchServiceDiscovery`, 
 `GattClient::onServiceDiscoveryTermination`.
@@ -1144,15 +1142,15 @@ which contains the following fields:
 * invocation: `gattClient discoverPrimaryServicesByUUID <connection_handle> 
 <service_UUID>`
 * arguments: 
-   - [`uint16_t`](#uint16-t) **connection_handle**: The connection handle used 
+   - [`uint16_t`](#uint16_t) **connection_handle**: The connection handle used 
    by the procedure.
    - [`UUID`](#UUID) **service_UUID**: The UUID of the service to discover.
 * result: A JSON array of the discovered service. Each service is a JSON object 
 which contains the following fields:
   - [`UUID`](#UUID) **UUID**: The UUID of the service.
-  - [`uint16_t`](#uint16-t) **start_handle**: The first attribute handle of the 
+  - [`uint16_t`](#uint16_t) **start_handle**: The first attribute handle of the 
   service.
-  - [`uint16_t`](#uint16-t) **end_handle**: The last attribute handle of the 
+  - [`uint16_t`](#uint16_t) **end_handle**: The last attribute handle of the 
   service.
 * modeled after: `GattClient::launchServiceDiscovery`, 
 `GattClient::onServiceDiscoveryTermination`.
@@ -1164,15 +1162,15 @@ which contains the following fields:
 * invocation: `gattClient discoverAllCharacteristicsDescriptors 
 <connection_handle> <char_start> <char_end>`
 * arguments: 
-   - [`uint16_t`](#uint16-t) **connection_handle**: The connection handle used 
+   - [`uint16_t`](#uint16_t) **connection_handle**: The connection handle used 
    by the procedure.
-   - [`uint16_t`](#uint16-t) **char_start**: The first attribute handle of the 
+   - [`uint16_t`](#uint16_t) **char_start**: The first attribute handle of the 
    characteristic targeted by the operation.
-   - [`uint16_t`](#uint16-t) **char_end**: The last attribute handle of the 
+   - [`uint16_t`](#uint16_t) **char_end**: The last attribute handle of the 
    characteristic targeted by the operation.
 * result: A JSON array of the discovered descriptors. Each discovered descriptor 
 is a JSON object which contains the following fields:
-  - [`uint16_t`](#uint16-t) **handle**: Attribute handle of the descriptor.
+  - [`uint16_t`](#uint16_t) **handle**: Attribute handle of the descriptor.
   - [`UUID`](#UUID) **UUID**: The UUID of the characteristic descriptor.
 * modeled after: `GattClient::discoverCharacteristicDescriptors`
 
@@ -1182,9 +1180,9 @@ is a JSON object which contains the following fields:
 
 * invocation: `gattClient readCharacteristicValue <connection_handle> <char_value_handle>`
 * arguments: 
-   - [`uint16_t`](#uint16-t) **connection_handle**: The connection handle used by 
+   - [`uint16_t`](#uint16_t) **connection_handle**: The connection handle used by 
    the procedure.
-   - [`uint16_t`](#uint16-t) **char_value_handle**: The attribute handle of the 
+   - [`uint16_t`](#uint16_t) **char_value_handle**: The attribute handle of the 
    value to read.
 * result: The value of the characteristic, as an [`HexString`](#hexstring).
 * modeled after: `GattClient::read` and `GattClient::onDataRead`
@@ -1194,9 +1192,9 @@ is a JSON object which contains the following fields:
 
 * invocation: `gattClient writeWithoutResponse <connection_handle> <char_value_handle> <value>`
 * arguments: 
-   - [`uint16_t`](#uint16-t) **connection_handle**: The connection handle used by 
+   - [`uint16_t`](#uint16_t) **connection_handle**: The connection handle used by 
    the procedure.
-   - [`uint16_t`](#uint16-t) **char_value_handle**: The attribute handle of the 
+   - [`uint16_t`](#uint16_t) **char_value_handle**: The attribute handle of the 
    value to read.
    - [`HexString`](#hexstring) **value**: The value to write in the characteristic.
 * result: None
@@ -1208,9 +1206,9 @@ is a JSON object which contains the following fields:
 
 * invocation: `gattClient write <connection_handle> <char_value_handle> <value>`
 * arguments: 
-   - [`uint16_t`](#uint16-t) **connection_handle**: The connection handle used by 
+   - [`uint16_t`](#uint16_t) **connection_handle**: The connection handle used by 
    the procedure.
-   - [`uint16_t`](#uint16-t) **char_value_handle**: The attribute handle of the 
+   - [`uint16_t`](#uint16_t) **char_value_handle**: The attribute handle of the 
    value to write.
    - [`HexString`](#hexstring) **value**: The value to write in the characteristic.
 * result: None
@@ -1221,9 +1219,9 @@ is a JSON object which contains the following fields:
 
 * invocation: `gattClient readCharacteristicDescriptor <connection_handle> <descriptor_handle>`
 * arguments: 
-   - [`uint16_t`](#uint16-t) **connection_handle**: The connection handle used by 
+   - [`uint16_t`](#uint16_t) **connection_handle**: The connection handle used by 
    the procedure.
-   - [`uint16_t`](#uint16-t) **descriptor_handle**: The attribute handle of the 
+   - [`uint16_t`](#uint16_t) **descriptor_handle**: The attribute handle of the 
    descriptor to read.
 * result: The value of the descriptor, as an [`HexString`](#hexstring).
 * modeled after: `GattClient::read` and `GattClient::onDataRead`
@@ -1233,9 +1231,9 @@ is a JSON object which contains the following fields:
 
 * invocation: `gattClient writeCharacteristicDescriptor <connection_handle> <descriptor_handle> <value>`
 * arguments: 
-   - [`uint16_t`](#uint16-t) **connection_handle**: The connection handle used by 
+   - [`uint16_t`](#uint16_t) **connection_handle**: The connection handle used by 
    the procedure.
-   - [`uint16_t`](#uint16-t) **descriptor_handle**: The attribute handle of the 
+   - [`uint16_t`](#uint16_t) **descriptor_handle**: The attribute handle of the 
    descriptor to write.
    - [`HexString`](#hexstring) **value**: The value to write in the descriptor.
 * result: None
@@ -1375,7 +1373,7 @@ After this call, user can call:
   - `commitService` to commit the service 
   - `cancelServiceDeclaration` to cancel the service declaration 
 * arguments: 
-   - [`uint16_t`](#uint16-t) **max_length**: The max length that the characteristic 
+   - [`uint16_t`](#uint16_t) **max_length**: The max length that the characteristic 
    value can occupy.
 * result: None
 
@@ -1481,7 +1479,7 @@ After this call, user can call:
   - `commitService` to commit the service 
   - `cancelServiceDeclaration` to cancel the service declaration 
 * arguments: 
-   - [`uint16_t`](#uint16-t) **max_length**: The max length that the descriptor 
+   - [`uint16_t`](#uint16_t) **max_length**: The max length that the descriptor 
    value can occupy.
 * result: None
 
@@ -1495,11 +1493,11 @@ the ongoing service declaration is reset.
 * result: A JSON object describing the service in the ATT DB. It contains the 
 following fields:
   - [`UUID`](#uuid) **UUID**: The uuid of the service
-  - [`uint16_t`](#uint16-t) **handle**: The attribute handle of the service. 
+  - [`uint16_t`](#uint16_t) **handle**: The attribute handle of the service. 
   - "characteristics": A JSON array of the characteristics presents in the 
   service. Each characteristic is a JSON object containing the following fields:
     + [`UUID`](#uuid) **UUID**: The uuid of the characteristic.
-    + [`uint16_t`](#uint16-t) **value_handle**: The attribute handle of the value 
+    + [`uint16_t`](#uint16_t) **value_handle**: The attribute handle of the value 
     of the characteristic. 
     + "properties": A JSON array of the properties of the characteristic. The 
     possible values are:
@@ -1510,9 +1508,9 @@ following fields:
       * "notify"
       * "indicate"
       * "authSignedWrite" 
-    + [`uint16_t`](#uint16-t) **length**: The length of the value of the 
+    + [`uint16_t`](#uint16_t) **length**: The length of the value of the 
     characteristic.
-    + [`uint16_t`](#uint16-t) **max_length**: The maximum length that the value 
+    + [`uint16_t`](#uint16_t) **max_length**: The maximum length that the value 
     of the characteristic can take.
     + [`bool``](#bool`) **has_variable_length**: Flag indicating if the length of 
     the characteristic is fixed or variable.
@@ -1520,9 +1518,9 @@ following fields:
     + "descriptors": A JSON array containing the descriptors of the 
     characteristic:
       * [`UUID`](#uuid) **UUID**: The uuid of the descriptor.
-      * [`uint16_t`](#uint16-t) **handle**: The attribute handle of the descriptor. 
-      * [`uint16_t`](#uint16-t) **length**: The length of the value of the descriptor.
-      * [`uint16_t`](#uint16-t) **max_length**: The maximum length that the value 
+      * [`uint16_t`](#uint16_t) **handle**: The attribute handle of the descriptor. 
+      * [`uint16_t`](#uint16_t) **length**: The length of the value of the descriptor.
+      * [`uint16_t`](#uint16_t) **max_length**: The maximum length that the value 
       of the descriptor can take.
       * [`bool``](#bool`) **has_variable_length**: Flag indicating if the length 
       of the descriptor is fixed or variable
@@ -1545,8 +1543,8 @@ following fields:
 * description: Read the value an attribute handle of the gatt server. The 
 connection_handle parameter is optional.
 * arguments: 
-  - [`uint16_t`](#uint16-t) **attribute_handle**: The attribute handle to read. 
-  - [`uint16_t`](#uint16-t) **connection_handle**: Optional parameter, useful to 
+  - [`uint16_t`](#uint16_t) **attribute_handle**: The attribute handle to read. 
+  - [`uint16_t`](#uint16_t) **connection_handle**: Optional parameter, useful to 
   read the value of CCCD for a given connection.
 * result: 
   - [`HexString`](#hexstring) The value of the attribute.
@@ -1559,9 +1557,9 @@ connection_handle parameter is optional.
 * description: Write the value an attribute handle of the gatt server. The 
 connection_handle parameter is optional.
 * arguments: 
-  - [`uint16_t`](#uint16-t) **attribute_handle**: The attribute handle to write. 
+  - [`uint16_t`](#uint16_t) **attribute_handle**: The attribute handle to write. 
   - [`HexString`](#hexstring) **value**: The value to write to the attribute.
-  - [`uint16_t`](#uint16-t) **connection_handle**: Optional parameter, useful to 
+  - [`uint16_t`](#uint16_t) **connection_handle**: Optional parameter, useful to 
   write the value of CCCD for a given connection.
 * result: None
 * modeled after: `GattServer::write`
@@ -1572,10 +1570,10 @@ connection_handle parameter is optional.
 * invocation: `gattServer waitForDataWritten <connection_handle> <attribute_handle> <timeout>`
 * description: Wait for data of an attribute to be written.
 * arguments: 
-  - [`uint16_t`](#uint16-t) **connection_handle**: Handle of the connection 
+  - [`uint16_t`](#uint16_t) **connection_handle**: Handle of the connection 
   issuing the write request.
-  - [`uint16_t`](#uint16-t) **attribute_handle**: The attribute handle to monitor. 
-  - [`uint16_t`](#uint16-t) **timeout**: Maximum time allowed to this procedure; 
+  - [`uint16_t`](#uint16_t) **attribute_handle**: The attribute handle to monitor. 
+  - [`uint16_t`](#uint16_t) **timeout**: Maximum time allowed to this procedure; 
   in ms. 
 * result: None
 * modeled after: `GattServer::onDataWritten`
@@ -1888,13 +1886,13 @@ This type model a mac address, it is always represented a string:
 
 A JSON object of the advertising payload: 
 * **FLAGS**: JSON array of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags).
-* **INCOMPLETE_LIST_16BIT_SERVICE_IDS** : JSON array of [`uint16_t`](#uint16-t) 
+* **INCOMPLETE_LIST_16BIT_SERVICE_IDS** : JSON array of [`uint16_t`](#uint16_t) 
 in the hex form (0xXXXX).
-* **COMPLETE_LIST_16BIT_SERVICE_IDS** : JSON array of  [`uint16_t`](#uint16-t) 
+* **COMPLETE_LIST_16BIT_SERVICE_IDS** : JSON array of  [`uint16_t`](#uint16_t) 
 in the hex form (0xXXXX).
-* **INCOMPLETE_LIST_32BIT_SERVICE_IDS** : JSON array of [`uint32_t`](#uint32-t) 
+* **INCOMPLETE_LIST_32BIT_SERVICE_IDS** : JSON array of [`uint32_t`](#uint32_t) 
 in the hex form (0xXXXXXXXX).
-* **COMPLETE_LIST_32BIT_SERVICE_IDS** : JSON array of [`uint32_t`](#uint32-t) in 
+* **COMPLETE_LIST_32BIT_SERVICE_IDS** : JSON array of [`uint32_t`](#uint32_t) in 
 the hex form (0xXXXXXXXX).
 * **SHORTENED_LOCAL_NAME** : [`String`](#string)
 * **COMPLETE_LOCAL_NAME** : [`String`](#string)
