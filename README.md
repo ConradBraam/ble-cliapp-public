@@ -636,11 +636,11 @@ command; in milliseconds.
 * invocation: `gap disconnect <connection_handle> <reason>`
 * arguments: 
   - [`uint16_t`](#uint16_t) **handle**: The id of the connection to terminate.
-  - [`DisconnectionReason`](#DisconnectionReason) **reason**: The reason of the 
+  - [`DisconnectionReason`](#disconnectionreason) **reason**: The reason of the 
   termination.
 * result: A `json` object containing the following attributes: 
   - [`uint16_t`](#uint16_t) **handle**: The id of the connection terminated.
-  - [`DisconnectionReason`](#DisconnectionReason) **reason**: The reason of the 
+  - [`DisconnectionReason`](#disconnectionreason) **reason**: The reason of the 
   termination.
 * modeled after: `Gap::disconnect` and `Gap::onDisconnection`.
 
@@ -792,8 +792,9 @@ an [`int8_t`](#int8_t).
 * arguments: 
   - [`AdvertisingDataType`](#advertisingdatatype) **field_type**: The type of field 
   to add to the advertising payload.
-  - field_argument: The type of the field argument depend on the type of field 
+  - **field_argument**: The type of the field argument depend on the type of field 
   to add: 
+
     | **Field type**                       | **Data type**                                                 |
     |--------------------------------------|---------------------------------------------------------------|
     | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags) |
@@ -825,6 +826,7 @@ an [`int8_t`](#int8_t).
   to update in the advertising payload.
   - **field_argument**: The type of the field argument depend on the type of field 
   to add: 
+
     | **Field type**                       | **Data type**                                                 |
     |--------------------------------------|---------------------------------------------------------------|
     | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags) |
@@ -863,6 +865,7 @@ an [`int8_t`](#int8_t).
   to add to the scan response  payload.
   - **field_argument**: The type of the field argument depend on the type of field 
   to add: 
+
     | **Field type**                       | **Data type**                                                 |
     |--------------------------------------|---------------------------------------------------------------|
     | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags) |
