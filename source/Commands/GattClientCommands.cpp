@@ -10,7 +10,7 @@
 #include "Serialization/Hex.h"
 #include "Serialization/DiscoveredCharacteristic.h"
 #include "Serialization/GattCallbackParamTypes.h"
-#include "util/AsyncProcedure.h"
+#include "CLICommand/util/AsyncProcedure.h"
 
 #include "CLICommand/CommandSuite.h"
 

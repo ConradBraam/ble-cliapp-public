@@ -1,7 +1,7 @@
 #ifndef BLE_CLIAPP_CLICOMMAND_DETAIL_LISTCOMMANDBASE_H_
 #define BLE_CLIAPP_CLICOMMAND_DETAIL_LISTCOMMANDBASE_H_
 
-#include "Command.h"
+#include "../Command.h"
 
 /**
  * @brief Abstract base implementation for the Help Command. 

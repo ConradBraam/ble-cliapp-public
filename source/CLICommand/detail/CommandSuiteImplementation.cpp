@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "EventQueue/EventQueue.h"
 
-#include "CommandEventQueue.h"
+#include "../CommandEventQueue.h"
 #include "CommandSuiteImplementation.h"
 #include <string.h>
 

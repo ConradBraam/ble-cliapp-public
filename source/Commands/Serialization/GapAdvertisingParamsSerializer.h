@@ -1,9 +1,9 @@
 #ifndef BLE_CLIAPP_GAP_ADVERTISING_PARAMS_SERIALIZER_H_
 #define BLE_CLIAPP_GAP_ADVERTISING_PARAMS_SERIALIZER_H_
 
-#include "Serializer.h"
+#include "Serialization/Serializer.h"
 #include "ble/GapAdvertisingParams.h"
-#include "JSONOutputStream.h"
+#include "Serialization/JSONOutputStream.h"
 
 template<>
 struct SerializerDescription<GapAdvertisingParams::AdvertisingType_t> {

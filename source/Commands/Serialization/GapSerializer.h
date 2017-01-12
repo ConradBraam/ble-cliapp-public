@@ -1,9 +1,9 @@
 #ifndef BLE_CLIAPP_GAP_SERIALIZER_H_
 #define BLE_CLIAPP_GAP_SERIALIZER_H_
 
-#include "Serializer.h"
+#include "Serialization/Serializer.h"
 #include "ble/Gap.h"
-#include "JSONOutputStream.h"
+#include "Serialization/JSONOutputStream.h"
 
 template<>
 struct SerializerDescription<BLEProtocol::AddressType_t> {

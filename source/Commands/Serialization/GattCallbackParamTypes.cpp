@@ -1,6 +1,6 @@
 #include <stddef.h>
 #include "GattCallbackParamTypes.h"
-#include "Serialization/Hex.h"
+#include "Hex.h"
 
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const GattReadCallbackParams& readResult) {
     using namespace serialization;

@@ -2,7 +2,7 @@
 #define BLE_CLIAPP_SERIALIZATION_UUID_H_
 
 #include "ble/UUID.h"
-#include "JSONOutputStream.h"
+#include "Serialization/JSONOutputStream.h"
 
 
 /**

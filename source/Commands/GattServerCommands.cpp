@@ -10,7 +10,7 @@
 #include "Serialization/GattCallbackParamTypes.h"
 
 #include "util/ServiceBuilder.h"
-#include "util/AsyncProcedure.h"
+#include "CLICommand/util/AsyncProcedure.h"
 
 #include "Common.h"
 
