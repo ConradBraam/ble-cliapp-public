@@ -1,9 +1,9 @@
 #ifndef BLE_CLIAPP_BLE_COMMON_SERIALIZER_H_
 #define BLE_CLIAPP_BLE_COMMON_SERIALIZER_H_
 
-#include "Serializer.h"
+#include "Serialization/Serializer.h"
 #include "ble/blecommon.h"
-#include "JSONOutputStream.h"
+#include "Serialization/JSONOutputStream.h"
 
 template<>
 struct SerializerDescription<ble_error_t> {

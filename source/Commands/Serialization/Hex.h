@@ -2,7 +2,7 @@
 #define BLE_CLIAPP_SERIALIZATION_HEX_H_
 
 #include "util/Vector.h"
-#include "JSONOutputStream.h"
+#include "Serialization/JSONOutputStream.h"
 
 /**
  * @brief Convert the string representation of a byte in asci hexadecimal

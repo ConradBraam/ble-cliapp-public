@@ -1,9 +1,9 @@
 #ifndef BLE_CLIAPP_DISCOVERED_CHARACTERISTIC_SERIALIZER_H_
 #define BLE_CLIAPP_DISCOVERED_CHARACTERISTIC_SERIALIZER_H_
 
-#include "Serializer.h"
+#include "Serialization/Serializer.h"
 #include "ble/DiscoveredCharacteristic.h"
-#include "JSONOutputStream.h"
+#include "Serialization/JSONOutputStream.h"
 
 /**
  * @brief Serialize a discovered characteristic intance into a JSON stream.

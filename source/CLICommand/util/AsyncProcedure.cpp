@@ -1,5 +1,5 @@
 #include "AsyncProcedure.h"
-#include "CommandEventQueue.h"
+#include "../CommandEventQueue.h"
 
 AsyncProcedure::AsyncProcedure(const CommandResponsePtr& res, uint32_t t) :
     response(res), timeoutHandle(NULL), timeout(t) {

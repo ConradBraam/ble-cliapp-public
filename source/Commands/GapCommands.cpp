@@ -7,7 +7,7 @@
 #include "Serialization/GapAdvertisingParamsSerializer.h"
 #include "Serialization/BLECommonSerializer.h"
 #include "CLICommand/CommandSuite.h"
-#include "util/AsyncProcedure.h"
+#include "CLICommand/util/AsyncProcedure.h"
 #include "Common.h"
 #include "CLICommand/CommandHelper.h"
 

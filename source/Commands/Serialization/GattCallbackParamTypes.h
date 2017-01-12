@@ -1,10 +1,10 @@
 #ifndef BLE_CLIAPP_GATT_CALLABCK_PARAM_TYPES_SERIALIZER_H_
 #define BLE_CLIAPP_GATT_CALLABCK_PARAM_TYPES_SERIALIZER_H_
 
-#include "Serializer.h"
+#include "Serialization/Serializer.h"
 #include "ble/DiscoveredCharacteristic.h"
 
-#include "JSONOutputStream.h"
+#include "Serialization/JSONOutputStream.h"
 
 /**
  * @brief Serialize the result of GattClient read operation

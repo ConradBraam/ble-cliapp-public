@@ -1,7 +1,7 @@
 #include "BLECommands.h"
 #include "Serialization/BLECommonSerializer.h"
 #include "ble/FunctionPointerWithContext.h"
-#include "util/AsyncProcedure.h"
+#include "CLICommand/util/AsyncProcedure.h"
 #include "CLICommand/CommandHelper.h"
 #include "Common.h"
 

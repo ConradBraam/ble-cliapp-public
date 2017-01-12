@@ -2,9 +2,9 @@
 #define BLE_CLIAPP_COMMAND_SUITE_IMPLEMENTATION_H_
 
 #include "util/ConstArray.h"
-#include "CommandArgs.h"
-#include "Command.h"
-#include "CommandGenerator.h"
+#include "../CommandArgs.h"
+#include "../Command.h"
+#include "../CommandGenerator.h"
 
 /**
  * @brief Implementation of command suite. This is used to reduce template instantiations.

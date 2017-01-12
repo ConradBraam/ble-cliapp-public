@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 
-#include "Serializer.h"
+#include "Serialization/Serializer.h"
 #include "ble/GattCharacteristic.h"
-#include "JSONOutputStream.h"
+#include "Serialization/JSONOutputStream.h"
 
 
 template<>

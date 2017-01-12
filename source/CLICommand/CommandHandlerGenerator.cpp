@@ -1,5 +1,5 @@
 #include "CommandHandlerGenerator.h"
-#include "Serializer.h"
+#include "Serialization/Serializer.h"
 
 void CommandHandlerGenerator::print_error(
     const CommandResponsePtr& response, 

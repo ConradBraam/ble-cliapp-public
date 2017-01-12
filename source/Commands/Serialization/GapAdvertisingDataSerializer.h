@@ -1,7 +1,7 @@
 #ifndef BLE_CLIAPP_GAP_ADVERTISING_DATA_SERIALIZER_H_
 #define BLE_CLIAPP_GAP_ADVERTISING_DATA_SERIALIZER_H_
 
-#include "Serializer.h"
+#include "Serialization/Serializer.h"
 #include "ble/GapAdvertisingData.h"
 #include "ble/UUID.h"
 #include <algorithm>
@@ -9,7 +9,7 @@
 #include "Hex.h"
 
 #include "CLICommand/CommandArgs.h"
-#include "JSONOutputStream.h"
+#include "Serialization/JSONOutputStream.h"
 
 template<>
 struct SerializerDescription<GapAdvertisingData::Appearance_t> {
