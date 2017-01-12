@@ -109,7 +109,7 @@ use to debug a port of mbed BLE or an application using mbed BLE.
     - [Primitive types](#primitive-types)
         - [bool](#bool)
         - [int8_t](#int8_t)
-    - [uint8_t](#uint8_t)
+        - [uint8_t](#uint8_t)
         - [uint16_t](#uint16_t)
         - [uint32_t](#uint32_t)
         - [String](#string)
@@ -797,7 +797,7 @@ an [`int8_t`](#int8_t).
 
     | **Field type**                       | **Data type**                                                 |
     |--------------------------------------|---------------------------------------------------------------|
-    | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags) |
+    | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#advertisingdataflags) |
     | `INCOMPLETE_LIST_16BIT_SERVICE_IDS`  | list of [`uint16_t`](#uint16_t)                               |
     | `COMPLETE_LIST_16BIT_SERVICE_IDS`    | list of [`uint16_t`](#uint16_t)                               |
     | `INCOMPLETE_LIST_32BIT_SERVICE_IDS`  | list of [`uint32_t`](#uint32_t)                               |
@@ -812,7 +812,7 @@ an [`int8_t`](#int8_t).
     | `SERVICE_DATA`                       | not implemented                                               |
     | `APPEARANCE`                         | [`Appearance`](#appearance)                                   |
     | `ADVERTISING_INTERVAL`               | [`uint16_t`](#uint16_t)                                       |
-    | `MANUFACTURER_SPECIFIC_DATA`         | [`HexString`](#hex_string)                                    |
+    | `MANUFACTURER_SPECIFIC_DATA`         | [`HexString`](#hexstring)                                    |
 * result: None.
 * modeled after: `Gap::accumulateAdvertisingPayload`
 
@@ -829,7 +829,7 @@ an [`int8_t`](#int8_t).
 
     | **Field type**                       | **Data type**                                                 |
     |--------------------------------------|---------------------------------------------------------------|
-    | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags) |
+    | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#advertisingdataflags) |
     | `INCOMPLETE_LIST_16BIT_SERVICE_IDS`  | list of [`uint16_t`](#uint16_t)                               |
     | `COMPLETE_LIST_16BIT_SERVICE_IDS`    | list of [`uint16_t`](#uint16_t)                               |
     | `INCOMPLETE_LIST_32BIT_SERVICE_IDS`  | list of [`uint32_t`](#uint32_t)                               |
@@ -844,7 +844,7 @@ an [`int8_t`](#int8_t).
     | `SERVICE_DATA`                       | not implemented                                               |
     | `APPEARANCE`                         | [`Appearance`](#appearance)                                   |
     | `ADVERTISING_INTERVAL`               | [`uint16_t`](#uint16_t)                                       |
-    | `MANUFACTURER_SPECIFIC_DATA`         | [`HexString`](#hex_string)                                    |
+    | `MANUFACTURER_SPECIFIC_DATA`         | [`HexString`](#hexstring)                                    |
 * result: None.
 * modeled after: `Gap::updateAdvertisingPayload`
 
@@ -868,7 +868,7 @@ an [`int8_t`](#int8_t).
 
     | **Field type**                       | **Data type**                                                 |
     |--------------------------------------|---------------------------------------------------------------|
-    | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags) |
+    | `FLAGS`                              | list of [`GapAdvertisingDataFlags`](#advertisingdataflags) |
     | `INCOMPLETE_LIST_16BIT_SERVICE_IDS`  | list of [`uint16_t`](#uint16_t)                               |
     | `COMPLETE_LIST_16BIT_SERVICE_IDS`    | list of [`uint16_t`](#uint16_t)                               |
     | `INCOMPLETE_LIST_32BIT_SERVICE_IDS`  | list of [`uint32_t`](#uint32_t)                               |
@@ -883,7 +883,7 @@ an [`int8_t`](#int8_t).
     | `SERVICE_DATA`                       | not implemented                                               |
     | `APPEARANCE`                         | [`Appearance`](#appearance)                                   |
     | `ADVERTISING_INTERVAL`               | [`uint16_t`](#uint16_t)                                       |
-    | `MANUFACTURER_SPECIFIC_DATA`         | [`HexString`](#hex_string)                                    |
+    | `MANUFACTURER_SPECIFIC_DATA`         | [`HexString`](#hexstring)                                    |
 * result: None.
 * modeled after: `Gap::accumulateScanResponse`
 
@@ -1008,9 +1008,9 @@ JSON object which contains the following attributes:
 * arguments: None
 * result: A JSON array containing the list of devices in the whitelist. Each 
 devices is a JSON object with the following attributes: 
-  - [`AddressType`](#AddressType) **address_type**: The type of the address of the 
+  - [`AddressType`](#addresstype) **address_type**: The type of the address of the 
   device.
-  - [`MacAddress`](#MacAddress) **address**: The mac address of the device.
+  - [`MacAddress`](#macaddress) **address**: The mac address of the device.
 * modeled after: `Gap::getWhitelist`
 
 
@@ -1018,8 +1018,8 @@ devices is a JSON object with the following attributes:
 
 * invocation: `gap setWhitelist [<address_type> <address>]`
 * arguments: list of pair of address type and address: 
-  - [`AddressType`](#AddressType) **address_type**: The type of the address 
-  - [`MacAddress`](#MacAddress) **address**: The MAC address associated. 
+  - [`AddressType`](#addresstype) **address_type**: The type of the address 
+  - [`MacAddress`](#macaddress) **address**: The MAC address associated. 
 * result: None
 * modeled after: `Gap::setWhitelist`
 
@@ -1028,7 +1028,7 @@ devices is a JSON object with the following attributes:
 
 * invocation: `gap setAdvertisingPolicyMode <advertising_policy_mode>`
 * arguments: 
-  - [`AdvertisingPolicyMode`](#AdvertisingPolicyMode) 
+  - [`AdvertisingPolicyMode`](#advertisingpolicymode) 
   **advertising_policy_mode**: The policy mode to use during advertising. 
 * result: None
 * modeled after: `Gap::setAdvertisingPolicyMode`
@@ -1038,7 +1038,7 @@ devices is a JSON object with the following attributes:
 
 * invocation: `gap setScanningPolicyMode <scanning_policy_mode>`
 * arguments: 
-  - [`ScanningPolicyMode`](#ScanningPolicyMode) **scanning_policy_mode**: The 
+  - [`ScanningPolicyMode`](#scanningpolicymode) **scanning_policy_mode**: The 
   policy to use during scanning. 
 * result: None
 * modeled after: `Gap::setScanningPolicyMode`
@@ -1048,7 +1048,7 @@ devices is a JSON object with the following attributes:
 
 * invocation: `gap setInitiatorPolicyMode <initiator_policy_mode>`
 * arguments: 
-  - [`InitiatorPolicyMode`](#InitiatorPolicyMode) **initiator_policy_mode**: The 
+  - [`InitiatorPolicyMode`](#initiatorpolicymode) **initiator_policy_mode**: The 
   policy mode to use during connection initiation.
 * result: None
 * modeled after: `Gap::setInitiatorPolicyMode`
@@ -1059,7 +1059,7 @@ devices is a JSON object with the following attributes:
 
 * invocation: `gap getAdvertisingPolicyMode`
 * arguments: None
-* result: [`AdvertisingPolicyMode`](#AdvertisingPolicyMode) 
+* result: [`AdvertisingPolicyMode`](#advertisingpolicymode) 
 * modeled after: `Gap::getAdvertisingPolicyMode`
 
 
@@ -1067,7 +1067,7 @@ devices is a JSON object with the following attributes:
 
 * invocation: `gap getScanningPolicyMode <scanning_policy_mode>`
 * arguments: None
-* result: [`ScanningPolicyMode`](#ScanningPolicyMode) 
+* result: [`ScanningPolicyMode`](#scanningpolicymode) 
 * modeled after: `Gap::getScanningPolicyMode`
 
 
@@ -1075,7 +1075,7 @@ devices is a JSON object with the following attributes:
 
 * invocation: `gap getInitiatorPolicyMode <initiator_policy_mode>`
 * arguments: None
-* result: [`InitiatorPolicyMode`](#InitiatorPolicyMode)
+* result: [`InitiatorPolicyMode`](#initiatorpolicymode)
 * modeled after: `Gap::getInitiatorPolicyMode`
 
 
@@ -1095,14 +1095,14 @@ The `gattClient` module expose the following functions from the class
    the procedure.
 * result: A JSON array of the discovered service. Each service is a JSON object 
 which contains the following fields:
-  - [`UUID`](#UUID) **UUID**: The UUID of the service.
+  - [`UUID`](#uuid) **UUID**: The UUID of the service.
   - [`uint16_t`](#uint16_t) **start_handle**: The first attribute handle of the 
   service.
   - [`uint16_t`](#uint16_t) **end_handle**: The last attribute handle of the 
   service.
   - **characteristics**: an array of JSON objects describing the characteristics 
   of the service. Each characteristics expose the following attributes:
-    + [`UUID`](#UUID) **UUID**: The UUID of the characteristic.
+    + [`UUID`](#uuid) **UUID**: The UUID of the characteristic.
     + **properties**: JSON array of the properties of the characteristics, each 
     property is modeled as a string:
       * "broadcast"
@@ -1130,7 +1130,7 @@ which contains the following fields:
    by the procedure.
 * result: A JSON array of the discovered service. Each service is a JSON object 
 which contains the following fields:
-  - [`UUID`](#UUID) **UUID**: The UUID of the service.
+  - [`UUID`](#uuid) **UUID**: The UUID of the service.
   - [`uint16_t`](#uint16_t) **start_handle**: The first attribute handle of the 
   service.
   - [`uint16_t`](#uint16_t) **end_handle**: The last attribute handle of the 
@@ -1147,10 +1147,10 @@ which contains the following fields:
 * arguments: 
    - [`uint16_t`](#uint16_t) **connection_handle**: The connection handle used 
    by the procedure.
-   - [`UUID`](#UUID) **service_UUID**: The UUID of the service to discover.
+   - [`UUID`](#uuid) **service_UUID**: The UUID of the service to discover.
 * result: A JSON array of the discovered service. Each service is a JSON object 
 which contains the following fields:
-  - [`UUID`](#UUID) **UUID**: The UUID of the service.
+  - [`UUID`](#uuid) **UUID**: The UUID of the service.
   - [`uint16_t`](#uint16_t) **start_handle**: The first attribute handle of the 
   service.
   - [`uint16_t`](#uint16_t) **end_handle**: The last attribute handle of the 
@@ -1174,7 +1174,7 @@ which contains the following fields:
 * result: A JSON array of the discovered descriptors. Each discovered descriptor 
 is a JSON object which contains the following fields:
   - [`uint16_t`](#uint16_t) **handle**: Attribute handle of the descriptor.
-  - [`UUID`](#UUID) **UUID**: The UUID of the characteristic descriptor.
+  - [`UUID`](#uuid) **UUID**: The UUID of the characteristic descriptor.
 * modeled after: `GattClient::discoverCharacteristicDescriptors`
 
 
@@ -1615,8 +1615,8 @@ SecurityManager class.
   get. 
 * result: A JSON array containing the addresses in the bond table. Each of this 
 record is a JSON object containing the following fields:
-  - [`AddressType`](#AddressType) **address_type**: The type of the address.
-  - [`MacAddress`](#MacAddress) **address**: The mac address.
+  - [`AddressType`](#addresstype) **address_type**: The type of the address.
+  - [`MacAddress`](#macaddress) **address**: The mac address.
 * modeled after: `SecurityManager::getAddressesFromBondTable`
 
 
@@ -1654,7 +1654,7 @@ Signed integer on 8 bits. The application accept decimal and hexadecimal
 
 * model `int8_t`
 
-## uint8_t
+### uint8_t
 
 Unsigned 8 bits integer. The application accept decimal and hexadecimal (0x...) 
 representations.
@@ -1888,7 +1888,7 @@ This type model a mac address, it is always represented a string:
 ### AdvertisingPayload
 
 A JSON object of the advertising payload: 
-* **FLAGS**: JSON array of [`GapAdvertisingDataFlags`](#gapadvertisingdataflags).
+* **FLAGS**: JSON array of [`GapAdvertisingDataFlags`](#advertisingdataflags).
 * **INCOMPLETE_LIST_16BIT_SERVICE_IDS** : JSON array of [`uint16_t`](#uint16_t) 
 in the hex form (0xXXXX).
 * **COMPLETE_LIST_16BIT_SERVICE_IDS** : JSON array of  [`uint16_t`](#uint16_t) 
@@ -1899,8 +1899,8 @@ in the hex form (0xXXXXXXXX).
 the hex form (0xXXXXXXXX).
 * **SHORTENED_LOCAL_NAME** : [`String`](#string)
 * **COMPLETE_LOCAL_NAME** : [`String`](#string)
-* **MANUFACTURER_SPECIFIC_DATA** : [`HexString`](#hex_string)
-* **raw**: The complete advertising payload in an [`HexString`](#hex_string).
+* **MANUFACTURER_SPECIFIC_DATA** : [`HexString`](#hexstring)
+* **raw**: The complete advertising payload in an [`HexString`](#hexstring).
 
 
 
@@ -1946,11 +1946,11 @@ mbed BLE:
 - [`ble`](source/Commands/BLECommands.cpp): See [ble module](#ble-module).
 - [`gap`](source/Commands/GapCommands.cpp): See [gap module](#gap-module).
 - [`gattClient`](source/Commands/GattClientCommands.cpp): See 
-[gattClient module](#gattClient-module).
+[gattClient module](#gattclient-module).
 - [`gattServer`](source/Commands/GattServerCommands.cpp): See 
-[gattServer module](#gattServer-module).
+[gattServer module](#gattserver-module).
 - [`securityManager`](source/Commands/SecurityManagerCommands.cpp): See 
-[securityManager module](#securityManager-module).
+[securityManager module](#securitymanager-module).
 
 Serialization of mbed BLE specific type is located in the 
 [Serialization](source/Commands/Serialization) subfolder 
