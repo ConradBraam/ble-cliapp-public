@@ -114,20 +114,26 @@ use to debug a port of mbed BLE or an application using mbed BLE.
         - [uint32_t](#uint32_t)
         - [String](#string)
         - [HexString](#hexstring)
-    - [Gap](#gap)
+    - [BLE](#ble)
         - [AddressType:](#addresstype)
         - [MacAddress](#macaddress)
+        - [UUID](#uuid)
+    - [Gap](#gap)
         - [GapRole](#gaprole)
         - [DisconnectionReason](#disconnectionreason)
         - [Appearance](#appearance)
         - [AdvertisingType](#advertisingtype)
         - [AdvertisingDataType](#advertisingdatatype)
+        - [AdvertisingDataFlags](#advertisingdataflags)
         - [AdvertisingType](#advertisingtype)
         - [AdvertisingPolicyMode](#advertisingpolicymode)
         - [ScanningPolicyMode](#scanningpolicymode)
         - [InitiatorPolicyMode](#initiatorpolicymode)
         - [AdvertisingPolicyMode](#advertisingpolicymode)
         - [AdvertisingPayload](#advertisingpayload)
+    - [SecurityManager](#securitymanager)
+        - [Passkey](#passkey)
+        - [IO Capabilities](#io-capabilities)
 - [Extending the application](#extending-the-application)
     - [Organization](#organization)
         - [Reusable code](#reusable-code)
@@ -1598,7 +1604,7 @@ SecurityManager class.
 * arguments: 
   - [`bool`](#bool) **enable_bonding**: Allow or disallow bonding to the device.
   - [`bool`](#bool) **require_mitm**: Allow or disallow MITM protection.
-  - [`SecurityIOCapabilities`](#SecurityIOCapabilities) **io_capabilities**: I/O 
+  - [`SecurityIOCapabilities`](#io-capabilities) **io_capabilities**: I/O 
   capabilities of the device.
   - [`Passkey`](#passkey) **passkey**: The static passkey used by the security 
   manager.
@@ -1684,8 +1690,7 @@ Model an ASCII string without quotes; spaces are not accepted at the moment.
 Hexadecimal representation for raw data. Each byte is represented as its two 
 hexadecimal characters.
 
-
-## Gap
+## BLE 
 
 ### AddressType: 
 
@@ -1712,6 +1717,17 @@ This type model a mac address, it is always represented a string:
 
 * model `Gap::Address_t`
 
+### UUID 
+
+* model the class `UUID`.
+
+The following formats are supported: 
+
+* `0xXXXX` for 16 bits UUID constructed from an hex value
+* `XXXXX` for 16 bits UUID constructed from a 16 bit number.
+* `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX` for 128 bits UUID
+
+## Gap
 
 ### GapRole
 
@@ -1828,6 +1844,19 @@ This type model a mac address, it is always represented a string:
 | GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA | "MANUFACTURER_SPECIFIC_DATA" |
 
 
+### AdvertisingDataFlags 
+
+* model `GapAdvertisingData::Flags_t`.
+
+| C++                                              | ble-cliapp                                    |
+|--------------------------------------------------|-----------------------------------------------|
+| GapAdvertisingData::LE_LIMITED_DISCOVERABLE | "LE_LIMITED_DISCOVERABLE" | 
+| GapAdvertisingData::LE_GENERAL_DISCOVERABLE | "LE_GENERAL_DISCOVERABLE" | 
+| GapAdvertisingData::BREDR_NOT_SUPPORTED | "BREDR_NOT_SUPPORTED" | 
+| GapAdvertisingData::SIMULTANEOUS_LE_BREDR_C | "SIMULTANEOUS_LE_BREDR_C" | 
+| GapAdvertisingData::SIMULTANEOUS_LE_BREDR_H | "SIMULTANEOUS_LE_BREDR_H" |  
+
+
 ### AdvertisingType
 
 * model `GapAdvertisingParams::AdvertisingType_t`.
@@ -1902,6 +1931,26 @@ the hex form (0xXXXXXXXX).
 * **MANUFACTURER_SPECIFIC_DATA** : [`HexString`](#hexstring)
 * **raw**: The complete advertising payload in an [`HexString`](#hexstring).
 
+
+## SecurityManager
+
+### Passkey 
+
+* model `SecurityManager::Passkey_t`. 
+
+It is a string of 6 digits.
+
+### IO Capabilities
+
+* model `SecurityManager::SecurityIOCapabilities_t`. 
+
+| C++                                              | ble-cliapp                                    |
+|--------------------------------------------------|-----------------------------------------------|
+| SecurityManager::IO_CAPS_DISPLAY_ONLY | "IO_CAPS_DISPLAY_ONLY" | 
+| SecurityManager::IO_CAPS_DISPLAY_YESNO | "IO_CAPS_DISPLAY_YESNO" | 
+| SecurityManager::IO_CAPS_KEYBOARD_ONLY | "IO_CAPS_KEYBOARD_ONLY" | 
+| SecurityManager::IO_CAPS_NONE | "IO_CAPS_NONE" | 
+| SecurityManager::IO_CAPS_KEYBOARD_DISPLAY | "IO_CAPS_KEYBOARD_DISPLAY"| 
 
 
 # Extending the application
