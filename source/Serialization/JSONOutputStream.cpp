@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <stdio.h>
 #include <cstdarg>
 
 #include "JSONOutputStream.h"
