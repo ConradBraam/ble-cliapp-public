@@ -8,7 +8,8 @@
         "OS_TIMERS=0",
         "OS_FIFOSZ=4",
         "NDEBUG=1",
-        "MBED_CMDLINE_MAX_LINE_LENGTH=1000"
+        "MBED_CMDLINE_MAX_LINE_LENGTH=1000",
+        "MBED_CONF_APP_MAIN_STACK_SIZE=2048"
     ],
     "target_overrides": {
         "*": {
