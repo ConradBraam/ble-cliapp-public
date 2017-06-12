@@ -32,7 +32,7 @@ struct hijacked_member_accessor {
             friend MEMBER_TYPE getMember(ACCESSOR##_CLASS__);\
         };\
     template struct hijacked_member_accessor<ACCESSOR##_CLASS__, MEMBER_TYPE, MEMBER>; \
-    static MEMBER_TYPE const ACCESSOR = getMember(ACCESSOR##_CLASS__())
+    static MEMBER_TYPE const volatile ACCESSOR = getMember(ACCESSOR##_CLASS__())
 
 
 
