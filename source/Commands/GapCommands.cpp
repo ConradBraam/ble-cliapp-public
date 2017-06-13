@@ -828,14 +828,22 @@ DECLARE_CMD(StartScanCommand) {
 
         virtual ~ScanProcedure() {
             // close the array of scan
+            self = NULL;
             gap().stopScan();
             timer.stop();
             // note : there should be a way to detach this function pointer in the BLE API
         }
 
         virtual bool doStart() {
-            ble_error_t err = gap().startScan(this, &ScanProcedure::whenAdvertisementReceived);
+            if (self) {
+                response->faillure("Scan procedure already started");
+                return false;
+            }
+
+            self = this;
+            ble_error_t err = gap().startScan(&ScanProcedure::whenAdvertisementReceived);
             if(err) {
+                self = NULL;
                 response->faillure(err);
                 return false;
             } else {
@@ -848,21 +856,25 @@ DECLARE_CMD(StartScanCommand) {
             }
         }
 
-        void whenAdvertisementReceived(const Gap::AdvertisementCallbackParams_t* scanResult) {
-            using namespace serialization;
-
-            // check the address, if it is not the address wanted, just return
-            if(memcmp(scanResult->peerAddr, address, sizeof(address))) {
+        static void whenAdvertisementReceived(const Gap::AdvertisementCallbackParams_t* scanResult) {
+            if (self == NULL) {
                 return;
             }
 
-            response->getResultStream() << startObject <<
+            using namespace serialization;
+
+            // check the address, if it is not the address wanted, just return
+            if(memcmp(scanResult->peerAddr, self->address, sizeof(self->address))) {
+                return;
+            }
+
+            self->response->getResultStream() << startObject <<
                 key("peerAddr") << macAddressToString(scanResult->peerAddr).str <<
                 key("rssi") << scanResult->rssi <<
                 key("isScanResponse") << scanResult->isScanResponse <<
                 key("type") << scanResult->type <<
                 key("data") << AdvertisingDataSerializer(scanResult->advertisingData, scanResult->advertisingDataLen) <<
-                key("time") << (int32_t) timer.read_ms() <<
+                key("time") << (int32_t) self->timer.read_ms() <<
             endObject;
         }
 
@@ -873,8 +885,14 @@ DECLARE_CMD(StartScanCommand) {
 
         Gap::Address_t address;
         mbed::Timer timer;
+        // global object to workaround BLE API scan limitation:
+        // the scan callback cannot be replaced and if the scan stop
+        // asynchronously then the stack continue to emit undesired scan events
+        static ScanProcedure* self;
     };
 };
+
+StartScanCommand::ScanProcedure* StartScanCommand::ScanProcedure::self = NULL;
 
 
 DECLARE_CMD(InitRadioNotificationCommand) {
