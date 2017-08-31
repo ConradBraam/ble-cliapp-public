@@ -108,7 +108,19 @@ serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSON
                 }
 
                 os.put('"');
-                os.write((const char*)fieldData, dataLenght);
+                for (uint8_t i = 0; i < dataLenght; ++i) {
+                    switch(fieldData[i]) {
+                        case '"':
+                            os.put('\\');
+                            os.put('"');
+                            break;
+                        case '\0':
+                            break;
+                        default:
+                            os.put(fieldData[i]);
+                            break;
+                    }
+                }
                 os.put('"');
                 os.commitValue();
                 break;
