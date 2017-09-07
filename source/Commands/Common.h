@@ -8,7 +8,7 @@
 /**
  * return the ble instance of this device
  */
-inline BLE& ble() {
+inline BLE& get_ble() {
     return BLE::Instance();
 }
 
@@ -16,28 +16,28 @@ inline BLE& ble() {
  * return the Gap instance of this device
  */
 inline Gap& gap() {
-    return ble().gap();
+    return get_ble().gap();
 }
 
 /**
  * @brief Return the GattClient of this device.
  */
 inline GattClient& client() {
-    return ble().gattClient();
+    return get_ble().gattClient();
 }
 
 /**
  * @brief Return the instance of the GattServer of this device.
  */
 inline GattServer& gattServer() {
-    return ble().gattServer();
+    return get_ble().gattServer();
 }
 
 /**
  * @brief Return the instance of the security manager of this device.
  */
 inline SecurityManager& sm() {
-    return ble().securityManager();
+    return get_ble().securityManager();
 }
 
 /**
