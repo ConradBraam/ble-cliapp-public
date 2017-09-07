@@ -40,6 +40,10 @@ JSONOutputStream& JSONOutputStream::operator<<(uint32_t value) {
     return formatValue("%u", static_cast<unsigned int>(value));
 }
 
+JSONOutputStream& JSONOutputStream::operator<<(unsigned int value) {
+    return formatValue("%u", value);
+}
+
 JSONOutputStream& JSONOutputStream::operator<<(int64_t value) {
     return formatValue("%" PRId64, value);
 }

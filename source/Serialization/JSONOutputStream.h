@@ -91,6 +91,7 @@ public:
      * @return *this
      */
     JSONOutputStream& operator<<(uint32_t value);
+    JSONOutputStream& operator<<(unsigned int value);
 
     /**
      * @brief insert a int64_t value into the stream
