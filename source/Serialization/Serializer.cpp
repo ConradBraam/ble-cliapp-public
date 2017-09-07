@@ -68,6 +68,11 @@ bool fromString(const char* str, uint32_t& val) {
     return true;
 }
 
+bool fromString(const char* str, unsigned int& val) {
+    return fromString(str, (uint32_t&) val);
+}
+
+
 bool fromString(const char* str, bool& val) {
     if(strcmp(str, "true") == 0) {
         val = true;

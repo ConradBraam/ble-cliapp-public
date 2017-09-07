@@ -174,6 +174,7 @@ bool fromString(const char* str, uint16_t& val);
  * @return true if the conversion succeed and false otherwise
  */
 bool fromString(const char* str, uint32_t& val);
+bool fromString(const char* str, unsigned int& val);
 
 /**
  * @brief Convert a string to a bool
