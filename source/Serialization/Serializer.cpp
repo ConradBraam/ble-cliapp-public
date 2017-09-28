@@ -57,7 +57,7 @@ bool fromString(const char* str, uint16_t& val) {
     return true;
 }
 
-bool fromString(const char* str, uint32_t& val) {
+bool fromString(const char* str, unsigned int& val) {
     char* end;
     unsigned long tmp = strtoul(str, &end, 0);
     if(str == end) {
@@ -68,7 +68,7 @@ bool fromString(const char* str, uint32_t& val) {
     return true;
 }
 
-bool fromString(const char* str, unsigned int& val) {
+bool fromString(const char* str, long unsigned int& val) {
     return fromString(str, (uint32_t&) val);
 }
 

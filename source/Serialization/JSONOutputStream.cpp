@@ -21,7 +21,7 @@ JSONOutputStream& JSONOutputStream::operator<<(int8_t value) {
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(uint8_t value) {
-    return formatValue("%u", static_cast<unsigned int>(value));
+    return formatValue("%u", static_cast<long unsigned int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(int16_t value) {
@@ -29,18 +29,18 @@ JSONOutputStream& JSONOutputStream::operator<<(int16_t value) {
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(uint16_t value) {
-    return formatValue("%u", static_cast<unsigned int>(value));
+    return formatValue("%u", static_cast<long unsigned int>(value));
 }
 
 JSONOutputStream& JSONOutputStream::operator<<(int32_t value) {
     return formatValue("%d", static_cast<int>(value));
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(uint32_t value) {
-    return formatValue("%u", static_cast<unsigned int>(value));
+JSONOutputStream& JSONOutputStream::operator<<(unsigned int value) {
+    return formatValue("%u", static_cast<long unsigned int>(value));
 }
 
-JSONOutputStream& JSONOutputStream::operator<<(unsigned int value) {
+JSONOutputStream& JSONOutputStream::operator<<(long unsigned int value) {
     return formatValue("%u", value);
 }
 
@@ -181,7 +181,7 @@ void JSONOutputStream::handleNewValue() {
 }
 
 void JSONOutputStream::indent() {
-    for (uint8_t i = 0; i < indentation; ++i) { 
+    for (uint8_t i = 0; i < indentation; ++i) {
         out.putc('\t');
     }
 }
