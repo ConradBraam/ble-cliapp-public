@@ -15,26 +15,26 @@ struct ValueToStringMapping {
 };
 
 /**
- * @brief Description of the Serialization used by Serializer<T> to create the 
- * serialization and deserialization function. This class is mostly used to 
+ * @brief Description of the Serialization used by Serializer<T> to create the
+ * serialization and deserialization function. This class is mostly used to
  * generate enum serialization/deserialization functions.
- * 
- * @detail Two functions and one typedef should be defined in specialization of 
- * this class to makes the serialization viable: 
- *   - typedef T type: yield the type targeted by the description.
- *   - ConstArray<ValueToStringMapping<type> > mapping(): Mapping between value 
- *   and serialized values.
- *   - const char* errorMessage(): Error message that should be return by the 
- *   toString function if the serialization fail. 
  *
- * @code 
+ * @detail Two functions and one typedef should be defined in specialization of
+ * this class to makes the serialization viable:
+ *   - typedef T type: yield the type targeted by the description.
+ *   - ConstArray<ValueToStringMapping<type> > mapping(): Mapping between value
+ *   and serialized values.
+ *   - const char* errorMessage(): Error message that should be return by the
+ *   toString function if the serialization fail.
+ *
+ * @code
 
-   enum Color_t { 
+   enum Color_t {
      BLUE,
-     RED, 
+     RED,
      GREEN
    };
-   
+
     template<>
     struct SerializerDescription<Color_t> {
         typedef Color_t type;
@@ -56,11 +56,11 @@ struct ValueToStringMapping {
 
     // deserialization
     Color_t c;
-    if (fromString("blue", c) ) { 
+    if (fromString("blue", c) ) {
         // handle error
     }
 
-    // serialization 
+    // serialization
     const char* sc = toString(c);
 
  * @endcode
@@ -173,7 +173,8 @@ bool fromString(const char* str, uint16_t& val);
  *
  * @return true if the conversion succeed and false otherwise
  */
-bool fromString(const char* str, uint32_t& val);
+bool fromString(const char* str, unsigned int& val);
+bool fromString(const char* str, long unsigned int& val);
 
 /**
  * @brief Convert a string to a bool

@@ -50,7 +50,7 @@ DECLARE_CMD(GetAddressCommand) {
         CMD_RESULT("MacAddress_t", "address", "The mac address of the device")
     )
 
-    CMD_HANDLER(CommandResponsePtr& response) { 
+    CMD_HANDLER(CommandResponsePtr& response) {
         using namespace serialization;
 
         BLEProtocol::AddressType_t addressType;
@@ -78,7 +78,7 @@ DECLARE_CMD(GetMinAdvertisingIntervalCommand) {
     CMD_RESULTS(
         CMD_RESULT("uint16_t", "", "The minimum advertising interval.")
     )
-    CMD_HANDLER(CommandResponsePtr& response) { 
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->success(gap().getMinNonConnectableAdvertisingInterval());
     }
 };
@@ -86,7 +86,7 @@ DECLARE_CMD(GetMinAdvertisingIntervalCommand) {
 
 DECLARE_CMD(GetMinNonConnectableAdvertisingIntervalCommand) {
     CMD_NAME("getMinNonConnectableAdvertisingInterval")
-    CMD_HANDLER(CommandResponsePtr& response) { 
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->success(gap().getMinNonConnectableAdvertisingInterval());
     }
 };
@@ -94,7 +94,7 @@ DECLARE_CMD(GetMinNonConnectableAdvertisingIntervalCommand) {
 
 DECLARE_CMD(GetMaxAdvertisingIntervalCommand) {
     CMD_NAME("getMaxAdvertisingInterval")
-    CMD_HANDLER(CommandResponsePtr& response) { 
+    CMD_HANDLER(CommandResponsePtr& response) {
         response->success(gap().getMaxAdvertisingInterval());
     }
 };
@@ -102,7 +102,7 @@ DECLARE_CMD(GetMaxAdvertisingIntervalCommand) {
 
 DECLARE_CMD(StopAdvertisingCommand) {
     CMD_NAME("stopAdvertising")
-    CMD_HANDLER(CommandResponsePtr& response) { 
+    CMD_HANDLER(CommandResponsePtr& response) {
         ble_error_t err = gap().stopAdvertising();
         reportErrorOrSuccess(response, err);
     }
@@ -111,7 +111,7 @@ DECLARE_CMD(StopAdvertisingCommand) {
 
 DECLARE_CMD(StopScanCommand) {
     CMD_NAME("stopScan")
-    CMD_HANDLER(CommandResponsePtr& response) { 
+    CMD_HANDLER(CommandResponsePtr& response) {
         ble_error_t err = gap().stopScan();
         reportErrorOrSuccess(response, err);
     }
@@ -153,7 +153,7 @@ DECLARE_CMD(ConnectCommand) {
         CMD_RESULT("uint16_t", "connectionParams.connectionSupervisionTimeout", "supervision timeout for this connection")
     )
 
-    CMD_HANDLER(BLEProtocol::AddressType_t addressType, MacAddress_t address, uint16_t minConnectionInterval, uint16_t maxConnectionInterval, 
+    CMD_HANDLER(BLEProtocol::AddressType_t addressType, MacAddress_t address, uint16_t minConnectionInterval, uint16_t maxConnectionInterval,
                 uint16_t slaveLatency, uint16_t connectionSupervisionTimeout, uint16_t scanInterval, uint16_t window, uint16_t scanTimeout,
                 bool activeScanning, uint16_t procedureTimeout, CommandResponsePtr& response) {
         // everything is alright, launching the procedure
@@ -262,7 +262,7 @@ DECLARE_CMD(WaitForConnectionCommand) {
     )
 
 
-    CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) { 
+    CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) {
         startProcedure<WaitForConnectionProcedure>(response, timeout);
     }
 
@@ -389,13 +389,13 @@ DECLARE_CMD(SetPreferredConnectionParamsCommand) {
 
     CMD_ARGS(
         CMD_ARG(
-            "Gap::ConnectionParams_t", 
-            "minConnectionInterval,maxConnectionInterval,slaveLatency,connectionSupervisionTimeout", 
+            "Gap::ConnectionParams_t",
+            "minConnectionInterval,maxConnectionInterval,slaveLatency,connectionSupervisionTimeout",
             "all the parameters, coma separated"
         )
     )
 
-    CMD_HANDLER(Gap::ConnectionParams_t connectionParameters, CommandResponsePtr& response) { 
+    CMD_HANDLER(Gap::ConnectionParams_t connectionParameters, CommandResponsePtr& response) {
         ble_error_t err =  gap().setPreferredConnectionParams(&connectionParameters);
         reportErrorOrSuccess(response, err);
     }
@@ -567,7 +567,7 @@ DECLARE_CMD(SetAdvertisingTimeoutCommand) {
         CMD_ARG("uint16_t", "timeout", "An integer wich represent the advertising timeout in seconds [0x1 : 0x3FFF]. 0 disable the timeout")
     )
 
-    CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) { 
+    CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) {
         gap().setAdvertisingTimeout(timeout);
         response->success();
     }
@@ -743,7 +743,7 @@ DECLARE_CMD(SetScanIntervalCommand) {
         CMD_ARG("uint16_t", "interval", "The interval between each scan, it should be a number between 3 and 10240ms")
     )
 
-    CMD_HANDLER(uint16_t interval, CommandResponsePtr& response) { 
+    CMD_HANDLER(uint16_t interval, CommandResponsePtr& response) {
         ble_error_t err = gap().setScanInterval(interval);
         reportErrorOrSuccess(response, err);
     }
@@ -804,7 +804,7 @@ DECLARE_CMD(StartScanCommand) {
         CMD_ARG("uint16_t", "address", "The address to scan for")
     )
 
-    CMD_RESULTS( 
+    CMD_RESULTS(
         CMD_RESULT("JSON Array", "", "Array of scan results"),
         CMD_RESULT("JSON Object", "[x]", "A scan result"),
         CMD_RESULT("MacAddress_t", "[x].peerAddr", "Address of the peer adverising."),
@@ -950,8 +950,8 @@ DECLARE_CMD(GetWhitelistCommand) {
                "advertising or initiating a connection depending on the filter policies.")
 
     CMD_RESULTS(
-        CMD_RESULT("JSON Array", "", "Array of the address in the whitelist"), 
-        CMD_RESULT("JSON Object", "[i]", "Description of an address"), 
+        CMD_RESULT("JSON Array", "", "Array of the address in the whitelist"),
+        CMD_RESULT("JSON Object", "[i]", "Description of an address"),
         CMD_RESULT("AddressType_t", "[i].address_type", "Type of the address"),
         CMD_RESULT("MacAddress_t", "[i].address", "The mac address"),
     )
@@ -1116,7 +1116,7 @@ DECLARE_CMD(GetInitiatorPolicyModeCommand) {
 } // end of annonymous namespace
 
 
-DECLARE_SUITE_COMMANDS(GapCommandSuiteDescription, 
+DECLARE_SUITE_COMMANDS(GapCommandSuiteDescription,
     CMD_INSTANCE(SetAddressCommand),
     CMD_INSTANCE(GetAddressCommand),
     CMD_INSTANCE(GetMinAdvertisingIntervalCommand),

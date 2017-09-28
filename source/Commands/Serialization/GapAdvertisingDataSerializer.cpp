@@ -157,6 +157,9 @@ serialization::JSONOutputStream& serializeGapAdvertisingData(serialization::JSON
                 os.put('"');
                 os.commitValue();
             } break;
+
+            default:
+                os << "";
         }
     }
 

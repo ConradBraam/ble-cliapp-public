@@ -19,7 +19,7 @@ DECLARE_CMD(ShutdownCommand) {
     )
     
     CMD_HANDLER(CommandResponsePtr& response) { 
-        ble_error_t err = ble().shutdown();
+        ble_error_t err = get_ble().shutdown();
         if(err) {
             response->faillure(err);
         } else {
@@ -37,7 +37,7 @@ DECLARE_CMD(InitCommand) {
     )
     
     CMD_HANDLER(CommandResponsePtr& response) { 
-        if(ble().hasInitialized()) {
+        if(get_ble().hasInitialized()) {
             response->success();
             return;
         }
@@ -51,7 +51,7 @@ DECLARE_CMD(InitCommand) {
         }
 
         virtual bool doStart() {
-            ble().init(this, &InitProcedure::whenInit);
+            get_ble().init(this, &InitProcedure::whenInit);
             return true;
         }
 
@@ -77,15 +77,15 @@ DECLARE_CMD(ResetCommand) {
     
     CMD_HANDLER(CommandResponsePtr& response) { 
         ble_error_t err;
-        if(ble().hasInitialized()) {
-            err = ble().shutdown();
+        if(get_ble().hasInitialized()) {
+            err = get_ble().shutdown();
             if(err) {
                 response->faillure("Failled to shutdown the ble instance");
                 return;
             }
         }
 
-        err = ble().init();
+        err = get_ble().init();
         if(err) {
             response->faillure("Failled to init the ble instance");
         } else {
@@ -105,7 +105,7 @@ DECLARE_CMD(GetVersionCommand) {
     )
 
     CMD_HANDLER(CommandResponsePtr& response) { 
-        const char* version = ble().getVersion();
+        const char* version = get_ble().getVersion();
 
         if(version) {
             response->success(version);
