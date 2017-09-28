@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include "BLECommonSerializer.h"
 #include "GattCallbackParamTypes.h"
 #include "Hex.h"
 
@@ -8,6 +9,7 @@ serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os,
         key("connection_handle") << readResult.connHandle <<
         key("attribute_handle") << readResult.handle <<
         key("offset") << readResult.offset <<
+        key("status") << readResult.status <<
         key("length") << readResult.len <<
         key("data");
     return serializeRawDataToHexString(os, readResult.data, readResult.len) << endObject;
