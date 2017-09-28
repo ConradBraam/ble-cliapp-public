@@ -23,7 +23,7 @@
         },
         "NUCLEO_F401RE": {
             "target.features_add": ["BLE"],
-            "target.extra_labels_add": ["ST_BLUENRG"]
+            "target.extra_labels_add": ["CORDIO", "CORDIO_BLUENRG"]
         }
     }
 }
