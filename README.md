@@ -261,7 +261,7 @@ gap accumulateAdvertisingPayload COMPLETE_LOCAL_NAME FOO_BAR_BAZ
 ```
 
 The command `accumulateAdvertisingPayload` of the `gap` module is invoked with 
-`COMPLETE_LOCAL_NAME` as its first argument and `COMPLETE_LOCAL_NAME FOO_BAR_BAZ`
+`COMPLETE_LOCAL_NAME` as its first argument and `FOO_BAR_BAZ`
 as its second argument.
 
 The device should response with a status code 0.
