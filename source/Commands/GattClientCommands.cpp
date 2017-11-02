@@ -908,10 +908,73 @@ struct WriteLongCharacteristicDescriptorCommand : public BaseCommand {
     }
 };
 
+
+DECLARE_CMD(ListenHVXCommand) {
+    CMD_NAME("listenHVX")
+    CMD_HELP("Listen and display notification or indication for a given time.")
+
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "timeout", "Maximum time - in ms - allowed for this procedure")
+    )
+
+    CMD_RESULTS(
+        CMD_RESULT("JSON Array", "", "Array of notification or indication"),
+        CMD_RESULT("JSON Object", "[x]", "A notification or an indication"),
+        CMD_RESULT("uint16_t", "[x].connHandle", "Connection of the GATT server which has issued the notification"),
+        CMD_RESULT("uint16_t", "[x].handle", "Attribute handle which has issued the notification or indication."),
+        CMD_RESULT("HVXType_t", "[x].type", "The type of event (notification or indication)."),
+        CMD_RESULT("HexString_t", "[x].data", "Event payload.")
+    )
+
+    CMD_HANDLER(uint16_t timeout, CommandResponsePtr& response) {
+        response->success();
+        startProcedure<ListenHVXProcedure>(response, timeout);
+    }
+
+    struct ListenHVXProcedure : public AsyncProcedure {
+        ListenHVXProcedure(const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout) :
+            AsyncProcedure(res, procedureTimeout) {
+        }
+
+        virtual ~ListenHVXProcedure() {
+        }
+
+        virtual bool doStart() {
+            // the response will be an array of scan sample, start this array right now
+            response->success();
+            response->getResultStream() << serialization::startArray;
+            client().onHVX().add(
+                makeFunctionPointer(
+                    this, &ListenHVXProcedure::whenHVX
+                )
+            );
+            return true;
+        }
+
+        void whenHVX(const GattHVXCallbackParams* hvx_event) {
+            using namespace serialization;
+            serialization::JSONOutputStream& os = response->getResultStream();
+
+            os << startObject <<
+                key("connHandle") << hvx_event->connHandle <<
+                key("handle") << hvx_event->handle <<
+                key("type") << hvx_event->type <<
+                key("data");
+                serializeRawDataToHexString(os, hvx_event->data, (uint8_t) hvx_event->len) <<
+            endObject;
+        }
+
+        virtual void doWhenTimeout() {
+            client().onHVX().detach(makeFunctionPointer(this, &ListenHVXProcedure::whenHVX));
+            response->getResultStream() << serialization::endArray;
+        }
+    };
+};
+
 } // end of annonymous namespace
 
 
-DECLARE_SUITE_COMMANDS(GattClientCommandSuiteDescription, 
+DECLARE_SUITE_COMMANDS(GattClientCommandSuiteDescription,
     CMD_INSTANCE(DiscoverAllServicesAndCharacteristicsCommand),
     CMD_INSTANCE(DiscoverAllServicesCommand),
     CMD_INSTANCE(DiscoverPrimaryServicesByUUIDCommand),
@@ -932,5 +995,6 @@ DECLARE_SUITE_COMMANDS(GattClientCommandSuiteDescription,
     CMD_INSTANCE(ReadCharacteristicDescriptorCommand),
     CMD_INSTANCE(ReadLongCharacteristicDescriptorCommand),
     CMD_INSTANCE(WriteCharacteristicDescriptorCommand),
-    CMD_INSTANCE(WriteLongCharacteristicDescriptorCommand)
+    CMD_INSTANCE(WriteLongCharacteristicDescriptorCommand),
+    CMD_INSTANCE(ListenHVXCommand)
 )
