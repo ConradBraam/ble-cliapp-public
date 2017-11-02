@@ -84,7 +84,8 @@ use to debug a port of mbed BLE or an application using mbed BLE.
         - [writeWithoutResponse](#writewithoutresponse)
         - [write](#write)
         - [readCharacteristicDescriptor](#readcharacteristicdescriptor)
-        - [write](#write)
+        - [write](#write-1)
+        - [listenHVX](#listenhvx)
     - [gattServer module](#gattserver-module)
         - [declareService](#declareservice)
         - [declareCharacteristic](#declarecharacteristic)
@@ -99,10 +100,10 @@ use to debug a port of mbed BLE or an application using mbed BLE.
         - [commitService](#commitservice)
         - [cancelServiceDeclaration](#cancelservicedeclaration)
         - [read](#read)
-        - [write](#write)
+        - [write](#write-2)
         - [waitForDataWritten](#waitfordatawritten)
     - [securityManager module](#securitymanager-module)
-        - [init](#init)
+        - [init](#init-1)
         - [getAddressesFromBondTable](#getaddressesfrombondtable)
         - [purgeAllBondingState](#purgeallbondingstate)
 - [Data types format:](#data-types-format)
@@ -125,15 +126,17 @@ use to debug a port of mbed BLE or an application using mbed BLE.
         - [AdvertisingType](#advertisingtype)
         - [AdvertisingDataType](#advertisingdatatype)
         - [AdvertisingDataFlags](#advertisingdataflags)
-        - [AdvertisingType](#advertisingtype)
+        - [AdvertisingType](#advertisingtype-1)
         - [AdvertisingPolicyMode](#advertisingpolicymode)
         - [ScanningPolicyMode](#scanningpolicymode)
         - [InitiatorPolicyMode](#initiatorpolicymode)
-        - [AdvertisingPolicyMode](#advertisingpolicymode)
+        - [AdvertisingPolicyMode](#advertisingpolicymode-1)
         - [AdvertisingPayload](#advertisingpayload)
     - [SecurityManager](#securitymanager)
         - [Passkey](#passkey)
         - [IO Capabilities](#io-capabilities)
+    - [GattClient](#gattclient)
+        - [HVXType_t](#hvxtype_t)
 - [Extending the application](#extending-the-application)
     - [Organization](#organization)
         - [Reusable code](#reusable-code)
@@ -1249,6 +1252,22 @@ is a JSON object which contains the following fields:
 * modeled after: `GattClient::write` and `GattClient::onDataWritten`
 
 
+### listenHVX
+
+* invocation: `gattClient listenHVX <timeout>`
+* arguments: 
+   - [`uint16_t`](#uint16_t) **timeout**: Time to listen to server notification 
+   or indication.
+* result: The list of notifications or indication received from the server. 
+Each record contains the following attributes: 
+  - [`uint16_t`](#uint16_t) **connHandle**: The reference of the connection to 
+  the GATT server which has issued the event.
+  - [`uint16_t`](#uint16_t) **handle**: The GATT attribute which has initiated 
+  the event.
+  - [`HVXType_t`](#hvxtype_t) **type**: Type of the event (notification or 
+  indication).
+  - [`HexString`](#hexstring) **data**: Payload of the event.
+* modeled after: `GattClient::onHVX` 
 
 
 
@@ -1951,6 +1970,19 @@ It is a string of 6 digits.
 | SecurityManager::IO_CAPS_KEYBOARD_ONLY | "IO_CAPS_KEYBOARD_ONLY" | 
 | SecurityManager::IO_CAPS_NONE | "IO_CAPS_NONE" | 
 | SecurityManager::IO_CAPS_KEYBOARD_DISPLAY | "IO_CAPS_KEYBOARD_DISPLAY"| 
+
+
+## GattClient
+
+### HVXType_t
+
+* model `HVXType_t`
+
+| C++                                              | ble-cliapp                                    |
+|--------------------------------------------------|-----------------------------------------------|
+| BLE_HVX_NOTIFICATION | "BLE_HVX_NOTIFICATION"  |
+| BLE_HVX_INDICATION | "BLE_HVX_INDICATION"  |
+
 
 
 # Extending the application
