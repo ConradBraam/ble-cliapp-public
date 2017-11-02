@@ -37,4 +37,26 @@ static inline serialization::JSONOutputStream& operator<<(serialization::JSONOut
     return os << toString(err);
 }
 
+template<>
+struct SerializerDescription<HVXType_t> {
+    typedef HVXType_t type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { BLE_HVX_NOTIFICATION, "BLE_HVX_NOTIFICATION" },
+            { BLE_HVX_INDICATION, "BLE_HVX_INDICATION" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown HVXType_t";
+    }
+};
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, HVXType_t type) {
+    return os << toString(type);
+}
+
 #endif //BLE_CLIAPP_BLE_COMMON_SERIALIZER_H_
