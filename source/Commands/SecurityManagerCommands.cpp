@@ -123,6 +123,27 @@ DECLARE_CMD(GetAddressesFromBondTableCommand) {
     }
 };
 
+DECLARE_CMD(PreserveBondingStateOnResetCommand) {
+    CMD_NAME("preserveBondingStateOnReset")
+
+    CMD_ARGS(
+        CMD_ARG("bool","enable", "enable if true the stack will attempt to preserve bonding information on reset.")
+    )
+
+    CMD_HELP("Normally all bonding information is lost when device is reset, this requests that the stack
+              attempts to save the information and reload it during initialisation. This is not guaranteed.")
+
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
+        bool enable;
+        if(!fromString(args[0], enable)) {
+            response->invalidParameters("enable should be a bool");
+            return;
+        }
+
+        ble_error_t err = sm().preserveBondingStateOnReset(enable);
+        reportErrorOrSuccess(response, err);
+    }
+};
 
 DECLARE_CMD(PurgeAllBondingStateCommand) {
     CMD_NAME("purgeAllBondingState")
@@ -142,5 +163,6 @@ DECLARE_CMD(PurgeAllBondingStateCommand) {
 DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription, 
     CMD_INSTANCE(InitCommand),
     CMD_INSTANCE(GetAddressesFromBondTableCommand),
+    CMD_INSTANCE(PreserveBondingStateOnResetCommand),
     CMD_INSTANCE(PurgeAllBondingStateCommand)
 )
