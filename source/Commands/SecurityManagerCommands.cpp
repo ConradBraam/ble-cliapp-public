@@ -34,7 +34,8 @@ DECLARE_CMD(InitCommand) {
         CMD_ARG("bool","enableBonding", "Allow bonding."),
         CMD_ARG("bool", "requireMITM", "Require protection for man-in-the-middle attacks."),
         CMD_ARG("SecurityManager::SecurityIOCapabilities_t", "iocaps", "Specify the I/O capabilities of this peripheral."),
-        CMD_ARG("Passkey_t", "passkey", "Specify a static passkey.")
+        CMD_ARG("Passkey_t", "passkey", "Specify a static passkey."),
+        CMD_ARG("bool", "signing", "Generate and distribute signing key during pairing."),
     )
 
     CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
@@ -64,8 +65,13 @@ DECLARE_CMD(InitCommand) {
         }
         memcpy(passkey, args[3], sizeof(passkey));
 
+        bool signing;
+        if(!fromString(args[4], signing)) {
+            response->invalidParameters("signing should be a bool");
+            return;
+        }
 
-        ble_error_t err = sm().init(enableBonding, requireMITM, iocaps, passkey);
+        ble_error_t err = sm().init(enableBonding, requireMITM, iocaps, passkey, signing);
         reportErrorOrSuccess(response, err);
     }
 };
