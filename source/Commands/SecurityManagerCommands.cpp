@@ -14,6 +14,7 @@
 
 #include "SecurityManagerCommands.h"
 #include "CLICommand/CommandHelper.h"
+#include "CLICommand/util/AsyncProcedure.h"
 
 using mbed::util::SharedPointer;
 
@@ -130,8 +131,8 @@ DECLARE_CMD(PreserveBondingStateOnResetCommand) {
         CMD_ARG("bool","enable", "enable if true the stack will attempt to preserve bonding information on reset.")
     )
 
-    CMD_HELP("Normally all bonding information is lost when device is reset, this requests that the stack
-              attempts to save the information and reload it during initialisation. This is not guaranteed.")
+    CMD_HELP("Normally all bonding information is lost when device is reset, this requests that the stack "
+             "attempts to save the information and reload it during initialisation. This is not guaranteed.")
 
     CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         bool enable;
@@ -157,6 +158,79 @@ DECLARE_CMD(PurgeAllBondingStateCommand) {
     }
 };
 
+DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
+    CMD_NAME("generateWhitelistFromBondTable")
+
+    CMD_HELP("Create a list of addresses from all peers in the bond table and generate "
+     " an event which returns it as a whitelist. Pass in the container for the whitelist. "
+     " This will be returned by the event.")
+
+    CMD_HANDLER(CommandResponsePtr& response) {
+        startProcedure<GenerateWhitelistFromBondTableProcedure>(
+            response, /* timeout */ 5 * 1000
+        );
+    }
+
+    struct GenerateWhitelistFromBondTableProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
+        GenerateWhitelistFromBondTableProcedure(const CommandResponsePtr& res, uint32_t timeout) 
+            : AsyncProcedure(res, timeout) {
+                // Initialize whitelist
+                BLEProtocol::Address_t* addresses = new BLEProtocol::Address_t[gap().getMaxWhitelistSize()]();
+                whiteList.addresses = addresses;
+                whiteList.size = 0;
+                whiteList.capacity = gap().getMaxWhitelistSize();
+
+                // Set this struct as event handler
+                sm().setSecurityManagerEventHandler(this);
+            }
+
+        virtual ~GenerateWhitelistFromBondTableProcedure() {
+            // Deregister as event handler
+            sm().setSecurityManagerEventHandler(NULL);
+        }
+
+        virtual bool doStart() {
+            ble_error_t err = sm().generateWhitelistFromBondTable(&whiteList);
+            if(err) {
+                response->faillure(err);
+                return false;
+            }
+
+            return true;
+        }
+
+        virtual void doWhenTimeout() { 
+            response->getResultStream() << "generateWhitelistFromBondTable timeout";
+            response->faillure();
+        }
+
+        // SecurityManagerEventHandler implementation
+        virtual void whitelistFromBondTable(Gap::Whitelist_t* whitelist) {
+            using namespace serialization;
+
+            // Print & exit with success
+            response->success();
+            serialization::JSONOutputStream& os = response->getResultStream();
+
+            os << startArray;
+            for(std::size_t i = 0; i < whitelist->size; ++i) {
+                os << startObject <<
+                    key("address_type") << whitelist->addresses[i].type <<
+                    key("address") << whitelist->addresses[i].address <<
+                endObject;
+            }
+            os << endArray;
+
+            terminate();
+        }
+
+        // Data
+
+        Gap::Whitelist_t whiteList;
+    };
+};
+
+
 } // end of annonymous namespace
 
 
@@ -164,5 +238,6 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(InitCommand),
     CMD_INSTANCE(GetAddressesFromBondTableCommand),
     CMD_INSTANCE(PreserveBondingStateOnResetCommand),
-    CMD_INSTANCE(PurgeAllBondingStateCommand)
+    CMD_INSTANCE(PurgeAllBondingStateCommand),
+    CMD_INSTANCE(GenerateWhitelistFromBondTableCommand)
 )
