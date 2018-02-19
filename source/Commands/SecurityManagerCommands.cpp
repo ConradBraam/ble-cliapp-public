@@ -354,6 +354,112 @@ DECLARE_CMD(HandlePairingCommand) {
     };
 };
 
+DECLARE_CMD(ExecutePairingCommand) {
+    CMD_NAME("executePairing")
+
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("SecurityManager::Passkey_t","passkey", "Numeric passkey to use during pairing if asked for check."),
+        // todo add oob
+        CMD_ARG("uint16_t", "timeout", "Time after which the authentication should fail")
+    )
+
+    CMD_HELP("This performs a pairing procedure when the device acts as an initiator.")
+
+    CMD_HANDLER(uint16_t connectionHandle, const SecurityManager::Passkey_t passkey, uint16_t pairing_timeout, CommandResponsePtr& response) {
+        startProcedure<ExecutePairingProcedure>(
+            connectionHandle, passkey, pairing_timeout,
+            response, /* timeout */ 5 * 1000
+        );
+    }
+
+    struct ExecutePairingProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
+        ExecutePairingProcedure(uint16_t connectionHandle, const SecurityManager::Passkey_t passkey, uint16_t pairing_timeout,
+                                const CommandResponsePtr& res, uint32_t timeout) 
+            : AsyncProcedure(res, timeout),
+                _connectionHandle(connectionHandle),
+                _pairing_timeout(pairing_timeout)
+            {
+                memset(_peer_passkey, 0xff /* that's invalid on purpose */, sizeof(SecurityManager::Passkey_t));
+                memcpy(_our_passkey, passkey, sizeof(SecurityManager::Passkey_t));
+
+                // Set this struct as event handler
+                sm().setSecurityManagerEventHandler(this);
+            }
+
+        virtual ~ExecutePairingProcedure() {
+            // Deregister as event handler
+            sm().setSecurityManagerEventHandler(NULL);
+        }
+
+        virtual bool doStart() {
+            BLE_SM_TEST_ASSERT_RET(sm().requestPairing(_connectionHandle), false);
+            return true;
+        }
+
+        virtual void doWhenTimeout() { 
+            response->getResultStream() << "generateWhitelistFromBondTable timeout";
+            response->faillure();
+        }
+
+        // SecurityManagerEventHandler implementation
+        virtual void pairingResult(connection_handle_t connectionHandle, SecurityManager::SecurityCompletionStatus_t result) {
+            // Ignore if wrong connection handle
+            if(connectionHandle != _connectionHandle) { return; }
+
+            // FIXME what if rejecting?
+
+            // Print & exit with success
+            if(result == SecurityManager::SEC_STATUS_SUCCESS) {
+                response->success();
+                terminate();
+            }
+            else {
+                response->getResultStream() << "pairingResult returned " << result;
+                response->faillure();
+            }
+        }
+
+        virtual void passkeyDisplay(connection_handle_t connectionHandle, const SecurityManager::Passkey_t passkey) {
+            // Ignore if wrong connection handle
+            if(connectionHandle != _connectionHandle) { return; }
+
+            // Save passkey
+            memcpy(_peer_passkey, passkey, sizeof(SecurityManager::Passkey_t));
+        }
+
+        virtual void confirmationRequest(connection_handle_t connectionHandle) {
+            // Ignore if wrong connection handle
+            if(connectionHandle != _connectionHandle) { return; }
+
+            // Confirm or ignore based on whether passkeys match
+            if(!memcmp(_our_passkey, _peer_passkey, sizeof(SecurityManager::Passkey_t)))
+            {
+                // OK
+                BLE_SM_TEST_ASSERT_VOID(sm().confirmationEntered(_connectionHandle, true));
+            }
+            else
+            {
+                // No sugar
+                BLE_SM_TEST_ASSERT_VOID(sm().confirmationEntered(_connectionHandle, false));
+            }
+        }
+
+        virtual void passkeyRequest(connection_handle_t connectionHandle) {
+            // Ignore if wrong connection handle
+            if(connectionHandle != _connectionHandle) { return; }
+
+            // Provide passkey
+            BLE_SM_TEST_ASSERT_VOID(sm().passkeyEntered(connectionHandle, _our_passkey));
+        }
+
+        // Data
+        uint16_t _connectionHandle;
+        SecurityManager::Passkey_t _our_passkey;
+        SecurityManager::Passkey_t _peer_passkey;
+        uint16_t _pairing_timeout;
+    };
+};
 
 
 } // end of annonymous namespace
