@@ -30,4 +30,39 @@ static inline serialization::JSONOutputStream& operator<<(serialization::JSONOut
     return os << toString(type);
 }
 
+template<>
+struct SerializerDescription<SecurityManager::SecurityCompletionStatus_t> {
+    typedef SecurityManager::SecurityCompletionStatus_t type;
+
+    static const ConstArray<ValueToStringMapping<SecurityManager::SecurityCompletionStatus_t> > mapping() {
+        static const ValueToStringMapping<SecurityManager::SecurityCompletionStatus_t> map[] = {
+            { SecurityManager::SEC_STATUS_SUCCESS, "SEC_STATUS_SUCCESS" },
+            { SecurityManager::SEC_STATUS_TIMEOUT, "SEC_STATUS_TIMEOUT" },
+            { SecurityManager::SEC_STATUS_PDU_INVALID, "SEC_STATUS_PDU_INVALID" },
+            { SecurityManager::SEC_STATUS_PASSKEY_ENTRY_FAILED, "SEC_STATUS_PASSKEY_ENTRY_FAILED" },
+            { SecurityManager::SEC_STATUS_OOB_NOT_AVAILABLE, "SEC_STATUS_OOB_NOT_AVAILABLE" },
+            { SecurityManager::SEC_STATUS_AUTH_REQ, "SEC_STATUS_AUTH_REQ" },
+            { SecurityManager::SEC_STATUS_CONFIRM_VALUE, "SEC_STATUS_CONFIRM_VALUE" },
+            { SecurityManager::SEC_STATUS_PAIRING_NOT_SUPP, "SEC_STATUS_PAIRING_NOT_SUPP" },
+            { SecurityManager::SEC_STATUS_ENC_KEY_SIZE, "SEC_STATUS_ENC_KEY_SIZE" },
+            { SecurityManager::SEC_STATUS_SMP_CMD_UNSUPPORTED, "SEC_STATUS_SMP_CMD_UNSUPPORTED" },
+            { SecurityManager::SEC_STATUS_UNSPECIFIED, "SEC_STATUS_UNSPECIFIED" },
+            { SecurityManager::SEC_STATUS_REPEATED_ATTEMPTS, "SEC_STATUS_REPEATED_ATTEMPTS" },
+            { SecurityManager::SEC_STATUS_INVALID_PARAMS, "SEC_STATUS_INVALID_PARAMS" },
+            { SecurityManager::SEC_STATUS_DHKEY_CHECK_FAILED, "SEC_STATUS_DHKEY_CHECK_FAILED" },
+            { SecurityManager::SEC_STATUS_COMPARISON_FAILED, "SEC_STATUS_COMPARISON_FAILED" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown SecurityManager::SecurityCompletionStatus_t";
+    }
+};
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, SecurityManager::SecurityCompletionStatus_t type) {
+    return os << toString(type);
+}
+
 #endif //BLE_CLIAPP_SECURITY_MANAGER_SERIALIZER_H_
