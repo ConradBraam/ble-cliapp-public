@@ -178,10 +178,12 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
         GenerateWhitelistFromBondTableProcedure(const CommandResponsePtr& res, uint32_t timeout) 
             : AsyncProcedure(res, timeout) {
                 // Initialize whitelist
-                BLEProtocol::Address_t* addresses = new BLEProtocol::Address_t[gap().getMaxWhitelistSize()]();
-                whiteList.addresses = addresses;
-                whiteList.size = 0;
-                whiteList.capacity = gap().getMaxWhitelistSize();
+                _whiteList.capacity = gap().getMaxWhitelistSize();
+
+                void* addresses_ptr = malloc( sizeof(BLEProtocol::Address_t) * _whiteList.capacity );
+                BLEProtocol::Address_t* addresses = new (addresses_ptr) BLEProtocol::Address_t[_whiteList.capacity];
+                _whiteList.addresses = addresses;
+                _whiteList.size = 0;
 
                 // Set this struct as event handler
                 sm().setSecurityManagerEventHandler(this);
@@ -190,10 +192,17 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
         virtual ~GenerateWhitelistFromBondTableProcedure() {
             // Deregister as event handler
             sm().setSecurityManagerEventHandler(NULL);
+
+            // De-allocate addresses from whitelist
+            for(size_t p = 0; p < _whiteList.capacity; p++)
+            {
+                _whiteList.addresses[p].~Address_t();
+            }
+            free(_whiteList.addresses);
         }
 
         virtual bool doStart() {
-            BLE_SM_TEST_ASSERT_RET( sm().generateWhitelistFromBondTable(&whiteList), false );
+            BLE_SM_TEST_ASSERT_RET( sm().generateWhitelistFromBondTable(&_whiteList), false );
             return true;
         }
 
@@ -223,8 +232,7 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
         }
 
         // Data
-
-        Gap::Whitelist_t whiteList;
+        Gap::Whitelist_t _whiteList;
     };
 };
 
