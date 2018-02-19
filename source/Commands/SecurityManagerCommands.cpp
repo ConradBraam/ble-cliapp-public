@@ -236,7 +236,7 @@ DECLARE_CMD(WaitForPairingCommand) {
     CMD_ARGS(
         CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
         CMD_ARG("bool", "accept", "If true, accept request, if not reject it."),
-        CMD_ARG("SecurityManagerPasskey_t","passkey", "Numeric passkey to use during pairing if asked for check."),
+        CMD_ARG("SecurityManagerPasskey_t","passkey", "Numeric passkey to use during pairing if asked for check (this is what the user would consider the passkey to be - this passkey can be set to something unexpected if required to simulate error cases)."),
         // todo add oob
         CMD_ARG("uint16_t", "timeout", "Time after which the authentication should fail")
     )
@@ -258,8 +258,8 @@ DECLARE_CMD(WaitForPairingCommand) {
                 _accept(accept),
                 _pairing_timeout(pairing_timeout)
             {
-                memset(_peer_passkey, 0xff /* that's invalid on purpose */, sizeof(SecurityManager::Passkey_t));
-                memcpy(_our_passkey, passkey, sizeof(SecurityManager::Passkey_t));
+                memset(_sm_passkey, 0xff /* that's invalid on purpose */, sizeof(SecurityManager::Passkey_t));
+                memcpy(_user_passkey, passkey, sizeof(SecurityManager::Passkey_t));
 
                 // Set this struct as event handler
                 sm().setSecurityManagerEventHandler(this);
@@ -318,7 +318,7 @@ DECLARE_CMD(WaitForPairingCommand) {
             if(connectionHandle != _connectionHandle) { return; }
 
             // Save passkey
-            memcpy(_peer_passkey, passkey, sizeof(SecurityManager::Passkey_t));
+            memcpy(_sm_passkey, passkey, sizeof(SecurityManager::Passkey_t));
         }
 
         virtual void confirmationRequest(connection_handle_t connectionHandle) {
@@ -326,7 +326,7 @@ DECLARE_CMD(WaitForPairingCommand) {
             if(connectionHandle != _connectionHandle) { return; }
 
             // Confirm or ignore based on whether passkeys match
-            if(!memcmp(_our_passkey, _peer_passkey, sizeof(SecurityManager::Passkey_t)))
+            if(!memcmp(_user_passkey, _sm_passkey, sizeof(SecurityManager::Passkey_t)))
             {
                 // OK
                 BLE_SM_TEST_ASSERT_VOID(sm().confirmationEntered(_connectionHandle, true));
@@ -343,15 +343,15 @@ DECLARE_CMD(WaitForPairingCommand) {
             if(connectionHandle != _connectionHandle) { return; }
 
             // Provide passkey
-            BLE_SM_TEST_ASSERT_VOID(sm().passkeyEntered(connectionHandle, _our_passkey));
+            BLE_SM_TEST_ASSERT_VOID(sm().passkeyEntered(connectionHandle, _user_passkey));
         }
 
 
         // Data
         uint16_t _connectionHandle;
         bool _accept;
-        SecurityManager::Passkey_t _our_passkey;
-        SecurityManager::Passkey_t _peer_passkey;
+        SecurityManager::Passkey_t _user_passkey; // The passkey provided by the user (it can be wrong :))
+        SecurityManager::Passkey_t _sm_passkey; // The passkey provided by the security manager
         uint16_t _pairing_timeout;
     };
 };
@@ -361,8 +361,7 @@ DECLARE_CMD(ExecutePairingCommand) {
 
     CMD_ARGS(
         CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
-        CMD_ARG("SecurityManagerPasskey_t","passkey", "Numeric passkey to use during pairing if asked for check."),
-        // todo add oob
+        CMD_ARG("SecurityManagerPasskey_t","passkey", "Numeric passkey to use during pairing if asked for check (this is what the user would consider the passkey to be - this passkey can be set to something unexpected if required to simulate error cases)."),        // todo add oob
         CMD_ARG("uint16_t", "timeout", "Time after which the authentication should fail")
     )
 
@@ -382,8 +381,8 @@ DECLARE_CMD(ExecutePairingCommand) {
                 _connectionHandle(connectionHandle),
                 _pairing_timeout(pairing_timeout)
             {
-                memset(_peer_passkey, 0xff /* that's invalid on purpose */, sizeof(SecurityManager::Passkey_t));
-                memcpy(_our_passkey, passkey, sizeof(SecurityManager::Passkey_t));
+                memset(_sm_passkey, 0xff /* that's invalid on purpose */, sizeof(SecurityManager::Passkey_t));
+                memcpy(_user_passkey, passkey, sizeof(SecurityManager::Passkey_t));
 
                 // Set this struct as event handler
                 sm().setSecurityManagerEventHandler(this);
@@ -427,7 +426,7 @@ DECLARE_CMD(ExecutePairingCommand) {
             if(connectionHandle != _connectionHandle) { return; }
 
             // Save passkey
-            memcpy(_peer_passkey, passkey, sizeof(SecurityManager::Passkey_t));
+            memcpy(_sm_passkey, passkey, sizeof(SecurityManager::Passkey_t));
         }
 
         virtual void confirmationRequest(connection_handle_t connectionHandle) {
@@ -435,7 +434,7 @@ DECLARE_CMD(ExecutePairingCommand) {
             if(connectionHandle != _connectionHandle) { return; }
 
             // Confirm or ignore based on whether passkeys match
-            if(!memcmp(_our_passkey, _peer_passkey, sizeof(SecurityManager::Passkey_t)))
+            if(!memcmp(_user_passkey, _sm_passkey, sizeof(SecurityManager::Passkey_t)))
             {
                 // OK
                 BLE_SM_TEST_ASSERT_VOID(sm().confirmationEntered(_connectionHandle, true));
@@ -452,13 +451,13 @@ DECLARE_CMD(ExecutePairingCommand) {
             if(connectionHandle != _connectionHandle) { return; }
 
             // Provide passkey
-            BLE_SM_TEST_ASSERT_VOID(sm().passkeyEntered(connectionHandle, _our_passkey));
+            BLE_SM_TEST_ASSERT_VOID(sm().passkeyEntered(connectionHandle, _user_passkey));
         }
 
         // Data
         uint16_t _connectionHandle;
-        SecurityManager::Passkey_t _our_passkey;
-        SecurityManager::Passkey_t _peer_passkey;
+        SecurityManager::Passkey_t _user_passkey; // The passkey provided by the user (it can be wrong :))
+        SecurityManager::Passkey_t _sm_passkey; // The passkey provided by the security manager
         uint16_t _pairing_timeout;
     };
 };
