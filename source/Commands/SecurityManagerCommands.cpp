@@ -134,13 +134,7 @@ DECLARE_CMD(PreserveBondingStateOnResetCommand) {
     CMD_HELP("Normally all bonding information is lost when device is reset, this requests that the stack "
              "attempts to save the information and reload it during initialisation. This is not guaranteed.")
 
-    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
-        bool enable;
-        if(!fromString(args[0], enable)) {
-            response->invalidParameters("enable should be a bool");
-            return;
-        }
-
+    CMD_HANDLER(bool enable, CommandResponsePtr& response) {
         ble_error_t err = sm().preserveBondingStateOnReset(enable);
         reportErrorOrSuccess(response, err);
     }
