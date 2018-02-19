@@ -65,4 +65,41 @@ static inline serialization::JSONOutputStream& operator<<(serialization::JSONOut
     return os << toString(type);
 }
 
+struct SecurityManagerPasskey_t
+{
+    SecurityManager::Passkey_t value;
+
+    operator SecurityManager::Passkey_t&() { 
+        return value;
+    }
+
+    operator const SecurityManager::Passkey_t&() const { 
+        return value;
+    }
+};
+
+static inline bool fromString(const char* str, SecurityManagerPasskey_t& value) { 
+    // Passkey can be 1 to 6 digits
+    size_t pos = 0;
+
+    // length should be 6!
+    if( strlen(str) != sizeof(SecurityManager::Passkey_t) ) {
+        return false;
+    }
+
+    // Validate and populate
+    do
+    {
+        if((*str > '9') || (*str < '0'))
+        {
+            return false;
+        }
+
+        // memcpy might be more efficient but we need to walk the string anyways to validate it
+        value.value[pos++] = *str;
+    } while(*str++);
+
+    return true;
+}
+
 #endif //BLE_CLIAPP_SECURITY_MANAGER_SERIALIZER_H_

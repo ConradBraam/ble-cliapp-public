@@ -234,14 +234,14 @@ DECLARE_CMD(HandlePairingCommand) {
     CMD_ARGS(
         CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
         CMD_ARG("bool", "accept", "If true, accept request, if not reject it."),
-        CMD_ARG("SecurityManager::Passkey_t","passkey", "Numeric passkey to use during pairing if asked for check."),
+        CMD_ARG("SecurityManagerPasskey_t","passkey", "Numeric passkey to use during pairing if asked for check."),
         // todo add oob
         CMD_ARG("uint16_t", "timeout", "Time after which the authentication should fail")
     )
 
     CMD_HELP("This waits for and handles an incoming pairing procedure. It waits for a request from peer.")
 
-    CMD_HANDLER(uint16_t connectionHandle, bool accept, const SecurityManager::Passkey_t passkey, uint16_t pairing_timeout, CommandResponsePtr& response) {
+    CMD_HANDLER(uint16_t connectionHandle, bool accept, SecurityManagerPasskey_t passkey, uint16_t pairing_timeout, CommandResponsePtr& response) {
         startProcedure<HandlePairingProcedure>(
             connectionHandle, accept, passkey, pairing_timeout,
             response, /* timeout */ 5 * 1000
@@ -359,14 +359,14 @@ DECLARE_CMD(ExecutePairingCommand) {
 
     CMD_ARGS(
         CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
-        CMD_ARG("SecurityManager::Passkey_t","passkey", "Numeric passkey to use during pairing if asked for check."),
+        CMD_ARG("SecurityManagerPasskey_t","passkey", "Numeric passkey to use during pairing if asked for check."),
         // todo add oob
         CMD_ARG("uint16_t", "timeout", "Time after which the authentication should fail")
     )
 
     CMD_HELP("This performs a pairing procedure when the device acts as an initiator.")
 
-    CMD_HANDLER(uint16_t connectionHandle, const SecurityManager::Passkey_t passkey, uint16_t pairing_timeout, CommandResponsePtr& response) {
+    CMD_HANDLER(uint16_t connectionHandle, SecurityManagerPasskey_t passkey, uint16_t pairing_timeout, CommandResponsePtr& response) {
         startProcedure<ExecutePairingProcedure>(
             connectionHandle, passkey, pairing_timeout,
             response, /* timeout */ 5 * 1000
@@ -470,5 +470,7 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(GetAddressesFromBondTableCommand),
     CMD_INSTANCE(PreserveBondingStateOnResetCommand),
     CMD_INSTANCE(PurgeAllBondingStateCommand),
-    CMD_INSTANCE(GenerateWhitelistFromBondTableCommand)
+    CMD_INSTANCE(GenerateWhitelistFromBondTableCommand),
+    CMD_INSTANCE(HandlePairingCommand),
+    CMD_INSTANCE(ExecutePairingCommand)
 )
