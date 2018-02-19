@@ -230,8 +230,8 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
     };
 };
 
-DECLARE_CMD(HandlePairingCommand) {
-    CMD_NAME("handlePairing")
+DECLARE_CMD(WaitForPairingCommand) {
+    CMD_NAME("waitForPairing")
 
     CMD_ARGS(
         CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
@@ -244,14 +244,14 @@ DECLARE_CMD(HandlePairingCommand) {
     CMD_HELP("This waits for and handles an incoming pairing procedure. It waits for a request from peer.")
 
     CMD_HANDLER(uint16_t connectionHandle, bool accept, SecurityManagerPasskey_t passkey, uint16_t pairing_timeout, CommandResponsePtr& response) {
-        startProcedure<HandlePairingProcedure>(
+        startProcedure<WaitForPairingProcedure>(
             connectionHandle, accept, passkey, pairing_timeout,
             response, /* timeout */ 5 * 1000
         );
     }
 
-    struct HandlePairingProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
-        HandlePairingProcedure(uint16_t connectionHandle, bool accept, const SecurityManager::Passkey_t passkey, uint16_t pairing_timeout,
+    struct WaitForPairingProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
+        WaitForPairingProcedure(uint16_t connectionHandle, bool accept, const SecurityManager::Passkey_t passkey, uint16_t pairing_timeout,
                                 const CommandResponsePtr& res, uint32_t timeout) 
             : AsyncProcedure(res, timeout), 
                 _connectionHandle(connectionHandle),
@@ -265,7 +265,7 @@ DECLARE_CMD(HandlePairingCommand) {
                 sm().setSecurityManagerEventHandler(this);
             }
 
-        virtual ~HandlePairingProcedure() {
+        virtual ~WaitForPairingProcedure() {
             // Deregister as event handler
             sm().setSecurityManagerEventHandler(NULL);
         }
@@ -473,6 +473,6 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(PreserveBondingStateOnResetCommand),
     CMD_INSTANCE(PurgeAllBondingStateCommand),
     CMD_INSTANCE(GenerateWhitelistFromBondTableCommand),
-    CMD_INSTANCE(HandlePairingCommand),
+    CMD_INSTANCE(WaitForPairingCommand),
     CMD_INSTANCE(ExecutePairingCommand)
 )
