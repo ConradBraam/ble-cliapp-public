@@ -102,4 +102,10 @@ static inline bool fromString(const char* str, SecurityManagerPasskey_t& value) 
     return true;
 }
 
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const SecurityManagerPasskey_t passkey) {
+    char passkey_str[sizeof(SecurityManagerPasskey_t) + 1] = {0};
+    memcpy(passkey_str, passkey, sizeof(SecurityManagerPasskey_t));
+    return os << passkey_str;
+}
+
 #endif //BLE_CLIAPP_SECURITY_MANAGER_SERIALIZER_H_

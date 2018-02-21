@@ -230,167 +230,273 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
     };
 };
 
+// Pairing
+// A pairing procedure can be started using the relevant command and can be continued afterwards
+struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
+    BasePairingProcedure(uint16_t connectionHandle, const CommandResponsePtr& res, uint32_t timeout) 
+        : AsyncProcedure(res, timeout), 
+            _connectionHandle(connectionHandle)
+        {
+            // Set this struct as event handler
+            sm().setSecurityManagerEventHandler(this);
+        }
+
+    virtual ~BasePairingProcedure() {
+        // Deregister as event handler
+        sm().setSecurityManagerEventHandler(NULL);
+    }
+
+    virtual bool doStart() {
+        // Can be overriden if required
+        return true;
+    }
+
+    virtual void doWhenTimeout() { 
+        // Make sure we abort any ongoing pairing procedure
+        sm().canceltPairingRequest(_connectionHandle);
+
+        response->getResultStream() << "Pairing timeout";
+        response->faillure();
+    }
+
+    void success(bool completed, const char* status, const SecurityManager::Passkey_t passkey = NULL)
+    {
+        using namespace serialization;
+
+        response->success();
+
+        JSONOutputStream& os = response->getResultStream();
+
+        os << startObject <<
+            key("completed") << completed <<
+            key("status") << status;
+            
+        if(passkey != NULL) {
+            os << key("passkey") << passkey;
+        }
+
+        os << endObject;
+
+        terminate();
+    }
+
+    // SecurityManagerEventHandler implementation
+    virtual void pairingRequest(connection_handle_t connectionHandle) {
+        // Ignore if wrong connection handle
+        if(connectionHandle != _connectionHandle) { return; }
+
+        success(false, "pairingRequest");
+    }
+
+    virtual void pairingResult(connection_handle_t connectionHandle, SecurityManager::SecurityCompletionStatus_t result) {
+        // Ignore if wrong connection handle
+        if(connectionHandle != _connectionHandle) { return; }
+
+        // Print & exit with success
+        if(result == SecurityManager::SEC_STATUS_SUCCESS) {
+            success(true, "completed");
+            return;
+        }
+        else {
+            response->getResultStream() << "pairingResult returned " << result;
+            response->faillure();
+        }
+    }
+
+    virtual void passkeyDisplay(connection_handle_t connectionHandle, const SecurityManager::Passkey_t passkey) {
+        // Ignore if wrong connection handle
+        if(connectionHandle != _connectionHandle) { return; }
+
+        // Return passkey
+        success(false, "passkeyDisplay", passkey);
+    }
+
+    virtual void confirmationRequest(connection_handle_t connectionHandle) {
+        // Ignore if wrong connection handle
+        if(connectionHandle != _connectionHandle) { return; }
+
+        // Ask user to confirm or or reject
+        success(false, "confirmationRequest");
+    }
+
+    virtual void passkeyRequest(connection_handle_t connectionHandle) {
+        // Ignore if wrong connection handle
+        if(connectionHandle != _connectionHandle) { return; }
+
+        // Ask user to provide passkey
+        success(false, "passkeyRequest");
+    }
+
+    // Data
+    uint16_t _connectionHandle;
+};
+
 DECLARE_CMD(WaitForPairingCommand) {
     CMD_NAME("waitForPairing")
 
+    CMD_HELP("This waits for and handles an incoming or ongoing pairing procedure. It waits for a request from peer or pairing completiomn.")
+
     CMD_ARGS(
-        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
-        CMD_ARG("bool", "accept", "If true, accept request, if not reject it."),
-        CMD_ARG("SecurityManagerPasskey_t","passkey", "Numeric passkey to use during pairing if asked for check (this is what the user would consider the passkey to be - this passkey can be set to something unexpected if required to simulate error cases)."),
-        // todo add oob
-        CMD_ARG("uint16_t", "timeout", "Time after which the authentication should fail")
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure"),
+        CMD_ARG("uint16_t", "timeout", "Time after which this command should fail")
     )
 
-    CMD_HELP("This waits for and handles an incoming pairing procedure. It waits for a request from peer.")
+    CMD_HANDLER(uint16_t connectionHandle, uint16_t timeout, CommandResponsePtr& response) {
+        startProcedure<BasePairingProcedure>(
+            connectionHandle, 
+            response, timeout
+        );
+    }
+};
 
-    CMD_HANDLER(uint16_t connectionHandle, bool accept, SecurityManagerPasskey_t passkey, uint16_t pairing_timeout, CommandResponsePtr& response) {
-        startProcedure<WaitForPairingProcedure>(
-            connectionHandle, accept, passkey, pairing_timeout,
-            response, /* timeout */ 5 * 1000
+DECLARE_CMD(AcceptPairingRequestAndWaitCommand) {
+    CMD_NAME("acceptPairingRequestAndWait")
+
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "timeout", "Time after which this command should fail")
+    )
+
+    CMD_HELP("This waits for and handles an incoming or ongoing pairing procedure. It waits for a request from peer or pairing completiomn.")
+
+    CMD_HANDLER(uint16_t connectionHandle, uint16_t timeout, CommandResponsePtr& response) {
+        startProcedure<AcceptPairingRequestAndWaitProcedure>(
+            connectionHandle, 
+            response, timeout
         );
     }
 
-    struct WaitForPairingProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
-        WaitForPairingProcedure(uint16_t connectionHandle, bool accept, const SecurityManager::Passkey_t passkey, uint16_t pairing_timeout,
-                                const CommandResponsePtr& res, uint32_t timeout) 
-            : AsyncProcedure(res, timeout), 
-                _connectionHandle(connectionHandle),
-                _accept(accept),
-                _pairing_timeout(pairing_timeout)
-            {
-                memset(_sm_passkey, 0xff /* that's invalid on purpose */, sizeof(SecurityManager::Passkey_t));
-                memcpy(_user_passkey, passkey, sizeof(SecurityManager::Passkey_t));
+    struct AcceptPairingRequestAndWaitProcedure : BasePairingProcedure
+    {
+        AcceptPairingRequestAndWaitProcedure(uint16_t connectionHandle, const CommandResponsePtr& res, uint32_t timeout) :
+            BasePairingProcedure(connectionHandle, res, timeout)
+        {
 
-                // Set this struct as event handler
-                sm().setSecurityManagerEventHandler(this);
-            }
-
-        virtual ~WaitForPairingProcedure() {
-            // Deregister as event handler
-            sm().setSecurityManagerEventHandler(NULL);
         }
 
         virtual bool doStart() {
-            // Wait... for request
+            BLE_SM_TEST_ASSERT_RET(sm().acceptPairingRequest(_connectionHandle), false);
+            return true;
+        }
+    };
+};
+
+DECLARE_CMD(RejectPairingRequestCommand) {
+    CMD_NAME("rejectPairingRequest")
+
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+    )
+
+    CMD_HELP("This rejects an incoming pairing request.")
+
+    CMD_HANDLER(uint16_t connectionHandle, CommandResponsePtr& response) {
+        if(!sm().canceltPairingRequest(connectionHandle))
+        {
+            response->faillure();
+            return;
+        }
+        response->success();
+    }
+};
+
+DECLARE_CMD(EnterConfirmationAndWaitCommand) {
+    CMD_NAME("enterConfirmationAndWait")
+
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("bool", "confirm", "Whether to confirm the validity of the passkey" ),
+        CMD_ARG("uint16_t", "timeout", "Time after which this command should fail")
+    )
+
+    CMD_HELP("This sends confirmation (yes or no) to the stack during pairing")
+
+    CMD_HANDLER(uint16_t connectionHandle, bool confirm, uint16_t timeout, CommandResponsePtr& response) {
+        startProcedure<EnterConfirmationAndWaitProcedure>(
+            connectionHandle, confirm,
+            response, timeout
+        );
+    }
+
+    struct EnterConfirmationAndWaitProcedure : BasePairingProcedure
+    {
+        EnterConfirmationAndWaitProcedure(uint16_t connectionHandle, bool confirm, const CommandResponsePtr& res, uint32_t timeout) :
+            BasePairingProcedure(connectionHandle, res, timeout), _confirm(confirm)
+        {
+
+        }
+
+        virtual bool doStart() {
+            BLE_SM_TEST_ASSERT_RET(sm().confirmationEntered(_connectionHandle, _confirm), false);
 
             return true;
         }
 
-        virtual void doWhenTimeout() { 
-            response->getResultStream() << "generateWhitelistFromBondTable timeout";
-            response->faillure();
-        }
-
-        // SecurityManagerEventHandler implementation
-        virtual void pairingRequest(connection_handle_t connectionHandle) {
-            // Ignore if wrong connection handle
-            if(connectionHandle != _connectionHandle) { return; }
-
-            if(_accept)
-            {
-                BLE_SM_TEST_ASSERT_VOID(sm().acceptPairingRequest(connectionHandle));
-            }
-            else
-            {
-                BLE_SM_TEST_ASSERT_VOID(sm().canceltPairingRequest(connectionHandle));
-            }
-        }
-
-        virtual void pairingResult(connection_handle_t connectionHandle, SecurityManager::SecurityCompletionStatus_t result) {
-            // Ignore if wrong connection handle
-            if(connectionHandle != _connectionHandle) { return; }
-
-            // FIXME what if rejecting?
-
-            // Print & exit with success
-            if(result == SecurityManager::SEC_STATUS_SUCCESS) {
-                response->success();
-                terminate();
-            }
-            else {
-                response->getResultStream() << "pairingResult returned " << result;
-                response->faillure();
-            }
-        }
-
-        virtual void passkeyDisplay(connection_handle_t connectionHandle, const SecurityManager::Passkey_t passkey) {
-            // Ignore if wrong connection handle
-            if(connectionHandle != _connectionHandle) { return; }
-
-            // Save passkey
-            memcpy(_sm_passkey, passkey, sizeof(SecurityManager::Passkey_t));
-        }
-
-        virtual void confirmationRequest(connection_handle_t connectionHandle) {
-            // Ignore if wrong connection handle
-            if(connectionHandle != _connectionHandle) { return; }
-
-            // Confirm or ignore based on whether passkeys match
-            if(!memcmp(_user_passkey, _sm_passkey, sizeof(SecurityManager::Passkey_t)))
-            {
-                // OK
-                BLE_SM_TEST_ASSERT_VOID(sm().confirmationEntered(_connectionHandle, true));
-            }
-            else
-            {
-                // No sugar
-                BLE_SM_TEST_ASSERT_VOID(sm().confirmationEntered(_connectionHandle, false));
-            }
-        }
-
-        virtual void passkeyRequest(connection_handle_t connectionHandle) {
-            // Ignore if wrong connection handle
-            if(connectionHandle != _connectionHandle) { return; }
-
-            // Provide passkey
-            BLE_SM_TEST_ASSERT_VOID(sm().passkeyEntered(connectionHandle, _user_passkey));
-        }
-
-
-        // Data
-        uint16_t _connectionHandle;
-        bool _accept;
-        SecurityManager::Passkey_t _user_passkey; // The passkey provided by the user (it can be wrong :))
-        SecurityManager::Passkey_t _sm_passkey; // The passkey provided by the security manager
-        uint16_t _pairing_timeout;
+        bool _confirm;
     };
 };
 
-DECLARE_CMD(ExecutePairingCommand) {
-    CMD_NAME("executePairing")
+DECLARE_CMD(EnterPasskeyAndWaitCommand) {
+    CMD_NAME("enterPasskeyAndWait")
 
     CMD_ARGS(
         CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
         CMD_ARG("SecurityManagerPasskey_t","passkey", "Numeric passkey to use during pairing if asked for check (this is what the user would consider the passkey to be - this passkey can be set to something unexpected if required to simulate error cases)."),        // todo add oob
-        CMD_ARG("uint16_t", "timeout", "Time after which the authentication should fail")
+        CMD_ARG("uint16_t", "timeout", "Time after which this command should fail")
+    )
+
+    CMD_HELP("This sends confirmation (yes or no) to the stack during pairing")
+
+    CMD_HANDLER(uint16_t connectionHandle, const SecurityManagerPasskey_t passkey, uint16_t timeout, CommandResponsePtr& response) {
+        startProcedure<EnterPasskeyAndWaitProcedure>(
+            connectionHandle, passkey,
+            response, timeout
+        );
+    }
+
+    struct EnterPasskeyAndWaitProcedure : BasePairingProcedure
+    {
+        EnterPasskeyAndWaitProcedure(uint16_t connectionHandle, const SecurityManagerPasskey_t passkey, const CommandResponsePtr& res, uint32_t timeout) :
+            BasePairingProcedure(connectionHandle, res, timeout)
+        {
+            memcpy(_passkey, passkey, sizeof(SecurityManager::Passkey_t));
+        }
+
+        virtual bool doStart() {
+            // Provide passkey
+            BLE_SM_TEST_ASSERT_RET(sm().passkeyEntered(_connectionHandle, _passkey), false);
+
+            return true;
+        }
+
+        SecurityManager::Passkey_t _passkey;
+    };
+};
+
+DECLARE_CMD(RequestPairingAndWaitCommand) {
+    CMD_NAME("requestPairingAndWait")
+
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "pairing_timeout", "Time after which the authentication should fail"),
+        CMD_ARG("uint16_t", "timeout", "Time after which this command should fail")
     )
 
     CMD_HELP("This performs a pairing procedure when the device acts as an initiator.")
 
-    CMD_HANDLER(uint16_t connectionHandle, SecurityManagerPasskey_t passkey, uint16_t pairing_timeout, CommandResponsePtr& response) {
-        startProcedure<ExecutePairingProcedure>(
-            connectionHandle, passkey, pairing_timeout,
-            response, /* timeout */ 5 * 1000
+    CMD_HANDLER(uint16_t connectionHandle, uint16_t pairing_timeout, uint16_t timeout, CommandResponsePtr& response) {
+        startProcedure<RequestPairingAndWaitProcedure>(
+            connectionHandle, pairing_timeout,
+            response, timeout
         );
     }
 
-    struct ExecutePairingProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
-        ExecutePairingProcedure(uint16_t connectionHandle, const SecurityManager::Passkey_t passkey, uint16_t pairing_timeout,
-                                const CommandResponsePtr& res, uint32_t timeout) 
-            : AsyncProcedure(res, timeout),
-                _connectionHandle(connectionHandle),
-                _pairing_timeout(pairing_timeout)
-            {
-                memset(_sm_passkey, 0xff /* that's invalid on purpose */, sizeof(SecurityManager::Passkey_t));
-                memcpy(_user_passkey, passkey, sizeof(SecurityManager::Passkey_t));
+    struct RequestPairingAndWaitProcedure : BasePairingProcedure
+    {
+        RequestPairingAndWaitProcedure(uint16_t connectionHandle, uint16_t pairing_timeout, const CommandResponsePtr& res, uint32_t timeout) :
+            BasePairingProcedure(connectionHandle, res, timeout), _pairing_timeout(pairing_timeout)
+        {
 
-                // Set this struct as event handler
-                sm().setSecurityManagerEventHandler(this);
-            }
-
-        virtual ~ExecutePairingProcedure() {
-            // Deregister as event handler
-            sm().setSecurityManagerEventHandler(NULL);
         }
 
         virtual bool doStart() {
@@ -398,72 +504,11 @@ DECLARE_CMD(ExecutePairingCommand) {
             return true;
         }
 
-        virtual void doWhenTimeout() { 
-            response->getResultStream() << "generateWhitelistFromBondTable timeout";
-            response->faillure();
-        }
-
-        // SecurityManagerEventHandler implementation
-        virtual void pairingResult(connection_handle_t connectionHandle, SecurityManager::SecurityCompletionStatus_t result) {
-            // Ignore if wrong connection handle
-            if(connectionHandle != _connectionHandle) { return; }
-
-            // FIXME what if rejecting?
-
-            // Print & exit with success
-            if(result == SecurityManager::SEC_STATUS_SUCCESS) {
-                response->success();
-                terminate();
-            }
-            else {
-                response->getResultStream() << "pairingResult returned " << result;
-                response->faillure();
-            }
-        }
-
-        virtual void passkeyDisplay(connection_handle_t connectionHandle, const SecurityManager::Passkey_t passkey) {
-            // Ignore if wrong connection handle
-            if(connectionHandle != _connectionHandle) { return; }
-
-            // Save passkey
-            memcpy(_sm_passkey, passkey, sizeof(SecurityManager::Passkey_t));
-        }
-
-        virtual void confirmationRequest(connection_handle_t connectionHandle) {
-            // Ignore if wrong connection handle
-            if(connectionHandle != _connectionHandle) { return; }
-
-            // Confirm or ignore based on whether passkeys match
-            if(!memcmp(_user_passkey, _sm_passkey, sizeof(SecurityManager::Passkey_t)))
-            {
-                // OK
-                BLE_SM_TEST_ASSERT_VOID(sm().confirmationEntered(_connectionHandle, true));
-            }
-            else
-            {
-                // No sugar
-                BLE_SM_TEST_ASSERT_VOID(sm().confirmationEntered(_connectionHandle, false));
-            }
-        }
-
-        virtual void passkeyRequest(connection_handle_t connectionHandle) {
-            // Ignore if wrong connection handle
-            if(connectionHandle != _connectionHandle) { return; }
-
-            // Provide passkey
-            BLE_SM_TEST_ASSERT_VOID(sm().passkeyEntered(connectionHandle, _user_passkey));
-        }
-
-        // Data
-        uint16_t _connectionHandle;
-        SecurityManager::Passkey_t _user_passkey; // The passkey provided by the user (it can be wrong :))
-        SecurityManager::Passkey_t _sm_passkey; // The passkey provided by the security manager
         uint16_t _pairing_timeout;
     };
 };
 
-
-} // end of annonymous namespace
+} // end of anonymous namespace
 
 
 DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription, 
@@ -472,6 +517,11 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(PreserveBondingStateOnResetCommand),
     CMD_INSTANCE(PurgeAllBondingStateCommand),
     CMD_INSTANCE(GenerateWhitelistFromBondTableCommand),
+    
     CMD_INSTANCE(WaitForPairingCommand),
-    CMD_INSTANCE(ExecutePairingCommand)
+    CMD_INSTANCE(AcceptPairingRequestAndWaitCommand),
+    CMD_INSTANCE(RejectPairingRequestCommand),
+    CMD_INSTANCE(EnterConfirmationAndWaitCommand),
+    CMD_INSTANCE(EnterPasskeyAndWaitCommand),
+    CMD_INSTANCE(RequestPairingAndWaitCommand)
 )
