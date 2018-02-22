@@ -58,13 +58,23 @@ DECLARE_CMD(InitCommand) {
             return;
         }
 
+        const uint8_t* passkey_ptr = NULL;
         SecurityManager::Passkey_t passkey;
-        if(std::strlen(args[3]) != sizeof(passkey) ||
-           std::count_if(args[3], args[3] + sizeof(passkey), is_digit) == sizeof(passkey)) {
-            response->invalidParameters("passkey should be a SecurityManager::Passkey_t");
-            return;
+        // Special case: * for non-static passkey
+        if((std::strlen(args[3]) == 1) && (args[3][0] == '*'))
+        {
+            passkey_ptr = NULL;
         }
-        memcpy(passkey, args[3], sizeof(passkey));
+        else
+        {
+            if(std::strlen(args[3]) != sizeof(passkey) ||
+            std::count_if(args[3], args[3] + sizeof(passkey), is_digit) != sizeof(passkey)) {
+                response->invalidParameters("passkey should be a SecurityManager::Passkey_t");
+                return;
+            }
+            memcpy(passkey, args[3], sizeof(passkey));
+            passkey_ptr = passkey;
+        }
 
         bool signing;
         if(!fromString(args[4], signing)) {
@@ -72,7 +82,7 @@ DECLARE_CMD(InitCommand) {
             return;
         }
 
-        ble_error_t err = sm().init(enableBonding, requireMITM, iocaps, passkey, signing);
+        ble_error_t err = sm().init(enableBonding, requireMITM, iocaps, passkey_ptr, signing);
         reportErrorOrSuccess(response, err);
     }
 };
