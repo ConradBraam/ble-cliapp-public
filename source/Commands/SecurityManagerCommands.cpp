@@ -532,12 +532,25 @@ DECLARE_CMD(AllowLegacyPairingCommand) {
         CMD_ARG("bool", "allow", "if true, legacy pairing will be used if either peer doesn't support Secure Connections.")
     )
 
-    CMD_HELP("Normally all bonding information is lost when device is reset, this requests that the stack "
-             "attempts to save the information and reload it during initialisation. This is not guaranteed.")
+    CMD_HELP("Allow of disallow the use of legacy pairing in case the application only wants "
+     "to force the use of Secure Connections. If legacy pairing is disallowed and either "
+     "side doesn't support Secure Connections the pairing will fail.")
 
     CMD_HANDLER(bool allow, CommandResponsePtr& response) {
         ble_error_t err = sm().allowLegacyPairing(allow);
         reportErrorOrSuccess(response, err);
+    }
+};
+
+DECLARE_CMD(GetSecureConnectionsSupportCommand) {
+    CMD_NAME("getSecureConnectionsSupport")
+
+    CMD_HELP("Check if the Secure Connections feature is supported by the stack and controller.")
+
+    CMD_HANDLER(CommandResponsePtr& response) {
+        bool enabled = false;
+        ble_error_t err = sm().getSecureConnectionsSupport(&enabled);
+        reportErrorOrSuccess(response, err, enabled);
     }
 };
 
@@ -560,7 +573,7 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(RequestPairingAndWaitCommand),
 
     // Configuration commands
-    CMD_INSTANCE(AllowLegacyPairingCommand)
-    // CMD_INSTANCE(GetSecureConnectionsSupportCommand),
+    CMD_INSTANCE(AllowLegacyPairingCommand),
+    CMD_INSTANCE(GetSecureConnectionsSupportCommand)
 
 )
