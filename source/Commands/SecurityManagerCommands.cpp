@@ -175,8 +175,15 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
                 _whiteList.capacity = gap().getMaxWhitelistSize();
 
                 void* addresses_ptr = malloc( sizeof(BLEProtocol::Address_t) * _whiteList.capacity );
-                BLEProtocol::Address_t* addresses = new (addresses_ptr) BLEProtocol::Address_t[_whiteList.capacity];
-                _whiteList.addresses = addresses;
+                if(addresses_ptr != NULL) {
+                    BLEProtocol::Address_t* addresses = new (addresses_ptr) BLEProtocol::Address_t[_whiteList.capacity];
+                    _whiteList.addresses = addresses;
+                }
+                else
+                {
+                    _whiteList.addresses = NULL;
+                    _whiteList.capacity = 0;
+                }
                 _whiteList.size = 0;
 
                 // Set this struct as event handler
@@ -192,10 +199,19 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
             {
                 _whiteList.addresses[p].~Address_t();
             }
-            free(_whiteList.addresses);
+            if(_whiteList.addresses != NULL) {
+                free(_whiteList.addresses);
+            }
         }
 
         virtual bool doStart() {
+            if(_whiteList.addresses == NULL)
+            {
+                response->getResultStream() << "Could not allocate addresses table";
+                response->faillure();
+                return false;
+            }
+
             BLE_SM_TEST_ASSERT_RET( sm().generateWhitelistFromBondTable(&_whiteList), false );
             return true;
         }
@@ -203,6 +219,7 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
         virtual void doWhenTimeout() { 
             response->getResultStream() << "generateWhitelistFromBondTable timeout";
             response->faillure();
+            terminate();
         }
 
         // SecurityManagerEventHandler implementation
