@@ -473,10 +473,10 @@ DECLARE_CMD(EnterPasskeyAndWaitCommand) {
 
     struct EnterPasskeyAndWaitProcedure : BasePairingProcedure
     {
-        EnterPasskeyAndWaitProcedure(uint16_t connectionHandle, const SecurityManagerPasskey_t passkey, const CommandResponsePtr& res, uint32_t timeout) :
+        EnterPasskeyAndWaitProcedure(uint16_t connectionHandle, const SecurityManagerPasskey_t& passkey, const CommandResponsePtr& res, uint32_t timeout) :
             BasePairingProcedure(connectionHandle, res, timeout)
         {
-            memcpy(_passkey, passkey, sizeof(SecurityManager::Passkey_t));
+            memcpy(_passkey, passkey.value, sizeof(SecurityManager::Passkey_t));
         }
 
         virtual bool doStart() {
@@ -544,10 +544,6 @@ DECLARE_CMD(AllowLegacyPairingCommand) {
 
 DECLARE_CMD(GetSecureConnectionsSupportCommand) {
     CMD_NAME("getSecureConnectionsSupport")
-
-    CMD_ARGS(
-        CMD_ARG("bool", "allow", "if true, legacy pairing will be used if either peer doesn't support Secure Connections.")
-    )
     
     CMD_HELP("Check if the Secure Connections feature is supported by the stack and controller.")
 
@@ -561,10 +557,30 @@ DECLARE_CMD(GetSecureConnectionsSupportCommand) {
 DECLARE_CMD(SetIoCapabilityCommand) {
     CMD_NAME("setIoCapability")
 
+    CMD_ARGS(
+        CMD_ARG("SecurityManager::SecurityIOCapabilities_t", "iocaps", "type of IO capabilities available on the local device"),
+    )
+
     CMD_HELP("Set the IO capability of the local device.")
 
     CMD_HANDLER(SecurityManager::SecurityIOCapabilities_t iocaps, CommandResponsePtr& response) {
         ble_error_t err = sm().setIoCapability(iocaps);
+        reportErrorOrSuccess(response, err);
+    }
+};
+
+DECLARE_CMD(SetDisplayPasskeyCommand) {
+    CMD_NAME("setDisplayPasskey")
+
+    CMD_ARGS(
+        CMD_ARG("SecurityManagerPasskey_t", "passkey", "Numeric passkey to use during pairing if asked for check (this is what the user would consider the passkey to be - this passkey can be set to something unexpected if required to simulate error cases)."),        // todo add oob
+    )
+
+    CMD_HELP("Set the passkey that is displayed on the local device instead of using "
+             "a randomly generated one")
+
+    CMD_HANDLER(const SecurityManagerPasskey_t passkey, CommandResponsePtr& response) {
+        ble_error_t err = sm().setDisplayPasskey(passkey);
         reportErrorOrSuccess(response, err);
     }
 };
@@ -590,6 +606,7 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     // Configuration commands
     CMD_INSTANCE(AllowLegacyPairingCommand),
     CMD_INSTANCE(GetSecureConnectionsSupportCommand),
-    CMD_INSTANCE(SetIoCapabilityCommand)
+    CMD_INSTANCE(SetIoCapabilityCommand),
+    CMD_INSTANCE(SetDisplayPasskeyCommand)
 
 )
