@@ -545,12 +545,27 @@ DECLARE_CMD(AllowLegacyPairingCommand) {
 DECLARE_CMD(GetSecureConnectionsSupportCommand) {
     CMD_NAME("getSecureConnectionsSupport")
 
+    CMD_ARGS(
+        CMD_ARG("bool", "allow", "if true, legacy pairing will be used if either peer doesn't support Secure Connections.")
+    )
+    
     CMD_HELP("Check if the Secure Connections feature is supported by the stack and controller.")
 
     CMD_HANDLER(CommandResponsePtr& response) {
         bool enabled = false;
         ble_error_t err = sm().getSecureConnectionsSupport(&enabled);
         reportErrorOrSuccess(response, err, enabled);
+    }
+};
+
+DECLARE_CMD(SetIoCapabilityCommand) {
+    CMD_NAME("setIoCapability")
+
+    CMD_HELP("Set the IO capability of the local device.")
+
+    CMD_HANDLER(SecurityManager::SecurityIOCapabilities_t iocaps, CommandResponsePtr& response) {
+        ble_error_t err = sm().setIoCapability(iocaps);
+        reportErrorOrSuccess(response, err);
     }
 };
 
@@ -574,6 +589,7 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
 
     // Configuration commands
     CMD_INSTANCE(AllowLegacyPairingCommand),
-    CMD_INSTANCE(GetSecureConnectionsSupportCommand)
+    CMD_INSTANCE(GetSecureConnectionsSupportCommand),
+    CMD_INSTANCE(SetIoCapabilityCommand)
 
 )
