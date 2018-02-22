@@ -525,6 +525,22 @@ DECLARE_CMD(RequestPairingAndWaitCommand) {
     };
 };
 
+DECLARE_CMD(AllowLegacyPairingCommand) {
+    CMD_NAME("allowLegacyPairing")
+
+    CMD_ARGS(
+        CMD_ARG("bool", "allow", "if true, legacy pairing will be used if either peer doesn't support Secure Connections.")
+    )
+
+    CMD_HELP("Normally all bonding information is lost when device is reset, this requests that the stack "
+             "attempts to save the information and reload it during initialisation. This is not guaranteed.")
+
+    CMD_HANDLER(bool allow, CommandResponsePtr& response) {
+        ble_error_t err = sm().allowLegacyPairing(allow);
+        reportErrorOrSuccess(response, err);
+    }
+};
+
 } // end of anonymous namespace
 
 
@@ -535,10 +551,16 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(PurgeAllBondingStateCommand),
     CMD_INSTANCE(GenerateWhitelistFromBondTableCommand),
     
+    // Pairing commands
     CMD_INSTANCE(WaitForPairingCommand),
     CMD_INSTANCE(AcceptPairingRequestAndWaitCommand),
     CMD_INSTANCE(RejectPairingRequestCommand),
     CMD_INSTANCE(EnterConfirmationAndWaitCommand),
     CMD_INSTANCE(EnterPasskeyAndWaitCommand),
-    CMD_INSTANCE(RequestPairingAndWaitCommand)
+    CMD_INSTANCE(RequestPairingAndWaitCommand),
+
+    // Configuration commands
+    CMD_INSTANCE(AllowLegacyPairingCommand)
+    // CMD_INSTANCE(GetSecureConnectionsSupportCommand),
+
 )
