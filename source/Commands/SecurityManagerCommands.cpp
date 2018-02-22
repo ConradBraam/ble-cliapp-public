@@ -287,7 +287,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         os << startObject <<
             key("completed") << completed <<
             key("status") << status;
-            
+        
         if(passkey != NULL) {
             os << key("passkey") << passkey;
         }
@@ -359,6 +359,12 @@ DECLARE_CMD(WaitForPairingCommand) {
         CMD_ARG("uint16_t", "timeout", "Time after which this command should fail")
     )
 
+    CMD_RESULTS(
+        CMD_RESULT("boolean", "completed", "Whether pairing was completed or is still ongoing"),
+        CMD_RESULT("string", "status", "Name of the last event raised"),
+        CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
+    )
+
     CMD_HANDLER(uint16_t connectionHandle, uint16_t timeout, CommandResponsePtr& response) {
         startProcedure<BasePairingProcedure>(
             connectionHandle, 
@@ -375,7 +381,13 @@ DECLARE_CMD(AcceptPairingRequestAndWaitCommand) {
         CMD_ARG("uint16_t", "timeout", "Time after which this command should fail")
     )
 
-    CMD_HELP("This waits for and handles an incoming or ongoing pairing procedure. It waits for a request from peer or pairing completiomn.")
+    CMD_HELP("This waits for and handles an incoming or ongoing pairing procedure. It waits for a request from peer or pairing completion.")
+
+    CMD_RESULTS(
+        CMD_RESULT("boolean", "completed", "Whether pairing was completed or is still ongoing"),
+        CMD_RESULT("string", "status", "Name of the last event raised"),
+        CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
+    )
 
     CMD_HANDLER(uint16_t connectionHandle, uint16_t timeout, CommandResponsePtr& response) {
         startProcedure<AcceptPairingRequestAndWaitProcedure>(
@@ -429,6 +441,12 @@ DECLARE_CMD(EnterConfirmationAndWaitCommand) {
 
     CMD_HELP("This sends confirmation (yes or no) to the stack during pairing")
 
+    CMD_RESULTS(
+        CMD_RESULT("boolean", "completed", "Whether pairing was completed or is still ongoing"),
+        CMD_RESULT("string", "status", "Name of the last event raised"),
+        CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
+    )
+
     CMD_HANDLER(uint16_t connectionHandle, bool confirm, uint16_t timeout, CommandResponsePtr& response) {
         startProcedure<EnterConfirmationAndWaitProcedure>(
             connectionHandle, confirm,
@@ -464,6 +482,12 @@ DECLARE_CMD(EnterPasskeyAndWaitCommand) {
     )
 
     CMD_HELP("This sends confirmation (yes or no) to the stack during pairing")
+
+    CMD_RESULTS(
+        CMD_RESULT("boolean", "completed", "Whether pairing was completed or is still ongoing"),
+        CMD_RESULT("string", "status", "Name of the last event raised"),
+        CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
+    )
 
     CMD_HANDLER(uint16_t connectionHandle, const SecurityManagerPasskey_t passkey, uint16_t timeout, CommandResponsePtr& response) {
         startProcedure<EnterPasskeyAndWaitProcedure>(
@@ -501,6 +525,12 @@ DECLARE_CMD(RequestPairingAndWaitCommand) {
     )
 
     CMD_HELP("This performs a pairing procedure when the device acts as an initiator.")
+
+    CMD_RESULTS(
+        CMD_RESULT("boolean", "completed", "Whether pairing was completed or is still ongoing"),
+        CMD_RESULT("string", "status", "Name of the last event raised"),
+        CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
+    )
 
     CMD_HANDLER(uint16_t connectionHandle, uint16_t pairing_timeout, uint16_t timeout, CommandResponsePtr& response) {
         startProcedure<RequestPairingAndWaitProcedure>(
@@ -547,6 +577,10 @@ DECLARE_CMD(GetSecureConnectionsSupportCommand) {
     CMD_NAME("getSecureConnectionsSupport")
     
     CMD_HELP("Check if the Secure Connections feature is supported by the stack and controller.")
+
+    CMD_RESULTS(
+        CMD_RESULT("boolean", "", "true if the Secure Connections method is supported, false otherwise"),
+    )
 
     CMD_HANDLER(CommandResponsePtr& response) {
         bool enabled = false;
