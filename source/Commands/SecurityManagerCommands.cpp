@@ -317,6 +317,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         else {
             response->getResultStream() << "pairingResult returned " << result;
             response->faillure();
+            terminate();
         }
     }
 
