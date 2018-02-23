@@ -260,6 +260,25 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
 };
 
 // Pairing
+DECLARE_CMD(SetPairingRequestAuthorisationCommand) {
+    CMD_NAME("setPairingRequestAuthorisation")
+
+    CMD_ARGS(
+        CMD_ARG("bool","enable", "If set to true, pairingRequest in the event handler will"
+        "will be called and will require an action from the application"
+        "to continue with pairing by calling acceptPairingRequest"
+        "or canceltPairingRequest if the user wishes to reject it.")
+    )
+
+    CMD_HELP("Tell the stack whether the application needs to authorise pairing requests or should"
+            "they be automatically accepted.")
+
+    CMD_HANDLER(bool required, CommandResponsePtr& response) {
+        ble_error_t err = sm().setPairingRequestAuthorisation(required);
+        reportErrorOrSuccess(response, err);
+    }
+};
+
 // A pairing procedure can be started using the relevant command and can be continued afterwards
 struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
     BasePairingProcedure(uint16_t connectionHandle, const CommandResponsePtr& res, uint32_t timeout) 
@@ -268,13 +287,9 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         {
             // Set this struct as event handler
             sm().setSecurityManagerEventHandler(this);
-
-            sm().setPairingRequestAuthorisation(true);
         }
 
     virtual ~BasePairingProcedure() {
-        sm().setPairingRequestAuthorisation(false);
-
         // Deregister as event handler
         sm().setSecurityManagerEventHandler(NULL);
     }
@@ -647,6 +662,7 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(GenerateWhitelistFromBondTableCommand),
     
     // Pairing commands
+    CMD_INSTANCE(SetPairingRequestAuthorisationCommand),
     CMD_INSTANCE(WaitForPairingCommand),
     CMD_INSTANCE(AcceptPairingRequestAndWaitCommand),
     CMD_INSTANCE(RejectPairingRequestCommand),
