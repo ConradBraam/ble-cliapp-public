@@ -162,7 +162,9 @@ DECLARE_CMD(PurgeAllBondingStateCommand) {
     }
 };
 
-#define BLE_SM_TEST_ASSERT_RET(x, ret) do{ ble_error_t err = (x); if(err) { response->faillure(err); return ret; }  }while(0) 
+#define BLE_SM_TEST_ASSERT_RET(x, ret) do{ ble_error_t err = (x); if(err) { \
+    response->getResultStream() << "Failure at " << __FILE__ << ":" << static_cast<uint32_t>(__LINE__); \
+    response->faillure(err); return ret; }  }while(0) 
 #define BLE_SM_TEST_ASSERT_VOID(x) BLE_SM_TEST_ASSERT_RET(x, )
 
 DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
@@ -266,9 +268,13 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         {
             // Set this struct as event handler
             sm().setSecurityManagerEventHandler(this);
+
+            sm().setPairingRequestAuthorisation(true);
         }
 
     virtual ~BasePairingProcedure() {
+        sm().setPairingRequestAuthorisation(false);
+
         // Deregister as event handler
         sm().setSecurityManagerEventHandler(NULL);
     }
