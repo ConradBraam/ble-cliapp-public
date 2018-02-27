@@ -17,6 +17,7 @@
 #include "CLICommand/util/AsyncProcedure.h"
 
 using mbed::util::SharedPointer;
+using ble::connection_handle_t;
 
 // isolation
 namespace {
@@ -180,7 +181,7 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
         );
     }
 
-    struct GenerateWhitelistFromBondTableProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
+    struct GenerateWhitelistFromBondTableProcedure : public AsyncProcedure, public SecurityManager::EventHandler {
         GenerateWhitelistFromBondTableProcedure(const CommandResponsePtr& res, uint32_t timeout)
             : AsyncProcedure(res, timeout) {
                 // Initialize whitelist
@@ -280,7 +281,7 @@ DECLARE_CMD(SetPairingRequestAuthorisationCommand) {
 };
 
 // A pairing procedure can be started using the relevant command and can be continued afterwards
-struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
+struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::EventHandler {
     BasePairingProcedure(uint16_t connectionHandle, const CommandResponsePtr& res, uint32_t timeout)
         : AsyncProcedure(res, timeout),
             _connectionHandle(connectionHandle)
