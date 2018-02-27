@@ -329,14 +329,14 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
     }
 
     // SecurityManagerEventHandler implementation
-    virtual void pairingRequest(connection_handle_t connectionHandle) {
+    virtual void pairingRequest(ble::connection_handle_t connectionHandle) {
         // Ignore if wrong connection handle
         if(connectionHandle != _connectionHandle) { return; }
 
         success(false, "pairingRequest");
     }
 
-    virtual void pairingResult(connection_handle_t connectionHandle, SecurityManager::SecurityCompletionStatus_t result) {
+    virtual void pairingResult(ble::connection_handle_t connectionHandle, SecurityManager::SecurityCompletionStatus_t result) {
         // Ignore if wrong connection handle
         if(connectionHandle != _connectionHandle) { return; }
 
@@ -352,7 +352,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         }
     }
 
-    virtual void passkeyDisplay(connection_handle_t connectionHandle, const SecurityManager::Passkey_t passkey) {
+    virtual void passkeyDisplay(ble::connection_handle_t connectionHandle, const SecurityManager::Passkey_t passkey) {
         // Ignore if wrong connection handle
         if(connectionHandle != _connectionHandle) { return; }
 
@@ -360,7 +360,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         success(false, "passkeyDisplay", passkey);
     }
 
-    virtual void confirmationRequest(connection_handle_t connectionHandle) {
+    virtual void confirmationRequest(ble::connection_handle_t connectionHandle) {
         // Ignore if wrong connection handle
         if(connectionHandle != _connectionHandle) { return; }
 
@@ -368,7 +368,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         success(false, "confirmationRequest");
     }
 
-    virtual void passkeyRequest(connection_handle_t connectionHandle) {
+    virtual void passkeyRequest(ble::connection_handle_t connectionHandle) {
         // Ignore if wrong connection handle
         if(connectionHandle != _connectionHandle) { return; }
 
@@ -651,6 +651,8 @@ DECLARE_CMD(SetDisplayPasskeyCommand) {
     }
 };
 
+// setLinkEncryption
+
 } // end of anonymous namespace
 
 
@@ -675,5 +677,9 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(GetSecureConnectionsSupportCommand),
     CMD_INSTANCE(SetIoCapabilityCommand),
     CMD_INSTANCE(SetDisplayPasskeyCommand)
+<<<<<<< HEAD
 
 )
+=======
+)
+>>>>>>> Updates based on mbed-os lib
