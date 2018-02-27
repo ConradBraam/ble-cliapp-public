@@ -307,7 +307,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         response->faillure();
     }
 
-    void success(bool completed, const char* status, const SecurityManager::Passkey_t passkey = NULL)
+    void success(const char* status, const SecurityManager::Passkey_t passkey = NULL)
     {
         using namespace serialization;
 
@@ -316,7 +316,6 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         JSONOutputStream& os = response->getResultStream();
 
         os << startObject <<
-            key("completed") << completed <<
             key("status") << status;
 
         if(passkey != NULL) {
@@ -333,7 +332,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         // Ignore if wrong connection handle
         if(connectionHandle != _connectionHandle) { return; }
 
-        success(false, "pairingRequest");
+        success("pairingRequest");
     }
 
     virtual void pairingResult(ble::connection_handle_t connectionHandle, SecurityManager::SecurityCompletionStatus_t result) {
@@ -342,7 +341,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
 
         // Print & exit with success
         if(result == SecurityManager::SEC_STATUS_SUCCESS) {
-            success(true, "completed");
+            success("pairingResult");
             return;
         }
         else {
@@ -357,7 +356,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         if(connectionHandle != _connectionHandle) { return; }
 
         // Return passkey
-        success(false, "passkeyDisplay", passkey);
+        success("passkeyDisplay", passkey);
     }
 
     virtual void confirmationRequest(ble::connection_handle_t connectionHandle) {
@@ -365,7 +364,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         if(connectionHandle != _connectionHandle) { return; }
 
         // Ask user to confirm or or reject
-        success(false, "confirmationRequest");
+        success("confirmationRequest");
     }
 
     virtual void passkeyRequest(ble::connection_handle_t connectionHandle) {
@@ -373,7 +372,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         if(connectionHandle != _connectionHandle) { return; }
 
         // Ask user to provide passkey
-        success(false, "passkeyRequest");
+        success("passkeyRequest");
     }
 
     // Data
@@ -391,7 +390,6 @@ DECLARE_CMD(WaitForPairingCommand) {
     )
 
     CMD_RESULTS(
-        CMD_RESULT("boolean", "completed", "Whether pairing was completed or is still ongoing"),
         CMD_RESULT("string", "status", "Name of the last event raised"),
         CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
     )
@@ -415,7 +413,6 @@ DECLARE_CMD(AcceptPairingRequestAndWaitCommand) {
     CMD_HELP("This waits for and handles an incoming or ongoing pairing procedure. It waits for a request from peer or pairing completion.")
 
     CMD_RESULTS(
-        CMD_RESULT("boolean", "completed", "Whether pairing was completed or is still ongoing"),
         CMD_RESULT("string", "status", "Name of the last event raised"),
         CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
     )
@@ -473,7 +470,6 @@ DECLARE_CMD(EnterConfirmationAndWaitCommand) {
     CMD_HELP("This sends confirmation (yes or no) to the stack during pairing")
 
     CMD_RESULTS(
-        CMD_RESULT("boolean", "completed", "Whether pairing was completed or is still ongoing"),
         CMD_RESULT("string", "status", "Name of the last event raised"),
         CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
     )
@@ -515,7 +511,6 @@ DECLARE_CMD(EnterPasskeyAndWaitCommand) {
     CMD_HELP("This sends confirmation (yes or no) to the stack during pairing")
 
     CMD_RESULTS(
-        CMD_RESULT("boolean", "completed", "Whether pairing was completed or is still ongoing"),
         CMD_RESULT("string", "status", "Name of the last event raised"),
         CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
     )
@@ -558,7 +553,6 @@ DECLARE_CMD(RequestPairingAndWaitCommand) {
     CMD_HELP("This performs a pairing procedure when the device acts as an initiator.")
 
     CMD_RESULTS(
-        CMD_RESULT("boolean", "completed", "Whether pairing was completed or is still ongoing"),
         CMD_RESULT("string", "status", "Name of the last event raised"),
         CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
     )
