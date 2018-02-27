@@ -379,10 +379,10 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
     uint16_t _connectionHandle;
 };
 
-DECLARE_CMD(WaitForPairingCommand) {
-    CMD_NAME("waitForPairing")
+DECLARE_CMD(WaitForEventCommand) {
+    CMD_NAME("waitForEvent")
 
-    CMD_HELP("This waits for and handles an incoming or ongoing pairing procedure. It waits for a request from peer or pairing completiomn.")
+    CMD_HELP("This waits for and handles incoming events (such as a procedure). It waits for a request from peer or pairing/encryption/etc event.")
 
     CMD_ARGS(
         CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure"),
