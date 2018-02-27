@@ -671,9 +671,5 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(GetSecureConnectionsSupportCommand),
     CMD_INSTANCE(SetIoCapabilityCommand),
     CMD_INSTANCE(SetDisplayPasskeyCommand)
-<<<<<<< HEAD
 
 )
-=======
-)
->>>>>>> Updates based on mbed-os lib
