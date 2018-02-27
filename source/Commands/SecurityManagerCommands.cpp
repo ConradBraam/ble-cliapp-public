@@ -164,7 +164,7 @@ DECLARE_CMD(PurgeAllBondingStateCommand) {
 
 #define BLE_SM_TEST_ASSERT_RET(x, ret) do{ ble_error_t err = (x); if(err) { \
     response->getResultStream() << "Failure at " << __FILE__ << ":" << static_cast<uint32_t>(__LINE__); \
-    response->faillure(err); return ret; }  }while(0) 
+    response->faillure(err); return ret; }  }while(0)
 #define BLE_SM_TEST_ASSERT_VOID(x) BLE_SM_TEST_ASSERT_RET(x, )
 
 DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
@@ -181,7 +181,7 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
     }
 
     struct GenerateWhitelistFromBondTableProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
-        GenerateWhitelistFromBondTableProcedure(const CommandResponsePtr& res, uint32_t timeout) 
+        GenerateWhitelistFromBondTableProcedure(const CommandResponsePtr& res, uint32_t timeout)
             : AsyncProcedure(res, timeout) {
                 // Initialize whitelist
                 _whiteList.capacity = gap().getMaxWhitelistSize();
@@ -228,7 +228,7 @@ DECLARE_CMD(GenerateWhitelistFromBondTableCommand) {
             return true;
         }
 
-        virtual void doWhenTimeout() { 
+        virtual void doWhenTimeout() {
             response->getResultStream() << "generateWhitelistFromBondTable timeout";
             response->faillure();
             terminate();
@@ -267,7 +267,7 @@ DECLARE_CMD(SetPairingRequestAuthorisationCommand) {
         CMD_ARG("bool","enable", "If set to true, pairingRequest in the event handler will"
         "will be called and will require an action from the application"
         "to continue with pairing by calling acceptPairingRequest"
-        "or canceltPairingRequest if the user wishes to reject it.")
+        "or cancelPairingRequest if the user wishes to reject it.")
     )
 
     CMD_HELP("Tell the stack whether the application needs to authorise pairing requests or should"
@@ -281,8 +281,8 @@ DECLARE_CMD(SetPairingRequestAuthorisationCommand) {
 
 // A pairing procedure can be started using the relevant command and can be continued afterwards
 struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::SecurityManagerEventHandler {
-    BasePairingProcedure(uint16_t connectionHandle, const CommandResponsePtr& res, uint32_t timeout) 
-        : AsyncProcedure(res, timeout), 
+    BasePairingProcedure(uint16_t connectionHandle, const CommandResponsePtr& res, uint32_t timeout)
+        : AsyncProcedure(res, timeout),
             _connectionHandle(connectionHandle)
         {
             // Set this struct as event handler
@@ -299,9 +299,9 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         return true;
     }
 
-    virtual void doWhenTimeout() { 
+    virtual void doWhenTimeout() {
         // Make sure we abort any ongoing pairing procedure
-        sm().canceltPairingRequest(_connectionHandle);
+        sm().cancelPairingRequest(_connectionHandle);
 
         response->getResultStream() << "Pairing timeout";
         response->faillure();
@@ -318,7 +318,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Sec
         os << startObject <<
             key("completed") << completed <<
             key("status") << status;
-        
+
         if(passkey != NULL) {
             os << key("passkey") << passkey;
         }
@@ -398,7 +398,7 @@ DECLARE_CMD(WaitForPairingCommand) {
 
     CMD_HANDLER(uint16_t connectionHandle, uint16_t timeout, CommandResponsePtr& response) {
         startProcedure<BasePairingProcedure>(
-            connectionHandle, 
+            connectionHandle,
             response, timeout
         );
     }
@@ -422,7 +422,7 @@ DECLARE_CMD(AcceptPairingRequestAndWaitCommand) {
 
     CMD_HANDLER(uint16_t connectionHandle, uint16_t timeout, CommandResponsePtr& response) {
         startProcedure<AcceptPairingRequestAndWaitProcedure>(
-            connectionHandle, 
+            connectionHandle,
             response, timeout
         );
     }
@@ -452,7 +452,7 @@ DECLARE_CMD(RejectPairingRequestCommand) {
     CMD_HELP("This rejects an incoming pairing request.")
 
     CMD_HANDLER(uint16_t connectionHandle, CommandResponsePtr& response) {
-        if(!sm().canceltPairingRequest(connectionHandle))
+        if(!sm().cancelPairingRequest(connectionHandle))
         {
             response->faillure();
             return;
@@ -606,7 +606,7 @@ DECLARE_CMD(AllowLegacyPairingCommand) {
 
 DECLARE_CMD(GetSecureConnectionsSupportCommand) {
     CMD_NAME("getSecureConnectionsSupport")
-    
+
     CMD_HELP("Check if the Secure Connections feature is supported by the stack and controller.")
 
     CMD_RESULTS(
@@ -654,13 +654,13 @@ DECLARE_CMD(SetDisplayPasskeyCommand) {
 } // end of anonymous namespace
 
 
-DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription, 
+DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(InitCommand),
     CMD_INSTANCE(GetAddressesFromBondTableCommand),
     CMD_INSTANCE(PreserveBondingStateOnResetCommand),
     CMD_INSTANCE(PurgeAllBondingStateCommand),
     CMD_INSTANCE(GenerateWhitelistFromBondTableCommand),
-    
+
     // Pairing commands
     CMD_INSTANCE(SetPairingRequestAuthorisationCommand),
     CMD_INSTANCE(WaitForPairingCommand),
