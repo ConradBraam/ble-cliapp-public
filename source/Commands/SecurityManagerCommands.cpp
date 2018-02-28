@@ -462,12 +462,8 @@ DECLARE_CMD(RejectPairingRequestCommand) {
     CMD_HELP("This rejects an incoming pairing request.")
 
     CMD_HANDLER(uint16_t connectionHandle, CommandResponsePtr& response) {
-        if(!sm().cancelPairingRequest(connectionHandle))
-        {
-            response->faillure();
-            return;
-        }
-        response->success();
+        ble_error_t err = sm().cancelPairingRequest(connectionHandle);
+        reportErrorOrSuccess(response, err);
     }
 };
 
