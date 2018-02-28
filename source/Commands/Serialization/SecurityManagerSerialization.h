@@ -106,35 +106,28 @@ struct SecurityManagerPasskey_t
 {
     SecurityManager::Passkey_t value;
 
-    operator SecurityManager::Passkey_t&() { 
+    operator SecurityManager::Passkey_t&() {
         return value;
     }
 
-    operator const SecurityManager::Passkey_t&() const { 
+    operator const SecurityManager::Passkey_t&() const {
         return value;
     }
 };
 
-static inline bool fromString(const char* str, SecurityManagerPasskey_t& value) { 
-    // Passkey can be 1 to 6 digits
-    size_t pos = 0;
-
+static inline bool fromString(const char* str, SecurityManagerPasskey_t& value) {
     // length should be 6!
     if( strlen(str) != sizeof(SecurityManager::Passkey_t) ) {
         return false;
     }
 
     // Validate and populate
-    do
-    {
-        if((*str > '9') || (*str < '0'))
-        {
+    for (size_t i = 0; i < sizeof(SecurityManager::Passkey_t); ++i) {
+        if((str[i] > '9') || (str[i] < '0')) {
             return false;
         }
-
-        // memcpy might be more efficient but we need to walk the string anyways to validate it
-        value.value[pos++] = *str;
-    } while(*str++);
+        value.value[i] = str[i];
+    }
 
     return true;
 }
