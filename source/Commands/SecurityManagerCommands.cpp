@@ -308,26 +308,30 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Eve
         response->faillure();
     }
 
-    void success(const char* status, const SecurityManager::Passkey_t passkey = NULL, const ble::link_encryption_t* link_encryption_result = NULL)
+    void success(const char* status)
     {
         using namespace serialization;
 
         response->success();
 
-        JSONOutputStream& os = response->getResultStream();
+        response->getResultStream() << startObject <<
+            key("status") << status <<
+        endObject;
 
-        os << startObject <<
-            key("status") << status;
+        terminate();
+    }
 
-        if(passkey != NULL) {
-            os << key("passkey") << passkey;
-        }
+    template<typename T>
+    void success(const char* status, const T& param)
+    {
+        using namespace serialization;
 
-        if(link_encryption_result != NULL) {
-            os << key("result") << *link_encryption_result;
-        }
+        response->success();
 
-        os << endObject;
+        response->getResultStream() << startObject <<
+            key("status") << status <<
+            key("param") << param <<
+        endObject;
 
         terminate();
     }
@@ -344,16 +348,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Eve
         // Ignore if wrong connection handle
         if(connectionHandle != _connectionHandle) { return; }
 
-        // Print & exit with success
-        if(result == SecurityManager::SEC_STATUS_SUCCESS) {
-            success("pairingResult");
-            return;
-        }
-        else {
-            response->getResultStream() << "pairingResult returned " << result;
-            response->faillure();
-            terminate();
-        }
+        success("pairingResult", result);
     }
 
     virtual void passkeyDisplay(ble::connection_handle_t connectionHandle, const SecurityManager::Passkey_t passkey) {
@@ -378,14 +373,6 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Eve
 
         // Ask user to provide passkey
         success("passkeyRequest");
-    }
-
-    virtual void linkEncryptionResult(ble::connection_handle_t connectionHandle, ble::link_encryption_t result) {
-        // Ignore if wrong connection handle
-        if(connectionHandle != _connectionHandle) { return; }
-
-        // Encryption completed
-        success("linkEncryptionResult", NULL, &result);
     }
 
     // Data
@@ -688,6 +675,14 @@ DECLARE_CMD(SetLinkEncryptionAndWaitCommand) {
         virtual bool doStart() {
             BLE_SM_TEST_ASSERT_RET(sm().setLinkEncryption(_connectionHandle, _encryption), false);
             return true;
+        }
+
+        virtual void linkEncryptionResult(ble::connection_handle_t connectionHandle, ble::link_encryption_t result) {
+            // Ignore if wrong connection handle
+            if(connectionHandle != _connectionHandle) { return; }
+
+            // Encryption completed
+            success("linkEncryptionResult", result);
         }
 
         ble::link_encryption_t _encryption;
