@@ -2,6 +2,7 @@
 #define BLE_CLIAPP_SECURITY_MANAGER_SERIALIZER_H_
 
 #include <ble/SecurityManager.h>
+#include <ble/BLETypes.h>
 #include "Serialization/JSONOutputStream.h"
 #include "Serialization/Serializer.h"
 
@@ -63,6 +64,42 @@ struct SerializerDescription<SecurityManager::SecurityCompletionStatus_t> {
 
 static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, SecurityManager::SecurityCompletionStatus_t type) {
     return os << toString(type);
+}
+
+struct SecurityManager_link_encryption_t : ble::link_encryption_t
+{
+    typedef ble::link_encryption_t::type type;
+    SecurityManager_link_encryption_t(type value) : ble::link_encryption_t(value) { }
+
+    SecurityManager_link_encryption_t(ble::link_encryption_t value) : ble::link_encryption_t(value) { }
+
+    // Add default constructor
+    SecurityManager_link_encryption_t() : ble::link_encryption_t(ble::link_encryption_t::NOT_ENCRYPTED) {}
+};
+
+template<>
+struct SerializerDescription<SecurityManager_link_encryption_t> {
+    typedef SecurityManager_link_encryption_t type;
+
+    static const ConstArray<ValueToStringMapping<SecurityManager_link_encryption_t> > mapping() {
+        static const ValueToStringMapping<SecurityManager_link_encryption_t> map[] = {
+            { SecurityManager_link_encryption_t::NOT_ENCRYPTED, "NOT_ENCRYPTED" },
+            { SecurityManager_link_encryption_t::ENCRYPTION_IN_PROGRESS, "ENCRYPTION_IN_PROGRESS" },
+            { SecurityManager_link_encryption_t::ENCRYPTED, "ENCRYPTED" },
+            { SecurityManager_link_encryption_t::ENCRYPTED_WITH_MITM, "ENCRYPTED_WITH_MITM" },
+
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown SecurityManager_link_encryption_t";
+    }
+};
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, ble::link_encryption_t type) {
+    return os << toString(SecurityManager_link_encryption_t(type));
 }
 
 struct SecurityManagerPasskey_t

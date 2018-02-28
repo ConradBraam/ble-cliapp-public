@@ -308,7 +308,7 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Eve
         response->faillure();
     }
 
-    void success(const char* status, const SecurityManager::Passkey_t passkey = NULL)
+    void success(const char* status, const SecurityManager::Passkey_t passkey = NULL, const ble::link_encryption_t* link_encryption_result = NULL)
     {
         using namespace serialization;
 
@@ -321,6 +321,10 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Eve
 
         if(passkey != NULL) {
             os << key("passkey") << passkey;
+        }
+
+        if(link_encryption_result != NULL) {
+            os << key("result") << *link_encryption_result;
         }
 
         os << endObject;
@@ -374,6 +378,14 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Eve
 
         // Ask user to provide passkey
         success("passkeyRequest");
+    }
+
+    virtual void linkEncryptionResult(ble::connection_handle_t connectionHandle, ble::link_encryption_t result) {
+        // Ignore if wrong connection handle
+        if(connectionHandle != _connectionHandle) { return; }
+
+        // Encryption completed
+        success("linkEncryptionResult", NULL, &result);
     }
 
     // Data
@@ -646,7 +658,45 @@ DECLARE_CMD(SetDisplayPasskeyCommand) {
     }
 };
 
-// setLinkEncryption
+DECLARE_CMD(SetLinkEncryptionAndWaitCommand) {
+    CMD_NAME("setLinkEncryptionAndWait")
+
+    CMD_ARGS(
+        CMD_ARG("uint16_t", "connectionHandle", "The connection used by this procedure" ),
+        CMD_ARG("uint16_t", "pairing_timeout", "Time after which the authentication should fail"),
+        CMD_ARG("uint16_t", "timeout", "Time after which this command should fail")
+    )
+
+    CMD_HELP("This performs a pairing procedure when the device acts as an initiator.")
+
+    CMD_RESULTS(
+        CMD_RESULT("string", "status", "Name of the last event raised"),
+        CMD_RESULT("SecurityManagerPasskey_t", "passkey", "Passkey if received from the stack")
+    )
+
+    CMD_HANDLER(uint16_t connectionHandle, SecurityManager_link_encryption_t encryption, uint16_t timeout, CommandResponsePtr& response) {
+        startProcedure<SetLinkEncryptionAndWaitProcedure>(
+            connectionHandle, encryption,
+            response, timeout
+        );
+    }
+
+    struct SetLinkEncryptionAndWaitProcedure : BasePairingProcedure
+    {
+        SetLinkEncryptionAndWaitProcedure(uint16_t connectionHandle, ble::link_encryption_t encryption, const CommandResponsePtr& res, uint32_t timeout) :
+            BasePairingProcedure(connectionHandle, res, timeout), _encryption(encryption)
+        {
+
+        }
+
+        virtual bool doStart() {
+            BLE_SM_TEST_ASSERT_RET(sm().setLinkEncryption(_connectionHandle, _encryption), false);
+            return true;
+        }
+
+        ble::link_encryption_t _encryption;
+    };
+};
 
 } // end of anonymous namespace
 
@@ -660,7 +710,6 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
 
     // Pairing commands
     CMD_INSTANCE(SetPairingRequestAuthorisationCommand),
-    CMD_INSTANCE(WaitForPairingCommand),
     CMD_INSTANCE(AcceptPairingRequestAndWaitCommand),
     CMD_INSTANCE(RejectPairingRequestCommand),
     CMD_INSTANCE(EnterConfirmationAndWaitCommand),
@@ -671,6 +720,11 @@ DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(AllowLegacyPairingCommand),
     CMD_INSTANCE(GetSecureConnectionsSupportCommand),
     CMD_INSTANCE(SetIoCapabilityCommand),
-    CMD_INSTANCE(SetDisplayPasskeyCommand)
+    CMD_INSTANCE(SetDisplayPasskeyCommand),
 
+    // Encryption
+    CMD_INSTANCE(SetLinkEncryptionAndWaitCommand),
+
+    // Common commands
+    CMD_INSTANCE(WaitForEventCommand)
 )
