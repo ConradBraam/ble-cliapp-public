@@ -875,6 +875,7 @@ DECLARE_CMD(StartScanCommand) {
                 key("type") << scanResult->type <<
                 key("data") << AdvertisingDataSerializer(scanResult->advertisingData, scanResult->advertisingDataLen) <<
                 key("time") << (int32_t) self->timer.read_ms() <<
+                key("peerAddrType") << scanResult->addressType <<
             endObject;
         }
 
