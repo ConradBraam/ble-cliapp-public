@@ -1,6 +1,7 @@
 #ifndef BLE_CLIAPP_DYNAMIC_ARRAY_H_
 #define BLE_CLIAPP_DYNAMIC_ARRAY_H_
 
+#include <memory>
 #include <cstring>
 #include <algorithm>
 #include <utility>
