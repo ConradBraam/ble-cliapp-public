@@ -1114,6 +1114,117 @@ DECLARE_CMD(GetInitiatorPolicyModeCommand) {
 };
 
 
+DECLARE_CMD(EnablePrivacyCommand) {
+    CMD_NAME("enablePrivacy")
+    CMD_HELP("Enable or disable the privacy")
+
+    CMD_ARGS(
+        CMD_ARG("bool", "enable", "Enable or disable the privacy")
+    )
+
+    CMD_HANDLER(bool enable, CommandResponsePtr& response) {
+        reportErrorOrSuccess(response, gap().enablePrivacy(enable));
+    }
+};
+
+
+DECLARE_CMD(SetPeripheralPrivacyConfigurationCommand) {
+    CMD_NAME("setPeripheralPrivacyConfiguration")
+    CMD_HELP("Set the peripheral privacy configuration.")
+
+    CMD_ARGS(
+        CMD_ARG("bool", "use_non_resolvable_random_address", "Use non resolvable address in non connectable advertisements"),
+        CMD_ARG("Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy", "resolution_strategy", "Strategy used to resolve addresses present in scan and connection requests.")
+    )
+
+    CMD_HANDLER(
+        bool use_non_resolvable_random_address,
+        Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy& resolution_strategy,
+        CommandResponsePtr& response
+    ) {
+        Gap::PeripheralPrivacyConfiguration_t configuration = {
+            use_non_resolvable_random_address,
+            resolution_strategy
+        };
+
+        reportErrorOrSuccess(
+            response,
+            gap().setPeripheralPrivacyConfiguration(&configuration)
+        );
+    }
+};
+
+
+DECLARE_CMD(GetPeripheralPrivacyConfigurationCommand) {
+    CMD_NAME("getPeripheralPrivacyConfiguration")
+    CMD_HELP("Get the peripheral privacy configuration.")
+
+    CMD_RESULTS(
+        CMD_RESULT("bool", "use_non_resolvable_random_address", "Indicates if non resolvable addresses are used in non connectable advertisements."),
+        CMD_RESULT("Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy", "resolution_strategy", "Strategy used to resolve address in scan and connection requests."),
+    )
+
+    CMD_HANDLER(CommandResponsePtr& response) {
+        Gap::PeripheralPrivacyConfiguration_t configuration;
+
+        reportErrorOrSuccess(
+            response,
+            gap().getPeripheralPrivacyConfiguration(&configuration),
+            configuration
+        );
+    }
+};
+
+
+
+DECLARE_CMD(SetCentralPrivacyConfigurationCommand) {
+    CMD_NAME("setCentralPrivacyConfiguration")
+    CMD_HELP("Set the central privacy configuration.")
+
+    CMD_ARGS(
+        CMD_ARG("bool", "use_non_resolvable_random_address", "Use non resolvable address in scan requests."),
+        CMD_ARG("Gap::CentralPrivacyConfiguration_t::ResolutionStrategy", "resolution_strategy", "Strategy used to resolve addresses present in advertisement packets.")
+    )
+
+    CMD_HANDLER(
+        bool use_non_resolvable_random_address,
+        Gap::CentralPrivacyConfiguration_t::ResolutionStrategy& resolution_strategy,
+        CommandResponsePtr& response
+    ) {
+        Gap::CentralPrivacyConfiguration_t configuration = {
+            use_non_resolvable_random_address,
+            resolution_strategy
+        };
+
+        reportErrorOrSuccess(
+            response,
+            gap().setCentralPrivacyConfiguration(&configuration)
+        );
+    }
+};
+
+
+DECLARE_CMD(GetCentralPrivacyConfigurationCommand) {
+    CMD_NAME("getCentralPrivacyConfiguration")
+    CMD_HELP("Get the central privacy configuration.")
+
+    CMD_RESULTS(
+        CMD_RESULT("bool", "use_non_resolvable_random_address", "Indicates if non resolvable addresses are used in scan request."),
+        CMD_RESULT("Gap::CentralPrivacyConfiguration_t::ResolutionStrategy", "resolution_strategy", "Strategy used to resolve addresses in advertisements."),
+    )
+
+    CMD_HANDLER(CommandResponsePtr& response) {
+        Gap::CentralPrivacyConfiguration_t configuration;
+
+        reportErrorOrSuccess(
+            response,
+            gap().getCentralPrivacyConfiguration(&configuration),
+            configuration
+        );
+    }
+};
+
+
 } // end of annonymous namespace
 
 
@@ -1166,5 +1277,10 @@ DECLARE_SUITE_COMMANDS(GapCommandSuiteDescription,
     CMD_INSTANCE(SetInitiatorPolicyModeCommand),
     CMD_INSTANCE(GetAdvertisingPolicyModeCommand),
     CMD_INSTANCE(GetScanningPolicyModeCommand),
-    CMD_INSTANCE(GetInitiatorPolicyModeCommand)
+    CMD_INSTANCE(GetInitiatorPolicyModeCommand),
+    CMD_INSTANCE(EnablePrivacyCommand),
+    CMD_INSTANCE(SetPeripheralPrivacyConfigurationCommand),
+    CMD_INSTANCE(GetPeripheralPrivacyConfigurationCommand),
+    CMD_INSTANCE(SetCentralPrivacyConfigurationCommand),
+    CMD_INSTANCE(GetCentralPrivacyConfigurationCommand)
 )

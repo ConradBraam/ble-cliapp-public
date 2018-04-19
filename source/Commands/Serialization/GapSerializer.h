@@ -200,4 +200,73 @@ static inline serialization::JSONOutputStream& operator<<(serialization::JSONOut
     return os << toString(reason);
 }
 
+/**
+ * @brief serialization and deserialization of Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy
+ */
+template<>
+struct SerializerDescription<Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy> {
+    typedef Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { Gap::PeripheralPrivacyConfiguration_t::DO_NOT_RESOLVE, "DO_NOT_RESOLVE" },
+            { Gap::PeripheralPrivacyConfiguration_t::REJECT_NON_RESOLVED_ADDRESS, "REJECT_NON_RESOLVED_ADDRESS" },
+            { Gap::PeripheralPrivacyConfiguration_t::PERFORM_PAIRING_PROCEDURE, "PERFORM_PAIRING_PROCEDURE" },
+            { Gap::PeripheralPrivacyConfiguration_t::PERFORM_AUTHENTICATION_PROCEDURE, "PERFORM_AUTHENTICATION_PROCEDURE" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy";
+    }
+};
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy strategy) {
+    return os << toString(strategy);
+}
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::PeripheralPrivacyConfiguration_t& configuration) {
+    using namespace serialization;
+    return os << startObject <<
+        key("use_non_resolvable_random_address") << configuration.use_non_resolvable_random_address <<
+        key("resolution_strategy") << configuration.resolution_strategy <<
+    endObject;
+}
+
+/**
+ * @brief serialization and deserialization of Gap::CentralPrivacyConfiguration_t::ResolutionStrategy
+ */
+template<>
+struct SerializerDescription<Gap::CentralPrivacyConfiguration_t::ResolutionStrategy> {
+    typedef Gap::CentralPrivacyConfiguration_t::ResolutionStrategy type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { Gap::CentralPrivacyConfiguration_t::DO_NOT_RESOLVE, "DO_NOT_RESOLVE" },
+            { Gap::CentralPrivacyConfiguration_t::RESOLVE_AND_FILTER, "RESOLVE_AND_FILTER" },
+            { Gap::CentralPrivacyConfiguration_t::RESOLVE_AND_FORWARD, "RESOLVE_AND_FORWARD" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown Gap::CentralPrivacyConfiguration_t::ResolutionStrategy";
+    }
+};
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, Gap::CentralPrivacyConfiguration_t::ResolutionStrategy strategy) {
+    return os << toString(strategy);
+}
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::CentralPrivacyConfiguration_t& configuration) {
+    using namespace serialization;
+    return os << startObject <<
+        key("use_non_resolvable_random_address") << configuration.use_non_resolvable_random_address <<
+        key("resolution_strategy") << configuration.resolution_strategy <<
+    endObject;
+}
+
 #endif //BLE_CLIAPP_GAP_SERIALIZER_H_
