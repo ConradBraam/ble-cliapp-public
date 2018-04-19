@@ -801,7 +801,7 @@ DECLARE_CMD(StartScanCommand) {
 
     CMD_ARGS(
         CMD_ARG("uint16_t", "duration", "The duration of the scan"),
-        CMD_ARG("uint16_t", "address", "The address to scan for")
+        CMD_ARG("HexString_t|MacAddress_t", "payload|address", "The address or the payload to scan for")
     )
 
     CMD_RESULTS(
@@ -816,14 +816,37 @@ DECLARE_CMD(StartScanCommand) {
         CMD_RESULT("HexString_t", "[x].data.raw", "Raw payload of the advertising.")
     )
 
-    CMD_HANDLER(uint16_t duration, MacAddress_t address, CommandResponsePtr& response) {
-        startProcedure<ScanProcedure>(response, duration, address);
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
+        if (args.count() != 2) {
+            response->invalidParameters("2 arguments are required: startScan <duration> <address|payload>");
+            return;
+        }
+
+        uint16_t duration;
+        if (!fromString(args[0], duration)) {
+            response->invalidParameters("duration should be an uint16_t");
+        }
+
+        MacAddress_t address;
+        RawData_t payload;
+
+        if (fromString(args[1], address)) {
+            startProcedure<ScanProcedure>(response, duration, address);
+        } else if(fromString(args[1], address)) {
+             startProcedure<ScanProcedure>(response, duration, payload);
+        } else {
+            response->invalidParameters("second parameter should be a payload or a mac address");
+        }
     }
 
     struct ScanProcedure : public AsyncProcedure {
         ScanProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, const Gap::Address_t& addr) :
-            AsyncProcedure(res, timeout) {
+            AsyncProcedure(res, timeout), use_payload(false) {
                 memcpy(address, addr, sizeof(address));
+        }
+
+        ScanProcedure(const SharedPointer<CommandResponse>& res, uint32_t timeout, const RawData_t& payload) :
+            AsyncProcedure(res, timeout), payload(payload), use_payload(true) {
         }
 
         virtual ~ScanProcedure() {
@@ -863,9 +886,18 @@ DECLARE_CMD(StartScanCommand) {
 
             using namespace serialization;
 
-            // check the address, if it is not the address wanted, just return
-            if(memcmp(scanResult->peerAddr, self->address, sizeof(self->address))) {
-                return;
+            if (self->use_payload) {
+                if (scanResult->advertisingDataLen != self->payload.size()) {
+                    return;
+                }
+                if (memcmp(self->payload.cbegin(), scanResult->advertisingData, self->payload.size()) != 0) {
+                    return;
+                }
+            } else {
+                // check the address, if it is not the address wanted, just return
+                if(memcmp(scanResult->peerAddr, self->address, sizeof(self->address))) {
+                    return;
+                }
             }
 
             self->response->getResultStream() << startObject <<
@@ -881,7 +913,7 @@ DECLARE_CMD(StartScanCommand) {
 
         virtual void doWhenTimeout() {
             response->getResultStream() << serialization::endArray;
-            // nothing to do jere, timeout is not an error in this case
+            // nothing to do here, timeout is not an error in this case
         }
 
         Gap::Address_t address;
@@ -890,6 +922,8 @@ DECLARE_CMD(StartScanCommand) {
         // the scan callback cannot be replaced and if the scan stop
         // asynchronously then the stack continue to emit undesired scan events
         static ScanProcedure* self;
+        RawData_t payload;
+        bool use_payload;
     };
 };
 
