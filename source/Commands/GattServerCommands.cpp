@@ -6,6 +6,7 @@
 #include "Serialization/UUID.h"
 #include "Serialization/Hex.h"
 #include "Serialization/CharacteristicProperties.h"
+#include "Serialization/CharacteristicSecurity.h"
 #include "Serialization/BLECommonSerializer.h"
 #include "Serialization/GattCallbackParamTypes.h"
 
@@ -128,6 +129,33 @@ DECLARE_CMD(SetCharacteristicValueCommand) {
             response->success();
         } else {
             response->faillure("Impossible to set a characteristic value");
+        }
+    }
+};
+
+
+DECLARE_CMD(SetCharacteristicSecurityCommand) {
+    CMD_NAME("setCharacteristicSecurity")
+
+    CMD_HELP("Set the security requirement of a characteristic being declared, this function expects an "
+             "enum value 'SECURITY_MODE_NO_ACCESS', 'SECURITY_MODE_ENCRYPTION_OPEN_LINK', "
+             "'SECURITY_MODE_ENCRYPTION_NO_MITM', 'SECURITY_MODE_ENCRYPTION_WITH_MITM', "
+             "'SECURITY_MODE_SIGNED_NO_MITM', 'SECURITY_MODE_SIGNED_WITH_MITM'")
+
+    CMD_ARGS(
+        CMD_ARG("SecurityManager::SecurityMode_t", "security", "The security requirement for the characteristic")
+    )
+
+    CMD_HANDLER(SecurityManager::SecurityMode_t security, CommandResponsePtr& response) {
+        if(!serviceBuilder) {
+            response->faillure("Their is no service being declared");
+            return;
+        }
+
+        if(serviceBuilder->setCharacteristicSecurity(security)) {
+            response->success();
+        } else {
+            response->faillure("Impossible to set the characteristic security");
         }
     }
 };
@@ -643,6 +671,7 @@ DECLARE_SUITE_COMMANDS(GattServerCommandSuiteDescription,
     CMD_INSTANCE(DeclareServiceCommand),
     CMD_INSTANCE(DeclareCharacteristicCommand),
     CMD_INSTANCE(SetCharacteristicValueCommand),
+    CMD_INSTANCE(SetCharacteristicSecurityCommand),
     CMD_INSTANCE(SetCharacteristicPropertiesCommand),
     CMD_INSTANCE(SetCharacteristicVariableLengthCommand),
     CMD_INSTANCE(SetCharacteristicMaxLengthCommand),

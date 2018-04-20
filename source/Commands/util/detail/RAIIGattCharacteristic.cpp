@@ -75,6 +75,10 @@ void RAIIGattCharacteristic::setProperties(uint8_t newProperties) {
     this->*_properties_accessor = newProperties;
 }
 
+void RAIIGattCharacteristic::setSecurity(SecurityManager::SecurityMode_t security) {
+    requireSecurity(security);
+}
+
 void RAIIGattCharacteristic::addDescriptor(RAIIGattAttribute* descriptor) {
     GattAttribute**& descriptors = this->*_descriptors_accessor;
     uint8_t& descriptorsCount = this->*_descriptorCount_accessor;
