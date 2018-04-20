@@ -29,13 +29,6 @@ struct SerializerDescription<SecurityManager::SecurityMode_t> {
     }
 };
 
-static inline bool characteristicSecurityFromString(const char* string, SecurityManager::SecurityMode_t& result) {
-    if(!fromString(string, result)) {
-        return false;
-    }
-    return true;
-}
-
 static inline serialization::JSONOutputStream& serializeCharacteristicSecurity(
     serialization::JSONOutputStream& os, SecurityManager::SecurityMode_t security) {
     using namespace serialization;
