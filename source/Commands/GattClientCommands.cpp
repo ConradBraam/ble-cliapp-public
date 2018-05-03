@@ -705,7 +705,8 @@ struct WriteProcedure : public AsyncProcedure {
         }
 
         // in this case, no response is expected from the server
-        if(cmd == GattClient::GATT_OP_WRITE_CMD) {
+        if (cmd == GattClient::GATT_OP_WRITE_CMD ||
+            cmd == GattClient::GATT_OP_SIGNED_WRITE_CMD) {
             response->success();
             // terminate here
             return false;
@@ -766,8 +767,11 @@ struct SignedWriteWithoutResponseCommand : public BaseCommand {
         CMD_ARG("RawData_t", "value", "Hexadecimal string representation of the value to write")
     )
 
-    CMD_HANDLER(const CommandArgs&, CommandResponsePtr& response) {
-        response->notImplemented();
+    CMD_HANDLER(uint16_t connectionHandle, uint16_t characteristicValuehandle, container::Vector<uint8_t>& dataToWrite, CommandResponsePtr& response) {
+        startProcedure<WriteProcedure>(
+            response, /* timeout */ 5 * 1000,
+            GattClient::GATT_OP_SIGNED_WRITE_CMD, connectionHandle, characteristicValuehandle, dataToWrite
+        );
     }
 };
 
