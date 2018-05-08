@@ -22,6 +22,8 @@ public:
 
     void setProperties(uint8_t newProperties);
 
+    void setSecurity(SecurityManager::SecurityMode_t security);
+
     // note: the attribute will be moved and owned by this data structure ...
     void addDescriptor(RAIIGattAttribute* descriptor);
 

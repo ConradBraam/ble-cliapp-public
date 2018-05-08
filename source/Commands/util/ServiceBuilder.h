@@ -44,6 +44,14 @@ public:
         return true;
     }
 
+    bool setCharacteristicSecurity(SecurityManager::SecurityMode_t security) {
+        if(!currentCharacteristic) {
+            return false;
+        }
+        currentCharacteristic->setSecurity(security);
+        return true;
+    }
+
     bool setCharacteristicVariableLength(bool variableLen) {
         if(!currentCharacteristic) {
             return false;

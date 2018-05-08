@@ -355,8 +355,11 @@ struct BasePairingProcedure : public AsyncProcedure, public SecurityManager::Eve
         // Ignore if wrong connection handle
         if(connectionHandle != _connectionHandle) { return; }
 
+        SecurityManagerPasskey_t p;
+        memcpy(p.value, passkey, sizeof(p.value));
+
         // Return passkey
-        success("passkeyDisplay", passkey);
+        success("passkeyDisplay", p);
     }
 
     virtual void confirmationRequest(ble::connection_handle_t connectionHandle) {
