@@ -38,6 +38,7 @@ DECLARE_CMD(InitCommand) {
         CMD_ARG("SecurityManager::SecurityIOCapabilities_t", "iocaps", "Specify the I/O capabilities of this peripheral."),
         CMD_ARG("Passkey_t", "passkey", "Specify a static passkey."),
         CMD_ARG("bool", "signing", "Generate and distribute signing key during pairing."),
+        CMD_ARG("char*", "dbPath", "Path to the file used to store Security Manager data."),
     )
 
     CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
@@ -83,7 +84,35 @@ DECLARE_CMD(InitCommand) {
             return;
         }
 
-        ble_error_t err = sm().init(enableBonding, requireMITM, iocaps, passkey_ptr, signing);
+        const char* db_path = NULL;
+        if((std::strlen(args[5]) != 1) && (args[5][0] != '*'))
+        {
+            db_path = args[5];
+        }
+
+        ble_error_t err = sm().init(enableBonding, requireMITM, iocaps, passkey_ptr, signing, db_path);
+        reportErrorOrSuccess(response, err);
+    }
+};
+
+
+DECLARE_CMD(SetDatabaseFilepathCommand) {
+    CMD_NAME("setDatabaseFilepath")
+
+    CMD_HELP("Change the path to the database used by the security manager.")
+
+    CMD_ARGS(
+        CMD_ARG("char*", "dbPath", "Path to the file used to store Security Manager data."),
+    )
+
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
+        const char* db_path = NULL;
+        if((std::strlen(args[0]) != 1) && (args[0][0] != '*'))
+        {
+            db_path = args[0];
+        }
+
+        ble_error_t err = sm().setDatabaseFilepath(db_path);
         reportErrorOrSuccess(response, err);
     }
 };
@@ -697,6 +726,7 @@ DECLARE_CMD(SetLinkEncryptionAndWaitCommand) {
 
 DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(InitCommand),
+    CMD_INSTANCE(SetDatabaseFilepathCommand),
     CMD_INSTANCE(GetAddressesFromBondTableCommand),
     CMD_INSTANCE(PreserveBondingStateOnResetCommand),
     CMD_INSTANCE(PurgeAllBondingStateCommand),
