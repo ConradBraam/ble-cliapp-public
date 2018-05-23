@@ -5,8 +5,10 @@
 #include "CLICommand/CommandHelper.h"
 #include "Common.h"
 
+#if defined(NO_FILESYSTEM)
 #include "LittleFileSystem.h"
 #include "HeapBlockDevice.h"
+#endif //defined(NO_FILESYSTEM)
 
 using mbed::util::SharedPointer;
 
@@ -125,8 +127,9 @@ DECLARE_CMD(CreateFilesystem) {
     CMD_HELP("Create a filesystem")
 
     CMD_HANDLER(CommandResponsePtr& response) {
-        static LittleFileSystem fs("fs");
-        static HeapBlockDevice bd(4096, 256);
+#if defined(NO_FILESYSTEM)
+        static LittleFileSystem& fs = *(new LittleFileSystem("fs"));
+        static HeapBlockDevice& bd = *(new HeapBlockDevice(4096, 256));
 
         bd.init();
         bd.erase(0, bd.size());
@@ -140,6 +143,9 @@ DECLARE_CMD(CreateFilesystem) {
         } else {
             response->faillure();
         }
+#else
+        response->faillure();
+#endif //defined(NO_FILESYSTEM)
     }
 };
 
