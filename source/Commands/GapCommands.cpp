@@ -832,7 +832,7 @@ DECLARE_CMD(StartScanCommand) {
 
         if (fromString(args[1], address)) {
             startProcedure<ScanProcedure>(response, duration, address);
-        } else if(fromString(args[1], address)) {
+        } else if(fromString(args[1], payload)) {
              startProcedure<ScanProcedure>(response, duration, payload);
         } else {
             response->invalidParameters("second parameter should be a payload or a mac address");
