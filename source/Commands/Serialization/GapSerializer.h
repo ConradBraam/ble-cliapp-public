@@ -34,6 +34,31 @@ static inline serialization::JSONOutputStream& operator<<(serialization::JSONOut
 }
 
 template<>
+struct SerializerDescription<ble::peer_address_type_t> {
+    typedef ble::peer_address_type_t type;
+
+    static const ConstArray<ValueToStringMapping<ble::peer_address_type_t> > mapping() {
+        static const ValueToStringMapping<ble::peer_address_type_t> map[] = {
+            { ble::peer_address_type_t::PUBLIC, "PUBLIC" },
+            { ble::peer_address_type_t::RANDOM, "RANDOM" },
+            { ble::peer_address_type_t::PUBLIC_IDENTITY, "PUBLIC_IDENTITY" },
+            { ble::peer_address_type_t::RANDOM_STATIC_IDENTITY, "RANDOM_STATIC_IDENTITY" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::peer_address_type_t";
+    }
+};
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, ble::peer_address_type_t addr) {
+    return os << toString(addr);
+}
+
+
+template<>
 struct SerializerDescription<Gap::Role_t> {
     typedef Gap::Role_t type;
 
