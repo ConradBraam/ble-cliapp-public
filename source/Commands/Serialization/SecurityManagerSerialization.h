@@ -87,7 +87,7 @@ struct SerializerDescription<SecurityManager_link_encryption_t> {
             { SecurityManager_link_encryption_t::ENCRYPTION_IN_PROGRESS, "ENCRYPTION_IN_PROGRESS" },
             { SecurityManager_link_encryption_t::ENCRYPTED, "ENCRYPTED" },
             { SecurityManager_link_encryption_t::ENCRYPTED_WITH_MITM, "ENCRYPTED_WITH_MITM" },
-
+            { SecurityManager_link_encryption_t::ENCRYPTED_WITH_SC_AND_MITM, "ENCRYPTED_WITH_SC_AND_MITM" },
         };
 
         return makeConstArray(map);
