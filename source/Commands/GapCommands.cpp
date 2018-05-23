@@ -21,6 +21,8 @@
 
 using mbed::util::SharedPointer;
 
+typedef BLEProtocol::AddressType_t LegacyAddressType_t;
+
 // isolation ...
 namespace {
 
@@ -32,7 +34,7 @@ DECLARE_CMD(SetAddressCommand) {
         CMD_ARG("BLEProtocol::AddressType_t", "addressType", "The type of the address to set."),
         CMD_ARG("MacAddress_t", "address" , "The address to set")
     )
-    CMD_HANDLER(BLEProtocol::AddressType_t addressType, MacAddress_t address, CommandResponsePtr& response) {
+    CMD_HANDLER(LegacyAddressType_t addressType, MacAddress_t address, CommandResponsePtr& response) {
         ble_error_t err = gap().setAddress(addressType, address);
         reportErrorOrSuccess(response, err);
     }
@@ -123,7 +125,7 @@ DECLARE_CMD(ConnectCommand) {
     CMD_HELP( "connect to a device, if this function succeed, a ConnectionCallbackParams_t is returned.")
 
     CMD_ARGS(
-        CMD_ARG("BLEProtocol::AddressType_t", "addressType", "The address type to of the peer device."),
+        CMD_ARG("ble::peer_address_type_t|LegacyAddresstype_t", "addressType", "The address type to of the peer device."),
         CMD_ARG("MacAddress_t", "address", "The address itself which is a string representation like \"XX:XX:XX:XX:XX:XX\""),
             // connection parameters
         CMD_ARG("uint16_t", "minConnectionInterval", "Minimum Connection Interval in 1.25 ms units"),
@@ -142,7 +144,7 @@ DECLARE_CMD(ConnectCommand) {
     CMD_RESULTS(
         CMD_RESULT("uint16_t", "handle", "The handle of the connection created"),
         CMD_RESULT("Gap::Role", "role", "Role of the device in the connection (here, it should be central)"),
-        CMD_RESULT("BLEProtocol::AddressType_t", "peerAddrType", "The addressType of the peer"),
+        CMD_RESULT("LegacyAddresstype_t", "peerAddrType", "The addressType of the peer"),
         CMD_RESULT("MacAddress_t", "peerAddr", "The address of the peer"),
         CMD_RESULT("BLEProtocol::AddressType_t", "ownAddrType", "The address type of this device"),
         CMD_RESULT("MacAddress_t", "ownAddr", "The address of this device"),
@@ -150,12 +152,92 @@ DECLARE_CMD(ConnectCommand) {
         CMD_RESULT("uint16_t", "connectionParams.minConnectionInterval", "minimum connection interval for this connection"),
         CMD_RESULT("uint16_t", "connectionParams.maxConnectionInterval", "maximum connection interval for this connection"),
         CMD_RESULT("uint16_t", "connectionParams.slaveLatency", "slave latency of the connection"),
-        CMD_RESULT("uint16_t", "connectionParams.connectionSupervisionTimeout", "supervision timeout for this connection")
+        CMD_RESULT("uint16_t", "connectionParams.connectionSupervisionTimeout", "supervision timeout for this connection"),
+        CMD_RESULT("ble::peer_address_type_t", "peerAddressType", "The addressType of the peer")
     )
 
-    CMD_HANDLER(BLEProtocol::AddressType_t addressType, MacAddress_t address, uint16_t minConnectionInterval, uint16_t maxConnectionInterval,
-                uint16_t slaveLatency, uint16_t connectionSupervisionTimeout, uint16_t scanInterval, uint16_t window, uint16_t scanTimeout,
-                bool activeScanning, uint16_t procedureTimeout, CommandResponsePtr& response) {
+    CMD_HANDLER(
+        const CommandArgs& args, CommandResponsePtr& response
+    ) {
+        if (args.count() != 11) {
+            response->invalidParameters("11 arguments are required");
+            return;
+        }
+
+        bool use_legacy_address_type;
+
+        ble::peer_address_type_t addressType;
+        Gap::AddressType_t legacyAddressType;
+
+        if (fromString(args[0], addressType)) {
+            use_legacy_address_type = false;
+        } else if(fromString(args[0], legacyAddressType)) {
+            use_legacy_address_type = true;
+        } else {
+            response->invalidParameters("invalid address type");
+            return;
+        }
+
+        MacAddress_t address;
+        if (!fromString(args[1], address)) {
+            response->invalidParameters("invalid address");
+            return;
+        }
+
+        uint16_t minConnectionInterval;
+        if (!fromString(args[2], minConnectionInterval)) {
+            response->invalidParameters("invalid minConnectionInterval");
+            return;
+        }
+
+        uint16_t maxConnectionInterval;
+        if (!fromString(args[3], maxConnectionInterval)) {
+            response->invalidParameters("invalid maxConnectionInterval");
+            return;
+        }
+
+        uint16_t slaveLatency;
+        if (!fromString(args[4], slaveLatency)) {
+            response->invalidParameters("invalid slaveLatency");
+            return;
+        }
+
+        uint16_t connectionSupervisionTimeout;
+        if (!fromString(args[5], connectionSupervisionTimeout)) {
+            response->invalidParameters("invalid connectionSupervisionTimeout");
+            return;
+        }
+
+        uint16_t scanInterval;
+        if (!fromString(args[6], scanInterval)) {
+            response->invalidParameters("invalid scanInterval");
+            return;
+        }
+
+        uint16_t window;
+        if (!fromString(args[7], window)) {
+            response->invalidParameters("invalid window");
+            return;
+        }
+
+        uint16_t scanTimeout;
+        if (!fromString(args[8], scanTimeout)) {
+            response->invalidParameters("invalid scanTimeout");
+            return;
+        }
+
+        bool activeScanning;
+        if (!fromString(args[9], activeScanning)) {
+            response->invalidParameters("invalid scanTimeout");
+            return;
+        }
+
+        uint16_t procedureTimeout;
+        if (!fromString(args[10], procedureTimeout)) {
+            response->invalidParameters("invalid procedureTimeout");
+            return;
+        }
+
         // everything is alright, launching the procedure
         Gap::ConnectionParams_t connectionParams = {
             minConnectionInterval,
@@ -171,25 +253,51 @@ DECLARE_CMD(ConnectCommand) {
             activeScanning
         );
 
-        ble_error_t err = gap().connect(
-            address,
-            addressType,
-            &connectionParams,
-            &scanParams
-        );
+
+        ble_error_t err;
+        if (use_legacy_address_type) {
+            err = gap().connect(
+                address,
+                legacyAddressType,
+                &connectionParams,
+                &scanParams
+            );
+        } else {
+            err = gap().connect(
+                address,
+                addressType,
+                &connectionParams,
+                &scanParams
+            );
+        }
 
         if (err) {
             response->faillure(err);
             return;
         }
 
-        startProcedure<ConnectionProcedure>(addressType, address, response, procedureTimeout);
+        startProcedure<ConnectionProcedure>(
+            addressType,
+            legacyAddressType,
+            use_legacy_address_type,
+            address,
+            response,
+            procedureTimeout
+        );
     }
 
     struct ConnectionProcedure : public AsyncProcedure {
-        ConnectionProcedure(BLEProtocol::AddressType_t _addressType, const Gap::Address_t& _address,
-            const SharedPointer<CommandResponse>& res, uint32_t procedureTimeout) :
-            AsyncProcedure(res, procedureTimeout), addressType(_addressType) {
+        ConnectionProcedure(
+            ble::peer_address_type_t _addressType,
+            Gap::AddressType_t legacyAddressType,
+            bool use_legacy_address_type,
+            const Gap::Address_t& _address,
+            const SharedPointer<CommandResponse>& res,
+            uint32_t procedureTimeout
+        ) : AsyncProcedure(res, procedureTimeout),
+            addressType(_addressType),
+            legacyAddressType(legacyAddressType),
+            use_legacy_address_type(use_legacy_address_type) {
             memcpy(address, _address, sizeof(address));
             gap().onConnection(makeFunctionPointer(this, &ConnectionProcedure::whenConnected));
         }
@@ -208,7 +316,20 @@ DECLARE_CMD(ConnectCommand) {
 
             // check that the callback has been called for the right address and object
             if (memcmp(params->peerAddr, address, sizeof(address)) != 0 ||
-                params->peerAddrType != addressType) {
+                ((use_legacy_address_type == false) && (params->peerAddressType != addressType)) ||
+                ((use_legacy_address_type == true) && (params->peerAddrType != legacyAddressType))
+            ) {
+                response->faillure();
+                serialization::JSONOutputStream& os = response->getResultStream();
+                os << startObject <<
+                    key("expected_address") << macAddressToString(address).str <<
+                    key("actual_address") << macAddressToString(params->peerAddr).str <<
+                    key("expected_address_type") << toString(addressType) <<
+                    key("actual_address_type") << toString(params->peerAddrType) <<
+                endObject;
+
+                terminate();
+
                 return;
             }
 
@@ -228,12 +349,17 @@ DECLARE_CMD(ConnectCommand) {
                     key("slaveLatency") << params->connectionParams->slaveLatency <<
                     key("connectionSupervisionTimeout") << params->connectionParams->connectionSupervisionTimeout <<
                 endObject <<
+                key("localResolvableAddr") << macAddressToString(params->localResolvableAddr).str <<
+                key("peerResolvableAddr") << macAddressToString(params->peerResolvableAddr).str <<
+                key("peerAddressType") << toString(params->peerAddressType) <<
             endObject;
 
             terminate();
         }
 
-        BLEProtocol::AddressType_t addressType;
+        ble::peer_address_type_t addressType;
+        Gap::AddressType_t legacyAddressType;
+        bool use_legacy_address_type;
         Gap::Address_t address;
     };
 };
@@ -250,7 +376,7 @@ DECLARE_CMD(WaitForConnectionCommand) {
     CMD_RESULTS(
         CMD_RESULT("uint16_t", "handle", "The handle of the connection created"),
         CMD_RESULT("Gap::Role", "role", "Role of the device in the connection (here, it should be peripheral)"),
-        CMD_RESULT("BLEProtocol::AddressType_t", "peerAddrType", "The addressType of the peer"),
+        CMD_RESULT("LegacyAddresstype_t", "peerAddrType", "The addressType of the peer"),
         CMD_RESULT("MacAddress_t", "peerAddr", "The address of the peer"),
         CMD_RESULT("BLEProtocol::AddressType_t", "ownAddrType", "The address type of this device"),
         CMD_RESULT("MacAddress_t", "ownAddr", "The address of this device"),
@@ -258,7 +384,8 @@ DECLARE_CMD(WaitForConnectionCommand) {
         CMD_RESULT("uint16_t", "connectionParams.minConnectionInterval", "minimum connection interval for this connection"),
         CMD_RESULT("uint16_t", "connectionParams.maxConnectionInterval", "maximum connection interval for this connection"),
         CMD_RESULT("uint16_t", "connectionParams.slaveLatency", "slave latency of the connection"),
-        CMD_RESULT("uint16_t", "connectionParams.connectionSupervisionTimeout", "supervision timeout for this connection")
+        CMD_RESULT("uint16_t", "connectionParams.connectionSupervisionTimeout", "supervision timeout for this connection"),
+        CMD_RESULT("ble::peer_address_type_t", "peerAddressType", "The addressType of the peer")
     )
 
 
@@ -300,6 +427,9 @@ DECLARE_CMD(WaitForConnectionCommand) {
                     key("slaveLatency") << params->connectionParams->slaveLatency <<
                     key("connectionSupervisionTimeout") << params->connectionParams->connectionSupervisionTimeout <<
                 endObject <<
+                key("localResolvableAddr") << macAddressToString(params->localResolvableAddr).str <<
+                key("peerResolvableAddr") << macAddressToString(params->peerResolvableAddr).str <<
+                key("peerAddressType") << toString(params->peerAddressType) <<
             endObject;
 
             terminate();
@@ -832,7 +962,7 @@ DECLARE_CMD(StartScanCommand) {
 
         if (fromString(args[1], address)) {
             startProcedure<ScanProcedure>(response, duration, address);
-        } else if(fromString(args[1], address)) {
+        } else if(fromString(args[1], payload)) {
              startProcedure<ScanProcedure>(response, duration, payload);
         } else {
             response->invalidParameters("second parameter should be a payload or a mac address");
@@ -907,7 +1037,8 @@ DECLARE_CMD(StartScanCommand) {
                 key("type") << scanResult->type <<
                 key("data") << AdvertisingDataSerializer(scanResult->advertisingData, scanResult->advertisingDataLen) <<
                 key("time") << (int32_t) self->timer.read_ms() <<
-                key("peerAddrType") << scanResult->addressType <<
+                key("addressType") << scanResult->addressType <<
+                key("peerAddrType") << scanResult->peerAddrType <<
             endObject;
         }
 
