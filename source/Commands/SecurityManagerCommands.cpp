@@ -85,7 +85,7 @@ DECLARE_CMD(InitCommand) {
         }
 
         const char* db_path = NULL;
-        if (!((std::strlen(args[5]) == 1) && (args[5][0] == '*'))) {
+        if (strcmp(args[5], "*")) {
             db_path = args[5];
         }
 
@@ -106,7 +106,7 @@ DECLARE_CMD(SetDatabaseFilepathCommand) {
 
     CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         const char* db_path = NULL;
-        if (!((std::strlen(args[0]) == 1) && (args[0][0] == '*'))) {
+        if (strcmp(args[0], "*")) {
             db_path = args[0];
         }
 
