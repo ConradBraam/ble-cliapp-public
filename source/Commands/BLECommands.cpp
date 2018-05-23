@@ -5,6 +5,9 @@
 #include "CLICommand/CommandHelper.h"
 #include "Common.h"
 
+#include "LittleFileSystem.h"
+#include "HeapBlockDevice.h"
+
 using mbed::util::SharedPointer;
 
 // isolation
@@ -115,6 +118,31 @@ DECLARE_CMD(GetVersionCommand) {
     }
 };
 
+
+DECLARE_CMD(CreateFilesystem) {
+    CMD_NAME("createFilesystem")
+
+    CMD_HELP("Create a filesystem")
+
+    CMD_HANDLER(CommandResponsePtr& response) {
+        static LittleFileSystem fs("fs");
+        static HeapBlockDevice bd(4096, 256);
+
+        bd.init();
+        bd.erase(0, bd.size());
+        int err = fs.mount(&bd);
+        if (err) {
+            err = fs.reformat(&bd);
+        }
+
+        if (err == 0) {
+            response->success();
+        } else {
+            response->faillure();
+        }
+    }
+};
+
 } // end of annonymous namespace
 
 
@@ -122,5 +150,6 @@ DECLARE_SUITE_COMMANDS(BLECommandSuiteDescription,
     CMD_INSTANCE(ShutdownCommand),
     CMD_INSTANCE(InitCommand),
     CMD_INSTANCE(ResetCommand),
-    CMD_INSTANCE(GetVersionCommand)
+    CMD_INSTANCE(GetVersionCommand),
+    CMD_INSTANCE(CreateFilesystem)
 )

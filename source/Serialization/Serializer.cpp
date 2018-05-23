@@ -84,5 +84,15 @@ bool fromString(const char* str, bool& val) {
         return true;
     }
 
+    if(strcmp(str, "1") == 0) {
+        val = true;
+        return true;
+    }
+
+    if(strcmp(str, "0") == 0) {
+        val = false;
+        return true;
+    }
+
     return false;
 }

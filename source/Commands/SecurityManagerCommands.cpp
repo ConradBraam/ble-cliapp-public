@@ -38,23 +38,24 @@ DECLARE_CMD(InitCommand) {
         CMD_ARG("SecurityManager::SecurityIOCapabilities_t", "iocaps", "Specify the I/O capabilities of this peripheral."),
         CMD_ARG("Passkey_t", "passkey", "Specify a static passkey."),
         CMD_ARG("bool", "signing", "Generate and distribute signing key during pairing."),
+        CMD_ARG("char*", "dbPath", "Path to the file used to store Security Manager data."),
     )
 
     CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         bool enableBonding;
-        if(!fromString(args[0], enableBonding)) {
+        if (!fromString(args[0], enableBonding)) {
             response->invalidParameters("enableBonding should be a bool");
             return;
         }
 
         bool requireMITM;
-        if(!fromString(args[1], requireMITM)) {
+        if (!fromString(args[1], requireMITM)) {
             response->invalidParameters("requireMITM should be a bool");
             return;
         }
 
         SecurityManager::SecurityIOCapabilities_t iocaps;
-        if(!fromString(args[2], iocaps)) {
+        if (!fromString(args[2], iocaps)) {
             response->invalidParameters("iocaps should be a SecurityManager::SecurityIOCapabilities_t");
             return;
         }
@@ -62,12 +63,9 @@ DECLARE_CMD(InitCommand) {
         const uint8_t* passkey_ptr = NULL;
         SecurityManager::Passkey_t passkey;
         // Special case: * for non-static passkey
-        if((std::strlen(args[3]) == 1) && (args[3][0] == '*'))
-        {
+        if (strcmp(args[3], "*") == 0) {
             passkey_ptr = NULL;
-        }
-        else
-        {
+        } else {
             if(std::strlen(args[3]) != sizeof(passkey) ||
             std::count_if(args[3], args[3] + sizeof(passkey), is_digit) != sizeof(passkey)) {
                 response->invalidParameters("passkey should be a SecurityManager::Passkey_t");
@@ -78,12 +76,38 @@ DECLARE_CMD(InitCommand) {
         }
 
         bool signing;
-        if(!fromString(args[4], signing)) {
+        if (!fromString(args[4], signing)) {
             response->invalidParameters("signing should be a bool");
             return;
         }
 
-        ble_error_t err = sm().init(enableBonding, requireMITM, iocaps, passkey_ptr, signing);
+        const char* db_path = NULL;
+        if (strcmp(args[5], "*")) {
+            db_path = args[5];
+        }
+
+        ble_error_t err = sm().init(enableBonding, requireMITM, iocaps, passkey_ptr, signing, db_path);
+        reportErrorOrSuccess(response, err);
+    }
+};
+
+
+DECLARE_CMD(SetDatabaseFilepathCommand) {
+    CMD_NAME("setDatabaseFilepath")
+
+    CMD_HELP("Change the path to the database used by the security manager.")
+
+    CMD_ARGS(
+        CMD_ARG("char*", "dbPath", "Path to the file used to store Security Manager data."),
+    )
+
+    CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
+        const char* db_path = NULL;
+        if (strcmp(args[0], "*")) {
+            db_path = args[0];
+        }
+
+        ble_error_t err = sm().setDatabaseFilepath(db_path);
         reportErrorOrSuccess(response, err);
     }
 };
@@ -697,6 +721,7 @@ DECLARE_CMD(SetLinkEncryptionAndWaitCommand) {
 
 DECLARE_SUITE_COMMANDS(SecurityManagerCommandSuiteDescription,
     CMD_INSTANCE(InitCommand),
+    CMD_INSTANCE(SetDatabaseFilepathCommand),
     CMD_INSTANCE(GetAddressesFromBondTableCommand),
     CMD_INSTANCE(PreserveBondingStateOnResetCommand),
     CMD_INSTANCE(PurgeAllBondingStateCommand),
