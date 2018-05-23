@@ -43,19 +43,19 @@ DECLARE_CMD(InitCommand) {
 
     CMD_HANDLER(const CommandArgs& args, CommandResponsePtr& response) {
         bool enableBonding;
-        if(!fromString(args[0], enableBonding)) {
+        if (!fromString(args[0], enableBonding)) {
             response->invalidParameters("enableBonding should be a bool");
             return;
         }
 
         bool requireMITM;
-        if(!fromString(args[1], requireMITM)) {
+        if (!fromString(args[1], requireMITM)) {
             response->invalidParameters("requireMITM should be a bool");
             return;
         }
 
         SecurityManager::SecurityIOCapabilities_t iocaps;
-        if(!fromString(args[2], iocaps)) {
+        if (!fromString(args[2], iocaps)) {
             response->invalidParameters("iocaps should be a SecurityManager::SecurityIOCapabilities_t");
             return;
         }
@@ -63,12 +63,9 @@ DECLARE_CMD(InitCommand) {
         const uint8_t* passkey_ptr = NULL;
         SecurityManager::Passkey_t passkey;
         // Special case: * for non-static passkey
-        if((std::strlen(args[3]) == 1) && (args[3][0] == '*'))
-        {
+        if (strcmp(args[3], "*") == 0) {
             passkey_ptr = NULL;
-        }
-        else
-        {
+        } else {
             if(std::strlen(args[3]) != sizeof(passkey) ||
             std::count_if(args[3], args[3] + sizeof(passkey), is_digit) != sizeof(passkey)) {
                 response->invalidParameters("passkey should be a SecurityManager::Passkey_t");
@@ -79,7 +76,7 @@ DECLARE_CMD(InitCommand) {
         }
 
         bool signing;
-        if(!fromString(args[4], signing)) {
+        if (!fromString(args[4], signing)) {
             response->invalidParameters("signing should be a bool");
             return;
         }
