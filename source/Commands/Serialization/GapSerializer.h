@@ -12,16 +12,10 @@ struct SerializerDescription<BLEProtocol::AddressType_t> {
     static const ConstArray<ValueToStringMapping<BLEProtocol::AddressType_t> > mapping() {
         static const ValueToStringMapping<BLEProtocol::AddressType_t> map[] = {
             { BLEProtocol::AddressType::PUBLIC, "ADDR_TYPE_PUBLIC" },
-            { BLEProtocol::AddressType::RANDOM, "ADDR_TYPE_RANDOM" },
-            { BLEProtocol::AddressType::PUBLIC_IDENTITY, "ADDR_TYPE_PUBLIC_IDENTITY" },
-            { BLEProtocol::AddressType::RANDOM_STATIC_IDENTITY, "ADDR_TYPE_RANDOM_STATIC_IDENTITY" },
             { BLEProtocol::AddressType::RANDOM_STATIC, "ADDR_TYPE_RANDOM_STATIC" },
             { BLEProtocol::AddressType::RANDOM_PRIVATE_RESOLVABLE, "ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE" },
             { BLEProtocol::AddressType::RANDOM_PRIVATE_NON_RESOLVABLE, "ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE" },
             { BLEProtocol::AddressType::PUBLIC, "PUBLIC" },
-            { BLEProtocol::AddressType::RANDOM, "RANDOM" },
-            { BLEProtocol::AddressType::PUBLIC_IDENTITY, "PUBLIC_IDENTITY" },
-            { BLEProtocol::AddressType::RANDOM_STATIC_IDENTITY, "RANDOM_STATIC_IDENTITY" },
             { BLEProtocol::AddressType::RANDOM_STATIC, "RANDOM_STATIC" },
             { BLEProtocol::AddressType::RANDOM_PRIVATE_RESOLVABLE, "RANDOM_PRIVATE_RESOLVABLE" },
             { BLEProtocol::AddressType::RANDOM_PRIVATE_NON_RESOLVABLE, "RANDOM_PRIVATE_NON_RESOLVABLE" }
