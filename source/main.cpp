@@ -32,6 +32,16 @@ static eq::EventQueueMinar _taskQueue;
 static eq::EventQueueClassic<10> _taskQueue;
 #endif
 
+/**
+ * Macros for setting console flow control.
+ */
+#define CONSOLE_FLOWCONTROL_RTS     1
+#define CONSOLE_FLOWCONTROL_CTS     2
+#define CONSOLE_FLOWCONTROL_RTSCTS  3
+#define mbed_console_concat_(x) CONSOLE_FLOWCONTROL_##x
+#define mbed_console_concat(x) mbed_console_concat_(x)
+#define CONSOLE_FLOWCONTROL mbed_console_concat(MBED_CONF_TARGET_CONSOLE_UART_FLOW_CONTROL)
+
 eq::EventQueue& taskQueue = _taskQueue;
 
 // Prototypes
@@ -41,6 +51,19 @@ static void consumeSerialBytes(void);
 
 RawSerial& get_serial() {
     static RawSerial serial(USBTX, USBRX);
+    static bool initialized = false;
+
+    if (!initialized) {
+#if   CONSOLE_FLOWCONTROL == CONSOLE_FLOWCONTROL_RTS
+    serial.set_flow_control(SerialBase::RTS, STDIO_UART_RTS, NC);
+#elif CONSOLE_FLOWCONTROL == CONSOLE_FLOWCONTROL_CTS
+    serial.set_flow_control(SerialBase::CTS, NC, STDIO_UART_CTS);
+#elif CONSOLE_FLOWCONTROL == CONSOLE_FLOWCONTROL_RTSCTS
+    serial.set_flow_control(SerialBase::RTSCTS, STDIO_UART_RTS, STDIO_UART_CTS);
+#endif
+        initialized = true;
+    }
+
     return serial;
 }
 // constants
@@ -57,15 +80,20 @@ static ::util::CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
 // this function will run in handler mode
 static void whenRxInterrupt(void)
 {
-    bool startConsumer = rxBuffer.empty();
-    while(get_serial().readable()) {
-		if(rxBuffer.push((uint8_t) get_serial().getc()) == false) {
-			error("error, serial buffer is full\r\n");
-		}
-    }
+    static RawSerial& serial = get_serial();
 
-    if(startConsumer) {
-        taskQueue.post(consumeSerialBytes);
+    if (serial.readable()) {
+        bool startConsumer = rxBuffer.empty();
+
+        while (serial.readable()) {
+            if(rxBuffer.push((uint8_t) serial.getc()) == false) {
+                error("error, serial buffer is full\r\n");
+            }
+        }
+
+        if(startConsumer) {
+            taskQueue.post(consumeSerialBytes);
+        }
     }
 }
 
@@ -161,7 +189,7 @@ int main(void)
 }
 #endif
 
-// Custom implementation for mbed_die, 
+// Custom implementation for mbed_die,
 // this reduce the memory consumption
 extern "C" void mbed_die(void) {
     while(true) { }
