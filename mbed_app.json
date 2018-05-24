@@ -30,7 +30,7 @@
             "target.extra_labels_add": ["CORDIO", "CORDIO_BLUENRG"]
         },
         "NRF51_DK": {
-            "target.extra_labels_add": ["NO_FILESYSTEM"]
+            "target.macros_add": ["NO_FILESYSTEM"]
         }
     }
 }
