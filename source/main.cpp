@@ -58,8 +58,10 @@ static ::util::CircularBuffer<uint8_t, CIRCULAR_BUFFER_LENGTH> rxBuffer;
 static void whenRxInterrupt(void)
 {
     bool startConsumer = rxBuffer.empty();
-    if(rxBuffer.push((uint8_t) get_serial().getc()) == false) {
-        error("error, serial buffer is full\r\n");
+    while(get_serial().readable()) {
+		if(rxBuffer.push((uint8_t) get_serial().getc()) == false) {
+			error("error, serial buffer is full\r\n");
+		}
     }
 
     if(startConsumer) {
