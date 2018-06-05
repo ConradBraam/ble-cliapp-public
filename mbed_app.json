@@ -8,8 +8,7 @@
         "OS_TIMERS=0",
         "OS_FIFOSZ=4",
         "NDEBUG=1",
-        "MBED_CMDLINE_MAX_LINE_LENGTH=1000",
-        "MBED_CONF_APP_MAIN_STACK_SIZE=2048"
+        "MBED_CMDLINE_MAX_LINE_LENGTH=1000"
     ],
     "target_overrides": {
         "*": {
@@ -29,8 +28,17 @@
             "target.features_add": ["BLE"],
             "target.extra_labels_add": ["CORDIO", "CORDIO_BLUENRG"]
         },
-        "NRF51_DK": {
-            "target.macros_add": ["NO_FILESYSTEM"]
+        "MCU_NRF51_32K_UNIFIED": {
+            "target.macros_add": [
+                "NO_FILESYSTEM", 
+                "MBED_CONF_APP_MAIN_STACK_SIZE=2048"
+            ]
+        },
+        "MCU_NRF52832": {
+            "target.macros_add": ["MBED_CONF_APP_MAIN_STACK_SIZE=8192"]
+        },
+        "MCU_NRF52840": {
+            "target.macros_add": ["MBED_CONF_APP_MAIN_STACK_SIZE=8192"]
         }
     }
 }
