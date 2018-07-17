@@ -23,9 +23,47 @@ using mbed::util::SharedPointer;
 
 typedef BLEProtocol::AddressType_t LegacyAddressType_t;
 
+void GapEventHandler::RegisterEventHandler() {
+    static GapEventHandler instance;
+    gap().setEventHandler(&instance);
+}
+
+void GapEventHandler::onReadPhy(
+    ble_error_t status,
+    ble::connection_handle_t connectionHandle,
+    ble::phy_t txPhy,
+    ble::phy_t rxPhy
+) {
+    serialization::JSONOutputStream os;
+
+    os << serialization::startObject <<
+        serialization::key("handle") << connectionHandle <<
+        serialization::key("txPhy") << txPhy <<
+        serialization::key("rxPhy") << rxPhy <<
+        serialization::endObject;
+
+    os.flush();
+}
+
+void GapEventHandler::onPhyUpdateComplete(
+    ble_error_t status,
+    ble::connection_handle_t connectionHandle,
+    ble::phy_t txPhy,
+    ble::phy_t rxPhy
+) {
+    serialization::JSONOutputStream os;
+
+    os << serialization::startObject <<
+        serialization::key("handle") << connectionHandle <<
+        serialization::key("txPhy") << txPhy <<
+        serialization::key("rxPhy") << rxPhy <<
+        serialization::endObject;
+
+    os.flush();
+}
+
 // isolation ...
 namespace {
-
 
 DECLARE_CMD(SetAddressCommand) {
     CMD_NAME("setAddress")
@@ -1390,6 +1428,81 @@ DECLARE_CMD(GetCentralPrivacyConfigurationCommand) {
 };
 
 
+DECLARE_CMD(ReadPhyCommand) {
+    CMD_NAME("readPhy")
+    CMD_HELP("Read current PHY of the connection.")
+
+    CMD_ARGS(
+        CMD_RESULT("uint16_t", "handle", "The handle of the connection queried")
+    )
+
+    CMD_HANDLER(
+        Gap::Handle_t handle,
+        CommandResponsePtr& response
+    ) {
+        reportErrorOrSuccess(
+            response,
+            gap().readPhy(handle)
+        );
+    }
+};
+
+
+DECLARE_CMD(SetPhyCommand) {
+    CMD_NAME("setPhy")
+    CMD_HELP("Set PHY preference for given connection.")
+
+    CMD_ARGS(
+        CMD_RESULT("uint16_t", "handle", "The handle of the connection queried"),
+        CMD_RESULT("uint8_t", "tx_phy", "Prefered tx PHYs mask"),
+        CMD_RESULT("uint8_t", "rx_phy", "Prefered rx PHYs mask"),
+        CMD_RESULT("uint8_t", "coded_symbol", "Prefered types of coding")
+    )
+
+    CMD_HANDLER(
+        Gap::Handle_t handle,
+        uint8_t tx_phy,
+        uint8_t rx_phy,
+        uint8_t coded_symbol,
+        CommandResponsePtr& response
+    ) {
+        reportErrorOrSuccess(
+            response,
+            gap().setPhy(
+                handle,
+                (ble::phy_set_t*)&tx_phy,
+                (ble::phy_set_t*)&rx_phy,
+                (ble::coded_symbol_per_bit_t::type)coded_symbol
+            )
+        );
+    }
+};
+
+DECLARE_CMD(SetPreferedPhysCommand) {
+    CMD_NAME("setPreferedPhys")
+    CMD_HELP("Set PHY preference for all connections.")
+
+    CMD_ARGS(
+        CMD_RESULT("uint8_t", "tx phy", "Prefered tx PHYs mask"),
+        CMD_RESULT("uint8_t", "rx phy", "Prefered rx PHYs mask")
+    )
+
+    CMD_HANDLER(
+        uint8_t tx_phy,
+        uint8_t rx_phy,
+        CommandResponsePtr& response
+    ) {
+        reportErrorOrSuccess(
+            response,
+            gap().setPreferedPhys(
+                (ble::phy_set_t*)&tx_phy,
+                (ble::phy_set_t*)&rx_phy
+            )
+        );
+    }
+};
+
+
 } // end of annonymous namespace
 
 
@@ -1447,5 +1560,7 @@ DECLARE_SUITE_COMMANDS(GapCommandSuiteDescription,
     CMD_INSTANCE(SetPeripheralPrivacyConfigurationCommand),
     CMD_INSTANCE(GetPeripheralPrivacyConfigurationCommand),
     CMD_INSTANCE(SetCentralPrivacyConfigurationCommand),
-    CMD_INSTANCE(GetCentralPrivacyConfigurationCommand)
+    CMD_INSTANCE(SetPhyCommand),
+    CMD_INSTANCE(SetPreferedPhysCommand),
+    CMD_INSTANCE(ReadPhyCommand)
 )

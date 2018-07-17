@@ -3,6 +3,24 @@
 
 #include "CLICommand/CommandSuite.h"
 
+struct GapEventHandler : Gap::EventHandler {
+    static void RegisterEventHandler();
+
+    virtual void onReadPhy(
+        ble_error_t status,
+        ble::connection_handle_t connectionHandle,
+        ble::phy_t txPhy,
+        ble::phy_t rxPhy
+    );
+
+    virtual void onPhyUpdateComplete(
+        ble_error_t status,
+        ble::connection_handle_t connectionHandle,
+        ble::phy_t txPhy,
+        ble::phy_t rxPhy
+    );
+};
+
 class GapCommandSuiteDescription {
 
 public:

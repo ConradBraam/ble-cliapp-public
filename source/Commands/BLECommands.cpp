@@ -4,6 +4,7 @@
 #include "CLICommand/util/AsyncProcedure.h"
 #include "CLICommand/CommandHelper.h"
 #include "Common.h"
+#include "GapCommands.h"
 
 #if not defined(NO_FILESYSTEM)
 #include "LittleFileSystem.h"
@@ -57,6 +58,7 @@ DECLARE_CMD(InitCommand) {
 
         virtual bool doStart() {
             get_ble().init(this, &InitProcedure::whenInit);
+            GapEventHandler::RegisterEventHandler();
             return true;
         }
 

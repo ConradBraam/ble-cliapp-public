@@ -6,6 +6,29 @@
 #include "Serialization/JSONOutputStream.h"
 
 template<>
+struct SerializerDescription<ble::phy_t> {
+    typedef ble::phy_t type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::phy_t::LE_1M, "LE_1M" },
+            { ble::phy_t::LE_2M, "LE_2M" },
+            { ble::phy_t::LE_CODED, "LE_CODED" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown phy_t";
+    }
+};
+
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, ble::phy_t type) {
+    return os << toString(type);
+}
+
+template<>
 struct SerializerDescription<BLEProtocol::AddressType_t> {
     typedef BLEProtocol::AddressType_t type;
 
