@@ -1454,9 +1454,9 @@ DECLARE_CMD(SetPhyCommand) {
 
     CMD_ARGS(
         CMD_RESULT("uint16_t", "handle", "The handle of the connection queried"),
-        CMD_RESULT("uint8_t", "tx_phy", "Prefered tx PHYs mask"),
-        CMD_RESULT("uint8_t", "rx_phy", "Prefered rx PHYs mask"),
-        CMD_RESULT("uint8_t", "coded_symbol", "Prefered types of coding")
+        CMD_RESULT("uint8_t", "tx_phy", "Preferred tx PHYs mask"),
+        CMD_RESULT("uint8_t", "rx_phy", "Preferred rx PHYs mask"),
+        CMD_RESULT("uint8_t", "coded_symbol", "Preferred types of coding")
     )
 
     CMD_HANDLER(
@@ -1483,8 +1483,8 @@ DECLARE_CMD(SetPreferedPhysCommand) {
     CMD_HELP("Set PHY preference for all connections.")
 
     CMD_ARGS(
-        CMD_RESULT("uint8_t", "tx phy", "Prefered tx PHYs mask"),
-        CMD_RESULT("uint8_t", "rx phy", "Prefered rx PHYs mask")
+        CMD_RESULT("uint8_t", "tx phy", "Preferred tx PHYs mask"),
+        CMD_RESULT("uint8_t", "rx phy", "Preferred rx PHYs mask")
     )
 
     CMD_HANDLER(
@@ -1494,7 +1494,7 @@ DECLARE_CMD(SetPreferedPhysCommand) {
     ) {
         reportErrorOrSuccess(
             response,
-            gap().setPreferedPhys(
+            gap().setPreferredPhys(
                 (ble::phy_set_t*)&tx_phy,
                 (ble::phy_set_t*)&rx_phy
             )
