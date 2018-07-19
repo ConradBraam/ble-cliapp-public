@@ -23,45 +23,6 @@ using mbed::util::SharedPointer;
 
 typedef BLEProtocol::AddressType_t LegacyAddressType_t;
 
-void GapEventHandler::RegisterEventHandler() {
-    static GapEventHandler instance;
-    gap().setEventHandler(&instance);
-}
-
-void GapEventHandler::onReadPhy(
-    ble_error_t status,
-    ble::connection_handle_t connectionHandle,
-    ble::phy_t txPhy,
-    ble::phy_t rxPhy
-) {
-    serialization::JSONOutputStream os;
-
-    os << serialization::startObject <<
-        serialization::key("handle") << connectionHandle <<
-        serialization::key("txPhy") << txPhy <<
-        serialization::key("rxPhy") << rxPhy <<
-        serialization::endObject;
-
-    os.flush();
-}
-
-void GapEventHandler::onPhyUpdateComplete(
-    ble_error_t status,
-    ble::connection_handle_t connectionHandle,
-    ble::phy_t txPhy,
-    ble::phy_t rxPhy
-) {
-    serialization::JSONOutputStream os;
-
-    os << serialization::startObject <<
-        serialization::key("handle") << connectionHandle <<
-        serialization::key("txPhy") << txPhy <<
-        serialization::key("rxPhy") << rxPhy <<
-        serialization::endObject;
-
-    os.flush();
-}
-
 // isolation ...
 namespace {
 
@@ -1440,11 +1401,48 @@ DECLARE_CMD(ReadPhyCommand) {
         Gap::Handle_t handle,
         CommandResponsePtr& response
     ) {
+        uint16_t procedureTimeout = 0;
+        startProcedure<ReadPhyProcedure>(response, procedureTimeout);
+
         reportErrorOrSuccess(
             response,
             gap().readPhy(handle)
         );
     }
+
+    struct ReadPhyProcedure : public AsyncProcedure, Gap::EventHandler {
+        ReadPhyProcedure(
+            const SharedPointer<CommandResponse>& response,
+            uint32_t procedureTimeout
+        ) : AsyncProcedure(response, procedureTimeout) { }
+
+        virtual ~ReadPhyProcedure() {
+            gap().setEventHandler(NULL);
+        }
+
+        virtual bool doStart() {
+            gap().setEventHandler(this);
+            return true;
+        }
+
+        void onReadPhy(
+            ble_error_t status,
+            ble::connection_handle_t connectionHandle,
+            ble::phy_t txPhy,
+            ble::phy_t rxPhy
+        ) {
+            serialization::JSONOutputStream& os = response->getResultStream();
+
+            os << serialization::startObject <<
+                serialization::key("handle") << connectionHandle <<
+                serialization::key("txPhy") << txPhy <<
+                serialization::key("rxPhy") << rxPhy <<
+            serialization::endObject;
+
+
+            terminate();
+        }
+    };
 };
 
 
