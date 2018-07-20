@@ -1401,20 +1401,15 @@ DECLARE_CMD(ReadPhyCommand) {
         Gap::Handle_t handle,
         CommandResponsePtr& response
     ) {
-        uint16_t procedureTimeout = 0;
-        startProcedure<ReadPhyProcedure>(response, procedureTimeout);
-
-        reportErrorOrSuccess(
-            response,
-            gap().readPhy(handle)
-        );
+        startProcedure<ReadPhyProcedure>(handle, response, 1000 /* timeout in ms */);
     }
 
     struct ReadPhyProcedure : public AsyncProcedure, Gap::EventHandler {
         ReadPhyProcedure(
+            Gap::Handle_t connectionHandle,
             const SharedPointer<CommandResponse>& response,
             uint32_t procedureTimeout
-        ) : AsyncProcedure(response, procedureTimeout) { }
+        ) : AsyncProcedure(response, procedureTimeout), handle(connectionHandle) { }
 
         virtual ~ReadPhyProcedure() {
             gap().setEventHandler(NULL);
@@ -1422,6 +1417,14 @@ DECLARE_CMD(ReadPhyCommand) {
 
         virtual bool doStart() {
             gap().setEventHandler(this);
+            ble_error_t result = gap().readPhy(handle);
+            if (result != BLE_ERROR_NONE) {
+                reportErrorOrSuccess(
+                    response,
+                    result
+                );
+                return false;
+            }
             return true;
         }
 
@@ -1433,15 +1436,18 @@ DECLARE_CMD(ReadPhyCommand) {
         ) {
             serialization::JSONOutputStream& os = response->getResultStream();
 
+            response->success();
+
             os << serialization::startObject <<
                 serialization::key("handle") << connectionHandle <<
                 serialization::key("txPhy") << txPhy <<
                 serialization::key("rxPhy") << rxPhy <<
             serialization::endObject;
 
-
             terminate();
         }
+
+        Gap::Handle_t handle;
     };
 };
 
