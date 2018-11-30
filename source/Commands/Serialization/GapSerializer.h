@@ -1,8 +1,8 @@
 #ifndef BLE_CLIAPP_GAP_SERIALIZER_H_
 #define BLE_CLIAPP_GAP_SERIALIZER_H_
 
-#include "Serialization/Serializer.h"
 #include "ble/Gap.h"
+#include "Serialization/Serializer.h"
 #include "Serialization/JSONOutputStream.h"
 
 template<>
@@ -310,5 +310,103 @@ static inline serialization::JSONOutputStream& operator<<(serialization::JSONOut
         key("resolution_strategy") << configuration.resolution_strategy <<
     endObject;
 }
+
+template<>
+struct SerializerDescription<ble::advertising_type_t::type> {
+    typedef ble::advertising_type_t::type type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::advertising_type_t::CONNECTABLE_UNDIRECTED, "CONNECTABLE_UNDIRECTED" },
+            { ble::advertising_type_t::CONNECTABLE_DIRECTED, "CONNECTABLE_DIRECTED" },
+            { ble::advertising_type_t::SCANNABLE_UNDIRECTED, "SCANNABLE_UNDIRECTED" },
+            { ble::advertising_type_t::NON_CONNECTABLE_UNDIRECTED, "NON_CONNECTABLE_UNDIRECTED" },
+            { ble::advertising_type_t::CONNECTABLE_DIRECTED_LOW_DUTY, "CONNECTABLE_DIRECTED_LOW_DUTY" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::advertising_type_t";
+    }
+};
+
+template<typename Layout, uint32_t TB, typename R, typename F>
+bool fromString(const char* str, ble::Duration<Layout, TB, R, F>& duration) {
+    uint32_t v = 0;
+    if (!fromString(str, v)) {
+        return false;
+    }
+
+    if (v < duration.MIN || v > duration.MIN) {
+        return false;
+    }
+
+    duration = ble::Duration<Layout, TB, R, F>(v);
+    return true;
+}
+
+template<>
+struct SerializerDescription<ble::own_address_type_t::type > {
+    typedef ble::own_address_type_t::type type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::own_address_type_t::PUBLIC, "PUBLIC" },
+            { ble::own_address_type_t::RANDOM, "RANDOM" },
+            { ble::own_address_type_t::RESOLVABLE_PRIVATE_ADDRESS_PUBLIC_FALLBACK, "RESOLVABLE_PRIVATE_ADDRESS_PUBLIC_FALLBACK" },
+            { ble::own_address_type_t::RESOLVABLE_PRIVATE_ADDRESS_RANDOM_FALLBACK, "RESOLVABLE_PRIVATE_ADDRESS_RANDOM_FALLBACK" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::own_address_type_t";
+    }
+};
+
+template<>
+struct SerializerDescription<ble::advertising_filter_policy_t::type > {
+    typedef ble::advertising_filter_policy_t::type type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::advertising_filter_policy_t::NO_FILTER, "NO_FILTER" },
+            { ble::advertising_filter_policy_t::FILTER_SCAN_REQUESTS, "FILTER_SCAN_REQUESTS" },
+            { ble::advertising_filter_policy_t::FILTER_CONNECTION_REQUEST, "FILTER_CONNECTION_REQUEST" },
+            { ble::advertising_filter_policy_t::FILTER_SCAN_AND_CONNECTION_REQUESTS, "FILTER_SCAN_AND_CONNECTION_REQUESTS" },
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::advertising_filter_policy_t";
+    }
+};
+
+
+template<>
+struct SerializerDescription<ble::scanning_filter_policy_t::type > {
+    typedef ble::scanning_filter_policy_t::type type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::scanning_filter_policy_t::NO_FILTER, "NO_FILTER" },
+            { ble::scanning_filter_policy_t::FILTER_ADVERTISING, "FILTER_ADVERTISING" },
+            { ble::scanning_filter_policy_t::NO_FILTER_INCLUDE_UNRESOLVABLE_DIRECTED, "NO_FILTER_INCLUDE_UNRESOLVABLE_DIRECTED" },
+            { ble::scanning_filter_policy_t::FILTER_ADVERTISING_INCLUDE_UNRESOLVABLE_DIRECTED, "FILTER_ADVERTISING_INCLUDE_UNRESOLVABLE_DIRECTED" },
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::scanning_filter_policy_t";
+    }
+};
+
 
 #endif //BLE_CLIAPP_GAP_SERIALIZER_H_
