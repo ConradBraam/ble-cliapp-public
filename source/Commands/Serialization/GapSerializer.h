@@ -6,8 +6,8 @@
 #include "Serialization/JSONOutputStream.h"
 
 template<>
-struct SerializerDescription<ble::phy_t> {
-    typedef ble::phy_t type;
+struct SerializerDescription<ble::phy_t::type> {
+    typedef ble::phy_t::type type;
 
     static const ConstArray<ValueToStringMapping<type> > mapping() {
         static const ValueToStringMapping<type> map[] = {
@@ -25,7 +25,7 @@ struct SerializerDescription<ble::phy_t> {
 };
 
 static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, ble::phy_t type) {
-    return os << toString(type);
+    return os << toString((ble::phy_t::type) type.value());
 }
 
 template<>
