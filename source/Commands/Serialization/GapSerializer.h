@@ -243,11 +243,11 @@ static inline serialization::JSONOutputStream& operator<<(serialization::JSONOut
 }
 
 /**
- * @brief serialization and deserialization of Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy
+ * @brief serialization and deserialization of Gap::PeripheralPrivacyConfiguration_t::resolution_strategy_t
  */
 template<>
-struct SerializerDescription<Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy> {
-    typedef Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy type;
+struct SerializerDescription<Gap::PeripheralPrivacyConfiguration_t::resolution_strategy_t> {
+    typedef Gap::PeripheralPrivacyConfiguration_t::resolution_strategy_t type;
 
     static const ConstArray<ValueToStringMapping<type> > mapping() {
         static const ValueToStringMapping<type> map[] = {
@@ -261,11 +261,11 @@ struct SerializerDescription<Gap::PeripheralPrivacyConfiguration_t::ResolutionSt
     }
 
     static const char* errorMessage() {
-        return "unknown Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy";
+        return "unknown Gap::PeripheralPrivacyConfiguration_t::resolution_strategy_t";
     }
 };
 
-static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy strategy) {
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, Gap::PeripheralPrivacyConfiguration_t::resolution_strategy_t strategy) {
     return os << toString(strategy);
 }
 
@@ -278,11 +278,11 @@ static inline serialization::JSONOutputStream& operator<<(serialization::JSONOut
 }
 
 /**
- * @brief serialization and deserialization of Gap::CentralPrivacyConfiguration_t::ResolutionStrategy
+ * @brief serialization and deserialization of Gap::CentralPrivacyConfiguration_t::resolution_strategy_t
  */
 template<>
-struct SerializerDescription<Gap::CentralPrivacyConfiguration_t::ResolutionStrategy> {
-    typedef Gap::CentralPrivacyConfiguration_t::ResolutionStrategy type;
+struct SerializerDescription<Gap::CentralPrivacyConfiguration_t::resolution_strategy_t> {
+    typedef Gap::CentralPrivacyConfiguration_t::resolution_strategy_t type;
 
     static const ConstArray<ValueToStringMapping<type> > mapping() {
         static const ValueToStringMapping<type> map[] = {
@@ -295,11 +295,11 @@ struct SerializerDescription<Gap::CentralPrivacyConfiguration_t::ResolutionStrat
     }
 
     static const char* errorMessage() {
-        return "unknown Gap::CentralPrivacyConfiguration_t::ResolutionStrategy";
+        return "unknown Gap::CentralPrivacyConfiguration_t::resolution_strategy_t";
     }
 };
 
-static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, Gap::CentralPrivacyConfiguration_t::ResolutionStrategy strategy) {
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, Gap::CentralPrivacyConfiguration_t::resolution_strategy_t strategy) {
     return os << toString(strategy);
 }
 

@@ -1298,12 +1298,12 @@ DECLARE_CMD(SetPeripheralPrivacyConfigurationCommand) {
 
     CMD_ARGS(
         CMD_ARG("bool", "use_non_resolvable_random_address", "Use non resolvable address in non connectable advertisements"),
-        CMD_ARG("Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy", "resolution_strategy", "Strategy used to resolve addresses present in scan and connection requests.")
+        CMD_ARG("Gap::PeripheralPrivacyConfiguration_t::resolution_strategy_t", "resolution_strategy", "Strategy used to resolve addresses present in scan and connection requests.")
     )
 
     CMD_HANDLER(
         bool use_non_resolvable_random_address,
-        Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy& resolution_strategy,
+        Gap::PeripheralPrivacyConfiguration_t::resolution_strategy_t& resolution_strategy,
         CommandResponsePtr& response
     ) {
         Gap::PeripheralPrivacyConfiguration_t configuration = {
@@ -1325,7 +1325,7 @@ DECLARE_CMD(GetPeripheralPrivacyConfigurationCommand) {
 
     CMD_RESULTS(
         CMD_RESULT("bool", "use_non_resolvable_random_address", "Indicates if non resolvable addresses are used in non connectable advertisements."),
-        CMD_RESULT("Gap::PeripheralPrivacyConfiguration_t::ResolutionStrategy", "resolution_strategy", "Strategy used to resolve address in scan and connection requests."),
+        CMD_RESULT("Gap::PeripheralPrivacyConfiguration_t::resolution_strategy_t", "resolution_strategy", "Strategy used to resolve address in scan and connection requests."),
     )
 
     CMD_HANDLER(CommandResponsePtr& response) {
@@ -1347,12 +1347,12 @@ DECLARE_CMD(SetCentralPrivacyConfigurationCommand) {
 
     CMD_ARGS(
         CMD_ARG("bool", "use_non_resolvable_random_address", "Use non resolvable address in scan requests."),
-        CMD_ARG("Gap::CentralPrivacyConfiguration_t::ResolutionStrategy", "resolution_strategy", "Strategy used to resolve addresses present in advertisement packets.")
+        CMD_ARG("Gap::CentralPrivacyConfiguration_t::resolution_strategy_t", "resolution_strategy", "Strategy used to resolve addresses present in advertisement packets.")
     )
 
     CMD_HANDLER(
         bool use_non_resolvable_random_address,
-        Gap::CentralPrivacyConfiguration_t::ResolutionStrategy& resolution_strategy,
+        Gap::CentralPrivacyConfiguration_t::resolution_strategy_t& resolution_strategy,
         CommandResponsePtr& response
     ) {
         Gap::CentralPrivacyConfiguration_t configuration = {
@@ -1374,7 +1374,7 @@ DECLARE_CMD(GetCentralPrivacyConfigurationCommand) {
 
     CMD_RESULTS(
         CMD_RESULT("bool", "use_non_resolvable_random_address", "Indicates if non resolvable addresses are used in scan request."),
-        CMD_RESULT("Gap::CentralPrivacyConfiguration_t::ResolutionStrategy", "resolution_strategy", "Strategy used to resolve addresses in advertisements."),
+        CMD_RESULT("Gap::CentralPrivacyConfiguration_t::resolution_strategy_t", "resolution_strategy", "Strategy used to resolve addresses in advertisements."),
     )
 
     CMD_HANDLER(CommandResponsePtr& response) {
