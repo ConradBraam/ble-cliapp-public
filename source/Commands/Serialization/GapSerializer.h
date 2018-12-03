@@ -409,4 +409,24 @@ struct SerializerDescription<ble::scanning_filter_policy_t::type > {
 };
 
 
+
+template<>
+struct SerializerDescription<ble::initiator_filter_policy_t::type> {
+    typedef ble::initiator_filter_policy_t::type type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::initiator_filter_policy_t::NO_FILTER, "NO_FILTER" },
+            { ble::initiator_filter_policy_t::USE_WHITE_LIST, "USE_WHITE_LIST" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::initiator_filter_policy_t";
+    }
+};
+
+
 #endif //BLE_CLIAPP_GAP_SERIALIZER_H_
