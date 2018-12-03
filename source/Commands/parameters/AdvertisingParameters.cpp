@@ -139,3 +139,7 @@ DECLARE_SUITE_COMMANDS(AdvertisingParametersCommandSuiteDescription,
     CMD_INSTANCE(IncludeTxPowerInHeader),
     CMD_INSTANCE(SetAnonymousAdvertising)
 );
+
+const ble::AdvertisingParameters& AdvertisingParametersCommandSuiteDescription::get() {
+    return parameters;
+}

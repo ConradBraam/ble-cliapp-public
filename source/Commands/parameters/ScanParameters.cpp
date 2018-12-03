@@ -74,3 +74,7 @@ DECLARE_SUITE_COMMANDS(ScanParametersCommandSuiteDescription,
     CMD_INSTANCE(Set1mPhyConfiguration),
     CMD_INSTANCE(SetCodedPhyConfiguration)
 );
+
+const ble::ScanParameters& ScanParametersCommandSuiteDescription::get() {
+    return parameters;
+}
