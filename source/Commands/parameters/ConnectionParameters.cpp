@@ -58,7 +58,7 @@ DECLARE_CMD(SetOwnAddressType) {
 DECLARE_CMD(SetFilterPolicy) {
     CMD_NAME("setFilterPolicy")
     CMD_HANDLER(ble::initiator_filter_policy_t::type filter, CommandResponsePtr& response) {
-        parameters.setFilterPolicy(filter);
+        parameters.setFilter(filter);
         response->success();
     }
 };
