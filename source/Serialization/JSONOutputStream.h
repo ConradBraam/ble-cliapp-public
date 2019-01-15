@@ -216,6 +216,19 @@ private:
 };
 
 /**
+ * Specialization of a JSONOutputStream that represents an asynchronous event.
+ * The event begin a new line with the characters '<<< '
+ */
+struct JSONEventStream : public JSONOutputStream {
+    JSONEventStream(mbed::RawSerial& output = get_serial()) :
+        JSONOutputStream(output)
+    {
+        output.puts("<<< ");
+    }
+};
+
+
+/**
  * @brief Start a new array in the output stream.
  * @param os The output stream to operate on
  * @return os
