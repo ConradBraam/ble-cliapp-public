@@ -42,8 +42,8 @@ DECLARE_CMD(SetFilter) {
 
 DECLARE_CMD(SetPhys) {
     CMD_NAME("setPhys")
-    CMD_HANDLER(bool enable1M, bool enable2M, CommandResponsePtr& response) {
-        parameters.setPhys(enable1M, enable2M);
+    CMD_HANDLER(bool enable1M, bool enablePhy, CommandResponsePtr& response) {
+        parameters.setPhys(enable1M, enablePhy);
         response->success();
     }
 };
