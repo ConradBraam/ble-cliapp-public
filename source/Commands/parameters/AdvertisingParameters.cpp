@@ -107,7 +107,7 @@ DECLARE_CMD(SetUseLegacyPDU) {
 };
 
 DECLARE_CMD(IncludeTxPowerInHeader) {
-    CMD_NAME("IncludeTxPowerInHeader")
+    CMD_NAME("includeTxPowerInHeader")
     CMD_HANDLER(bool enable, CommandResponsePtr& response) {
         parameters.includeTxPowerInHeader(enable);
         response->success();
