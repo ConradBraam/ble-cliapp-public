@@ -57,34 +57,24 @@ JSONOutputStream& JSONOutputStream::operator<<(const char* value) {
 }
 
 JSONOutputStream& startArray(JSONOutputStream& os) {
-    os.write("[\r\n");
-    ++os.indentation;
-    os.indent();
+    os.write("[");
     return os;
 }
 
 JSONOutputStream& endArray(JSONOutputStream& os) {
     os.startNewValue = false;
-    os.write("\r\n");
-    --os.indentation;
-    os.indent();
     os.put(']');
     os.commitValue();
     return os;
 }
 
 JSONOutputStream& startObject(JSONOutputStream& os) {
-    os.write("{\r\n");
-    ++os.indentation;
-    os.indent();
+    os.write("{");
     return os;
 }
 
 JSONOutputStream& endObject(JSONOutputStream& os) {
     os.startNewValue = false;
-    os.write("\r\n");
-    --os.indentation;
-    os.indent();
     os.put('}');
     os.commitValue();
     return os;
@@ -97,7 +87,7 @@ JSONOutputStream& nil(JSONOutputStream& os) {
  }
 
 JSONOutputStream::JSONOutputStream(mbed::RawSerial& output) :
-    out(output), startNewValue(false), indentation(0) {
+    out(output), startNewValue(false) {
 }
 
 JSONOutputStream::~JSONOutputStream() {
@@ -174,15 +164,8 @@ JSONOutputStream& JSONOutputStream::vformatValue(const char *fmt, std::va_list l
 
 void JSONOutputStream::handleNewValue() {
     if(startNewValue) {
-        out.puts(",\r\n");
-        indent();
+        out.puts(",");
         startNewValue = false;
-    }
-}
-
-void JSONOutputStream::indent() {
-    for (uint8_t i = 0; i < indentation; ++i) {
-        out.putc('\t');
     }
 }
 

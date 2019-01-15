@@ -204,9 +204,6 @@ public:
     JSONOutputStream& vformatValue(const char *fmt, std::va_list list);
 
 private:
-    // apply the indentation
-    void indent();
-
     // disable all copy operation and move assignment (delete of move operations
     // is more questionable here)
     JSONOutputStream(const JSONOutputStream&);
@@ -216,7 +213,6 @@ private:
 
     mbed::RawSerial& out;
     bool startNewValue;
-    uint8_t indentation;
 };
 
 /**
