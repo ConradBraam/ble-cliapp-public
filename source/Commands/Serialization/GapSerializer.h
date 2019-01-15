@@ -149,8 +149,15 @@ static inline bool fromString(const char* str, MacAddress_t& val) {
     return macAddressFromString(str, val);
 }
 
+static inline bool fromString(const char* str, ble::address_t& val) {
+    return macAddressFromString(str, reinterpret_cast<Gap::Address_t&>(*val.data()));
+}
 
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::Address_t& addr);
+
+inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const ble::address_t& addr) {
+    return os << addr.data();
+}
 
 /// convert Gap::ConnectionParams_t from CLI to structure
 bool connectionParamsFromCLI(const char* str, Gap::ConnectionParams_t& params);
@@ -347,6 +354,11 @@ bool fromString(const char* str, ble::Duration<Layout, TB, R, F>& duration) {
     return true;
 }
 
+template<typename Layout, uint32_t TB, typename R, typename F>
+serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, ble::Duration<Layout, TB, R, F> duration) {
+    return os << duration.value();
+}
+
 template<>
 struct SerializerDescription<ble::own_address_type_t::type > {
     typedef ble::own_address_type_t::type type;
@@ -387,7 +399,6 @@ struct SerializerDescription<ble::advertising_filter_policy_t::type > {
     }
 };
 
-
 template<>
 struct SerializerDescription<ble::scanning_filter_policy_t::type > {
     typedef ble::scanning_filter_policy_t::type type;
@@ -409,7 +420,6 @@ struct SerializerDescription<ble::scanning_filter_policy_t::type > {
 };
 
 
-
 template<>
 struct SerializerDescription<ble::initiator_filter_policy_t::type> {
     typedef ble::initiator_filter_policy_t::type type;
@@ -428,5 +438,145 @@ struct SerializerDescription<ble::initiator_filter_policy_t::type> {
     }
 };
 
+template<>
+struct SerializerDescription<ble::duplicates_filter_t::type> {
+    typedef ble::duplicates_filter_t::type type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::duplicates_filter_t::DISABLE, "DISABLE" },
+            { ble::duplicates_filter_t::ENABLE, "ENABLE" },
+            { ble::duplicates_filter_t::PERIODIC_RESET, "PERIODIC_RESET" },
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::duplicates_filter_t";
+    }
+};
+
+template<>
+struct SerializerDescription<ble::peer_address_type_t::type> {
+    typedef ble::peer_address_type_t::type type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::peer_address_type_t::PUBLIC, "PUBLIC" },
+            { ble::peer_address_type_t::RANDOM, "RANDOM" },
+            { ble::peer_address_type_t::PUBLIC_IDENTITY, "PUBLIC_IDENTITY" },
+            { ble::peer_address_type_t::RANDOM_STATIC_IDENTITY, "RANDOM_STATIC_IDENTITY" },
+            { ble::peer_address_type_t::ANONYMOUS, "ANONYMOUS" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::peer_address_type_t";
+    }
+};
+
+template<>
+struct SerializerDescription<ble::local_disconnection_reason_t::type> {
+    typedef ble::local_disconnection_reason_t::type type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::local_disconnection_reason_t::USER_TERMINATION, "USER_TERMINATION" },
+            { ble::local_disconnection_reason_t::AUTHENTICATION_FAILURE, "AUTHENTICATION_FAILURE" },
+            { ble::local_disconnection_reason_t::LOW_RESOURCES, "LOW_RESOURCES" },
+            { ble::local_disconnection_reason_t::PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED, "PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED" },
+            { ble::local_disconnection_reason_t::POWER_OFF, "POWER_OFF" },
+            { ble::local_disconnection_reason_t::UNACCEPTABLE_CONNECTION_PARAMETERS, "UNACCEPTABLE_CONNECTION_PARAMETERS" },
+            { ble::local_disconnection_reason_t::UNSUPPORTED_REMOTE_FEATURE, "UNSUPPORTED_REMOTE_FEATURE" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::local_disconnection_reason_t";
+    }
+};
+
+template<>
+struct SerializerDescription<ble::controller_supported_features_t::type> {
+    typedef ble::controller_supported_features_t::type type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::controller_supported_features_t::LE_EXTENDED_ADVERTISING, "LE_EXTENDED_ADVERTISING" },
+            { ble::controller_supported_features_t::LE_2M_PHY, "LE_2M_PHY" },
+            { ble::controller_supported_features_t::CHANNEL_SELECTION_ALGORITHM_2, "CHANNEL_SELECTION_ALGORITHM_2" },
+            { ble::controller_supported_features_t::CONNECTION_PARAMETERS_REQUEST_PROCEDURE, "CONNECTION_PARAMETERS_REQUEST_PROCEDURE" },
+            { ble::controller_supported_features_t::EXTENDED_REJECT_INDICATION, "EXTENDED_REJECT_INDICATION" },
+            { ble::controller_supported_features_t::EXTENDED_SCANNER_FILTER_POLICIES, "EXTENDED_SCANNER_FILTER_POLICIES" },
+            { ble::controller_supported_features_t::LE_CODED_PHY, "LE_CODED_PHY" },
+            { ble::controller_supported_features_t::LE_DATA_PACKET_LENGTH_EXTENSION, "LE_DATA_PACKET_LENGTH_EXTENSION" },
+            { ble::controller_supported_features_t::LE_ENCRYPTION, "LE_ENCRYPTION" },
+            { ble::controller_supported_features_t::LE_PERIODIC_ADVERTISING, "LE_PERIODIC_ADVERTISING" },
+            { ble::controller_supported_features_t::LE_PING, "LE_PING" },
+            { ble::controller_supported_features_t::LE_POWER_CLASS, "LE_POWER_CLASS" },
+            { ble::controller_supported_features_t::LL_PRIVACY, "LL_PRIVACY" },
+            { ble::controller_supported_features_t::SLAVE_INITIATED_FEATURES_EXCHANGE, "SLAVE_INITIATED_FEATURES_EXCHANGE" },
+            { ble::controller_supported_features_t::STABLE_MODULATION_INDEX_RECEIVER, "STABLE_MODULATION_INDEX_RECEIVER" },
+            { ble::controller_supported_features_t::STABLE_MODULATION_INDEX_TRANSMITTER, "STABLE_MODULATION_INDEX_TRANSMITTER" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::local_disconnection_reason_t";
+    }
+};
+
+
+template<>
+struct SerializerDescription<ble::advertising_data_status_t::type> {
+    typedef ble::advertising_data_status_t::type type;
+
+    static const ConstArray<ValueToStringMapping<type> > mapping() {
+        static const ValueToStringMapping<type> map[] = {
+            { ble::advertising_data_status_t::COMPLETE, "COMPLETE" },
+            { ble::advertising_data_status_t::INCOMPLETE_MORE_DATA, "INCOMPLETE_MORE_DATA" },
+            { ble::advertising_data_status_t::INCOMPLETE_DATA_TRUNCATED, "INCOMPLETE_DATA_TRUNCATED" }
+        };
+
+        return makeConstArray(map);
+    }
+
+    static const char* errorMessage() {
+        return "unknown ble::advertising_data_status_t";
+    }
+};
+
+inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, ble::advertising_data_status_t v) {
+    return os << toString((ble::advertising_data_status_t::type) v.value());
+}
+
+inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, ble::disconnection_reason_t v)
+{
+    switch (v.value()) {
+        case ble::disconnection_reason_t::AUTHENTICATION_FAILURE:
+            return os << "AUTHENTICATION_FAILURE";
+        case ble::disconnection_reason_t::CONNECTION_TIMEOUT:
+            return os << "CONNECTION_TIMEOUT";
+        case ble::disconnection_reason_t::REMOTE_USER_TERMINATED_CONNECTION:
+            return os << "REMOTE_USER_TERMINATED_CONNECTION";
+        case ble::disconnection_reason_t::REMOTE_DEV_TERMINATION_DUE_TO_LOW_RESOURCES:
+            return os << "REMOTE_DEV_TERMINATION_DUE_TO_LOW_RESOURCES";
+        case ble::disconnection_reason_t::REMOTE_DEV_TERMINATION_DUE_TO_POWER_OFF:
+            return os << "REMOTE_DEV_TERMINATION_DUE_TO_POWER_OFF";
+        case ble::disconnection_reason_t::LOCAL_HOST_TERMINATED_CONNECTION:
+            return os << "LOCAL_HOST_TERMINATED_CONNECTION";
+        case ble::disconnection_reason_t::UNACCEPTABLE_CONNECTION_PARAMETERS:
+            return os << "UNACCEPTABLE_CONNECTION_PARAMETERS";
+        default:
+            return os << "unknown disconnection_reason_t";
+    }
+}
 
 #endif //BLE_CLIAPP_GAP_SERIALIZER_H_
