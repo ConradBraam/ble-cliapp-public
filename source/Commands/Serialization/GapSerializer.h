@@ -530,7 +530,7 @@ struct SerializerDescription<ble::controller_supported_features_t::type> {
     }
 
     static const char* errorMessage() {
-        return "unknown ble::local_disconnection_reason_t";
+        return "unknown ble::controller_supported_features_t";
     }
 };
 
