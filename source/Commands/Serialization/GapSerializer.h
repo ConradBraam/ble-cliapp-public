@@ -13,7 +13,8 @@ struct SerializerDescription<ble::phy_t::type> {
         static const ValueToStringMapping<type> map[] = {
             { ble::phy_t::LE_1M, "LE_1M" },
             { ble::phy_t::LE_2M, "LE_2M" },
-            { ble::phy_t::LE_CODED, "LE_CODED" }
+            { ble::phy_t::LE_CODED, "LE_CODED" },
+            { ble::phy_t::NONE, "NONE" }
         };
 
         return makeConstArray(map);
