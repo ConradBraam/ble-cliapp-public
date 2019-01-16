@@ -341,12 +341,12 @@ struct SerializerDescription<ble::advertising_type_t::type> {
 
 template<typename Layout, uint32_t TB, typename R, typename F>
 bool fromString(const char* str, ble::Duration<Layout, TB, R, F>& duration) {
-    uint32_t v = 0;
+    Layout v = 0;
     if (!fromString(str, v)) {
         return false;
     }
 
-    if (v < duration.MIN || v > duration.MIN) {
+    if (v < duration.MIN || v > duration.MAX) {
         return false;
     }
 

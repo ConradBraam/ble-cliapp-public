@@ -69,7 +69,7 @@ bool fromString(const char* str, unsigned int& val) {
 }
 
 bool fromString(const char* str, long unsigned int& val) {
-    return fromString(str, (uint32_t&) val);
+    return fromString(str, (unsigned int&) val);
 }
 
 
