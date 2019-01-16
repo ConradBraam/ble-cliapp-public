@@ -110,7 +110,7 @@ DECLARE_CMD(SetTxPower) {
 DECLARE_CMD(SetSecondaryMaxSkip) {
     CMD_NAME("setSecondaryMaxSkip")
     CMD_ARGS(
-        CMD_ARG("uint8_t", "eventNumbed", "")
+        CMD_ARG("uint8_t", "eventNumber", "")
     )
     CMD_HANDLER(uint8_t eventNumber, CommandResponsePtr& response) {
         parameters.setSecondaryMaxSkip(eventNumber);
