@@ -26,6 +26,9 @@ DECLARE_CMD(Reset) {
 
 DECLARE_CMD(SetType) {
     CMD_NAME("setType")
+    CMD_ARGS(
+        CMD_ARG("ble::advertising_type_t::type", "type", "")
+    )
     CMD_HANDLER(ble::advertising_type_t::type type, CommandResponsePtr& response) {
         parameters.setType(type);
         response->success();
@@ -34,6 +37,10 @@ DECLARE_CMD(SetType) {
 
 DECLARE_CMD(SetPrimaryInterval) {
     CMD_NAME("setPrimaryInterval")
+    CMD_ARGS(
+        CMD_ARG("ble::adv_interval_t", "min", ""),
+        CMD_ARG("ble::adv_interval_t", "max", ""),
+    )
     CMD_HANDLER(ble::adv_interval_t min, ble::adv_interval_t max, CommandResponsePtr& response) {
         parameters.setPrimaryInterval(min, max);
         response->success();
@@ -42,6 +49,11 @@ DECLARE_CMD(SetPrimaryInterval) {
 
 DECLARE_CMD(SetPrimaryChannels) {
     CMD_NAME("setPrimaryChannels")
+    CMD_ARGS(
+        CMD_ARG("bool", "chan37", ""),
+        CMD_ARG("bool", "chan38", ""),
+        CMD_ARG("bool", "chan39", ""),
+    )
     CMD_HANDLER(bool chan37, bool chan38, bool chan39, CommandResponsePtr& response) {
         parameters.setPrimaryChannels(chan37, chan38, chan39);
         response->success();
@@ -50,6 +62,9 @@ DECLARE_CMD(SetPrimaryChannels) {
 
 DECLARE_CMD(SetOwnAddressType) {
     CMD_NAME("setOwnAddressType")
+    CMD_ARGS(
+        CMD_ARG("ble::own_address_type_t::type", "type", "")
+    )
     CMD_HANDLER(ble::own_address_type_t::type type, CommandResponsePtr& response) {
         parameters.setOwnAddressType(type);
         response->success();
@@ -60,6 +75,9 @@ DECLARE_CMD(SetOwnAddressType) {
 
 DECLARE_CMD(SetFilter) {
     CMD_NAME("setFilter")
+    CMD_ARGS(
+        CMD_ARG("ble::advertising_filter_policy_t::type", "type", "")
+    )
     CMD_HANDLER(ble::advertising_filter_policy_t::type filter, CommandResponsePtr& response) {
         parameters.setFilter(filter);
         response->success();
@@ -68,6 +86,10 @@ DECLARE_CMD(SetFilter) {
 
 DECLARE_CMD(SetPhy) {
     CMD_NAME("setPhy")
+    CMD_ARGS(
+        CMD_ARG("ble::phy_t::type", "primaryPhy", ""),
+        CMD_ARG("ble::phy_t::type", "secondaryPhy", "")
+    )
     CMD_HANDLER(ble::phy_t::type primaryPhy, ble::phy_t::type secondaryPhy, CommandResponsePtr& response) {
         parameters.setPhy(primaryPhy, secondaryPhy);
         response->success();
@@ -76,6 +98,9 @@ DECLARE_CMD(SetPhy) {
 
 DECLARE_CMD(SetTxPower) {
     CMD_NAME("setTxPower")
+    CMD_ARGS(
+        CMD_ARG("ble::advertising_power_t", "power", "")
+    )
     CMD_HANDLER(ble::advertising_power_t power, CommandResponsePtr& response) {
         parameters.setTxPower(power);
         response->success();
@@ -84,6 +109,9 @@ DECLARE_CMD(SetTxPower) {
 
 DECLARE_CMD(SetSecondaryMaxSkip) {
     CMD_NAME("setSecondaryMaxSkip")
+    CMD_ARGS(
+        CMD_ARG("uint8_t", "eventNumbed", "")
+    )
     CMD_HANDLER(uint8_t eventNumber, CommandResponsePtr& response) {
         parameters.setSecondaryMaxSkip(eventNumber);
         response->success();
@@ -92,6 +120,9 @@ DECLARE_CMD(SetSecondaryMaxSkip) {
 
 DECLARE_CMD(SetScanRequestNotification) {
     CMD_NAME("setScanRequestNotification")
+    CMD_ARGS(
+        CMD_ARG("bool", "enable", "")
+    )
     CMD_HANDLER(bool enable, CommandResponsePtr& response) {
         parameters.setScanRequestNotification(enable);
         response->success();
@@ -100,6 +131,9 @@ DECLARE_CMD(SetScanRequestNotification) {
 
 DECLARE_CMD(SetUseLegacyPDU) {
     CMD_NAME("setUseLegacyPDU")
+    CMD_ARGS(
+        CMD_ARG("bool", "enable", "")
+    )
     CMD_HANDLER(bool enable, CommandResponsePtr& response) {
         parameters.setUseLegacyPDU(enable);
         response->success();
@@ -108,6 +142,9 @@ DECLARE_CMD(SetUseLegacyPDU) {
 
 DECLARE_CMD(IncludeTxPowerInHeader) {
     CMD_NAME("includeTxPowerInHeader")
+    CMD_ARGS(
+        CMD_ARG("bool", "enable", "")
+    )
     CMD_HANDLER(bool enable, CommandResponsePtr& response) {
         parameters.includeTxPowerInHeader(enable);
         response->success();
@@ -116,6 +153,9 @@ DECLARE_CMD(IncludeTxPowerInHeader) {
 
 DECLARE_CMD(SetAnonymousAdvertising) {
     CMD_NAME("setAnonymousAdvertising")
+    CMD_ARGS(
+        CMD_ARG("bool", "enable", "")
+    )
     CMD_HANDLER(bool enable, CommandResponsePtr& response) {
         parameters.setAnonymousAdvertising(enable);
         response->success();

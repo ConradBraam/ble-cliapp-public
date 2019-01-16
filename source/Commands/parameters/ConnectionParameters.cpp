@@ -26,6 +26,11 @@ DECLARE_CMD(Reset) {
 
 DECLARE_CMD(SetScanParameters) {
     CMD_NAME("setScanParameters")
+    CMD_ARGS(
+        CMD_ARG("ble::phy_t::type", "phy", ""),
+        CMD_ARG("ble::conn_interval_t", "min", ""),
+        CMD_ARG("ble::conn_interval_t", "max", "")
+    )
     CMD_HANDLER(ble::phy_t::type phy, ble::conn_interval_t min, ble::conn_interval_t max, CommandResponsePtr& response) {
         parameters.setScanParameters(phy, min, max);
         response->success();
@@ -34,6 +39,13 @@ DECLARE_CMD(SetScanParameters) {
 
 DECLARE_CMD(SetConnectionParameters) {
     CMD_NAME("setConnectionParameters")
+    CMD_ARGS(
+        CMD_ARG("ble::phy_t::type", "phy", ""),
+        CMD_ARG("ble::conn_interval_t", "min", ""),
+        CMD_ARG("ble::conn_interval_t", "max", ""),
+        CMD_ARG("uint16_t", "slave_latency", ""),
+        CMD_ARG("ble::supervision_timeout_t", "supervision_timeout", "")
+    )
     CMD_HANDLER(
         ble::phy_t::type phy,
         ble::conn_interval_t min,
@@ -49,6 +61,9 @@ DECLARE_CMD(SetConnectionParameters) {
 
 DECLARE_CMD(SetOwnAddressType) {
     CMD_NAME("setOwnAddressType")
+    CMD_ARGS(
+        CMD_ARG("ble::own_address_type_t::type", "type", "")
+    )
     CMD_HANDLER(ble::own_address_type_t::type type, CommandResponsePtr& response) {
         parameters.setOwnAddressType(type);
         response->success();
@@ -57,6 +72,9 @@ DECLARE_CMD(SetOwnAddressType) {
 
 DECLARE_CMD(SetFilterPolicy) {
     CMD_NAME("setFilterPolicy")
+    CMD_ARGS(
+        CMD_ARG("ble::initiator_filter_policy_t::type", "filter", "")
+    )
     CMD_HANDLER(ble::initiator_filter_policy_t::type filter, CommandResponsePtr& response) {
         parameters.setFilter(filter);
         response->success();
@@ -65,6 +83,11 @@ DECLARE_CMD(SetFilterPolicy) {
 
 DECLARE_CMD(TogglePhy) {
     CMD_NAME("togglePhy")
+    CMD_ARGS(
+        CMD_ARG("bool", "phy1M", ""),
+        CMD_ARG("bool", "phy2M", ""),
+        CMD_ARG("bool", "phyCoded", ""),
+    )
     CMD_HANDLER(bool phy1M, bool phy2M, bool phyCoded, CommandResponsePtr& response) {
         parameters.togglePhy(phy1M, phy2M, phyCoded);
         response->success();
@@ -73,6 +96,9 @@ DECLARE_CMD(TogglePhy) {
 
 DECLARE_CMD(DisablePhy) {
     CMD_NAME("disablePhy")
+    CMD_ARGS(
+        CMD_ARG("ble::phy_t::type", "phy", "")
+    )
     CMD_HANDLER(ble::phy_t::type phy, CommandResponsePtr& response) {
         parameters.disablePhy(phy);
         response->success();
@@ -81,6 +107,9 @@ DECLARE_CMD(DisablePhy) {
 
 DECLARE_CMD(EnablePhy) {
     CMD_NAME("enablePhy")
+    CMD_ARGS(
+        CMD_ARG("ble::phy_t::type", "phy", "")
+    )
     CMD_HANDLER(ble::phy_t::type phy, CommandResponsePtr& response) {
         parameters.enablePhy(phy);
         response->success();

@@ -514,6 +514,9 @@ bool use_version(uint8_t);
 DECLARE_CMD(UseVersion) {
     CMD_NAME("useVersion")
     CMD_HELP("Use a specific version of the API.")
+    CMD_ARGS(
+        CMD_RESULT("uint8_t", "version", "")
+    )
     CMD_HANDLER(uint8_t version, CommandResponsePtr& response) {
         bool success = use_version(version);
         if (success) {

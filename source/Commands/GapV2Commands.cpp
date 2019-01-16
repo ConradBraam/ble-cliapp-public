@@ -372,6 +372,9 @@ DECLARE_CMD(CreateAdvertisingSet) {
 
 DECLARE_CMD(DestroyAdvertisingSet) {
     CMD_NAME("destroyAdvertisingSet")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, CommandResponsePtr& response) {
         ble_error_t err = gap().destroyAdvertisingSet(handle);
         reportErrorOrSuccess(response, err);
@@ -380,6 +383,9 @@ DECLARE_CMD(DestroyAdvertisingSet) {
 
 DECLARE_CMD(SetAdvertisingParameters) {
     CMD_NAME("setAdvertisingParameters")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, CommandResponsePtr& response) {
         ble_error_t err = gap().setAdvertisingParameters(handle, getAdvertisingParameters());
         reportErrorOrSuccess(response, err);
@@ -388,6 +394,10 @@ DECLARE_CMD(SetAdvertisingParameters) {
 
 DECLARE_CMD(SetAdvertisingPayload) {
     CMD_NAME("setAdvertisingPayload")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", ""),
+        CMD_RESULT("RawData_t", "data", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, RawData_t& data, CommandResponsePtr& response) {
         ble_error_t err = gap().setAdvertisingPayload(handle, mbed::make_Span(data.cbegin(), data.size()));
         reportErrorOrSuccess(response, err);
@@ -396,6 +406,10 @@ DECLARE_CMD(SetAdvertisingPayload) {
 
 DECLARE_CMD(SetAdvertisingScanResponse) {
     CMD_NAME("setAdvertisingScanResponse")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", ""),
+        CMD_RESULT("RawData_t", "data", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, RawData_t& data, CommandResponsePtr& response) {
         ble_error_t err = gap().setAdvertisingPayload(handle, mbed::make_Span(data.cbegin(), data.size()));
         reportErrorOrSuccess(response, err);
@@ -404,6 +418,11 @@ DECLARE_CMD(SetAdvertisingScanResponse) {
 
 DECLARE_CMD(StartAdvertising) {
     CMD_NAME("startAdvertising")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", ""),
+        CMD_RESULT("ble::adv_duration_t", "duration", ""),
+        CMD_RESULT("uint8_t", "maxEvent", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, ble::adv_duration_t duration, uint8_t maxEvents, CommandResponsePtr& response) {
         ble_error_t err = gap().startAdvertising(handle, duration, maxEvents);
         reportErrorOrSuccess(response, err);
@@ -412,6 +431,9 @@ DECLARE_CMD(StartAdvertising) {
 
 DECLARE_CMD(StopAdvertising) {
     CMD_NAME("stopAdvertising")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, CommandResponsePtr& response) {
         ble_error_t err = gap().stopAdvertising(handle);
         reportErrorOrSuccess(response, err);
@@ -420,6 +442,9 @@ DECLARE_CMD(StopAdvertising) {
 
 DECLARE_CMD(IsAdvertisingActive) {
     CMD_NAME("isAdvertisingActive")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, CommandResponsePtr& response) {
         bool active = gap().isAdvertisingActive(handle);
         response->success(active);
@@ -428,6 +453,12 @@ DECLARE_CMD(IsAdvertisingActive) {
 
 DECLARE_CMD(SetPeriodicAdvertisingParameters) {
     CMD_NAME("setPeriodicAdvertisingParameters")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", ""),
+        CMD_RESULT("ble::periodic_interval_t", "min", ""),
+        CMD_RESULT("ble::periodic_interval_t", "max", ""),
+        CMD_RESULT("bool", "advertiseTxPower", "")
+    )
     CMD_HANDLER(
         ble::advertising_handle_t handle,
         ble::periodic_interval_t min,
@@ -449,6 +480,10 @@ DECLARE_CMD(SetPeriodicAdvertisingParameters) {
 
 DECLARE_CMD(SetPeriodicAdvertisingPayload) {
     CMD_NAME("setPeriodicAdvertisingPayload")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", ""),
+        CMD_RESULT("RawData_t", "data", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, RawData_t& data, CommandResponsePtr& response) {
         ble_error_t err = gap().setPeriodicAdvertisingPayload(handle, mbed::make_Span(data.cbegin(), data.size()));
         reportErrorOrSuccess(response, err);
@@ -457,6 +492,9 @@ DECLARE_CMD(SetPeriodicAdvertisingPayload) {
 
 DECLARE_CMD(StartPeriodicAdvertising) {
     CMD_NAME("startPeriodicAdvertising")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, CommandResponsePtr& response) {
         ble_error_t err = gap().startPeriodicAdvertising(handle);
         reportErrorOrSuccess(response, err);
@@ -465,6 +503,9 @@ DECLARE_CMD(StartPeriodicAdvertising) {
 
 DECLARE_CMD(StopPeriodicAdvertising) {
     CMD_NAME("stopPeriodicAdvertising")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, CommandResponsePtr& response) {
         ble_error_t err = gap().stopPeriodicAdvertising(handle);
         reportErrorOrSuccess(response, err);
@@ -473,6 +514,9 @@ DECLARE_CMD(StopPeriodicAdvertising) {
 
 DECLARE_CMD(IsPeriodicAdvertisingActive) {
     CMD_NAME("isPeriodicAdvertisingActive")
+    CMD_ARGS(
+        CMD_RESULT("ble::advertising_handle_t", "handle", "")
+    )
     CMD_HANDLER(ble::advertising_handle_t handle, CommandResponsePtr& response) {
         bool active = gap().isPeriodicAdvertisingActive(handle);
         response->success(active);
@@ -489,6 +533,11 @@ DECLARE_CMD(SetScanParameters) {
 
 DECLARE_CMD(StartScan) {
     CMD_NAME("startScan")
+    CMD_ARGS(
+        CMD_RESULT("ble::scan_duration_t", "duration", ""),
+        CMD_RESULT("ble::duplicates_filter_t::type", "filter", ""),
+        CMD_RESULT("ble::scan_period_t", "period", ""),
+    )
     CMD_HANDLER(
         ble::scan_duration_t duration,
         ble::duplicates_filter_t::type filter,
@@ -511,6 +560,13 @@ DECLARE_CMD(StopScan) {
 
 DECLARE_CMD(CreateSync) {
     CMD_NAME("createSync")
+    CMD_ARGS(
+        CMD_RESULT("ble::peer_address_type_t::type", "peerAddressType", ""),
+        CMD_RESULT("ble::address_t", "peerAddress", ""),
+        CMD_RESULT("uint8_t", "sid", ""),
+        CMD_RESULT("uint16_t", "maxPacketSkip", ""),
+        CMD_RESULT("ble::sync_timeout_t", "timeout", ""),
+    )
     CMD_HANDLER(
         ble::peer_address_type_t::type peerAddressType,
         ble::address_t &peerAddress,
@@ -533,6 +589,10 @@ DECLARE_CMD(CreateSync) {
 
 DECLARE_CMD(CreateSyncFromList) {
     CMD_NAME("createSyncFromList")
+    CMD_ARGS(
+        CMD_RESULT("uint16_t", "maxPacketSkip", ""),
+        CMD_RESULT("ble::sync_timeout_t", "timeout", ""),
+    )
     CMD_HANDLER(
         uint16_t maxPacketSkip,
         ble::sync_timeout_t timeout,
@@ -557,6 +617,9 @@ DECLARE_CMD(CancelCreateSync) {
 
 DECLARE_CMD(TerminateSync) {
     CMD_NAME("terminateSync")
+    CMD_ARGS(
+        CMD_RESULT("ble::periodic_sync_handle_t", "handle", "")
+    )
     CMD_HANDLER(ble::periodic_sync_handle_t handle, CommandResponsePtr& response) {
         ble_error_t err = gap().terminateSync(handle);
         reportErrorOrSuccess(response, err);
@@ -565,6 +628,11 @@ DECLARE_CMD(TerminateSync) {
 
 DECLARE_CMD(AddDeviceToPeriodicAdvertiserList) {
     CMD_NAME("addDeviceToPeriodicAdvertiserList")
+    CMD_ARGS(
+        CMD_RESULT("ble::peer_address_type_t::type", "peerAddressType", ""),
+        CMD_RESULT("ble::address_t", "peerAddress", ""),
+        CMD_RESULT("ble::advertising_sid_t", "sid", ""),
+    )
     CMD_HANDLER(
         ble::peer_address_type_t::type peerAddressType,
         ble::address_t &peerAddress,
@@ -582,6 +650,11 @@ DECLARE_CMD(AddDeviceToPeriodicAdvertiserList) {
 
 DECLARE_CMD(RemoveDeviceFromPeriodicAdvertiserList) {
     CMD_NAME("removeDeviceFromPeriodicAdvertiserList")
+    CMD_ARGS(
+        CMD_RESULT("ble::peer_address_type_t::type", "peerAddressType", ""),
+        CMD_RESULT("ble::address_t", "peerAddress", ""),
+        CMD_RESULT("ble::advertising_sid_t", "sid", ""),
+    )
     CMD_HANDLER(
         ble::peer_address_type_t::type peerAddressType,
         ble::address_t &peerAddress,
@@ -614,6 +687,10 @@ DECLARE_CMD(GetMaxPeriodicAdvertiserListSize) {
 
 DECLARE_CMD(Connect) {
     CMD_NAME("connect")
+    CMD_ARGS(
+        CMD_RESULT("ble::peer_address_type_t::type", "peerAddressType", ""),
+        CMD_RESULT("ble::address_t", "peerAddress", "")
+    )
     CMD_HANDLER(
         ble::peer_address_type_t::type peerAddressType,
         ble::address_t &peerAddress,
@@ -634,6 +711,13 @@ DECLARE_CMD(CancelConnect) {
 
 DECLARE_CMD(UpdateConnectionParameters) {
     CMD_NAME("updateConnectionParameters")
+    CMD_ARGS(
+        CMD_RESULT("ble::connection_handle_t", "handle", ""),
+        CMD_RESULT("ble::conn_interval_t", "minConnectionInterval", ""),
+        CMD_RESULT("ble::conn_interval_t", "maxConnectionInterval", ""),
+        CMD_RESULT("uint16_t", "slaveLatency", ""),
+        CMD_RESULT("ble::supervision_timeout_t", "supervision_timeout", "")
+    )
     CMD_HANDLER(
         ble::connection_handle_t connectionHandle,
         ble::conn_interval_t minConnectionInterval,
@@ -655,6 +739,9 @@ DECLARE_CMD(UpdateConnectionParameters) {
 
 DECLARE_CMD(ManageConnectionParametersUpdateRequest) {
     CMD_NAME("manageConnectionParametersUpdateRequest")
+    CMD_ARGS(
+        CMD_RESULT("bool", "manage", "")
+    )
     CMD_HANDLER(bool manage, CommandResponsePtr& response) {
         ble_error_t err = gap().manageConnectionParametersUpdateRequest(manage);
         reportErrorOrSuccess(response, err);
@@ -663,6 +750,13 @@ DECLARE_CMD(ManageConnectionParametersUpdateRequest) {
 
 DECLARE_CMD(AcceptConnectionParametersUpdate) {
     CMD_NAME("acceptConnectionParametersUpdate")
+    CMD_ARGS(
+        CMD_RESULT("ble::connection_handle_t", "handle", ""),
+        CMD_RESULT("ble::conn_interval_t", "minConnectionInterval", ""),
+        CMD_RESULT("ble::conn_interval_t", "maxConnectionInterval", ""),
+        CMD_RESULT("uint16_t", "slaveLatency", ""),
+        CMD_RESULT("ble::supervision_timeout_t", "supervision_timeout", "")
+    )
     CMD_HANDLER(
         ble::connection_handle_t connectionHandle,
         ble::conn_interval_t minConnectionInterval,
@@ -684,6 +778,9 @@ DECLARE_CMD(AcceptConnectionParametersUpdate) {
 
 DECLARE_CMD(RejectConnectionParametersUpdate) {
     CMD_NAME("rejectConnectionParametersUpdate")
+    CMD_ARGS(
+        CMD_RESULT("ble::connection_handle_t", "handle", ""),
+    )
     CMD_HANDLER(ble::connection_handle_t handle, CommandResponsePtr& response) {
         ble_error_t err = gap().rejectConnectionParametersUpdate(handle);
         reportErrorOrSuccess(response, err);
@@ -692,6 +789,10 @@ DECLARE_CMD(RejectConnectionParametersUpdate) {
 
 DECLARE_CMD(Disconnect) {
     CMD_NAME("disconnect")
+    CMD_ARGS(
+        CMD_RESULT("ble::connection_handle_t", "handle", ""),
+        CMD_RESULT("ble::local_disconnection_reason_t::type", "reason", ""),
+    )
     CMD_HANDLER(
         ble::connection_handle_t handle,
         ble::local_disconnection_reason_t::type reason,
@@ -704,6 +805,9 @@ DECLARE_CMD(Disconnect) {
 
 DECLARE_CMD(IsFeatureSupported) {
     CMD_NAME("isFeatureSupported")
+    CMD_ARGS(
+        CMD_RESULT("ble::controller_supported_features_t::type", "feature", ""),
+    )
     CMD_HANDLER(ble::controller_supported_features_t::type feature, CommandResponsePtr& response) {
         response->success(gap().isFeatureSupported(feature));
     }
