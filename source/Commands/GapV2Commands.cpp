@@ -411,7 +411,7 @@ DECLARE_CMD(SetAdvertisingScanResponse) {
         CMD_RESULT("RawData_t", "data", "")
     )
     CMD_HANDLER(ble::advertising_handle_t handle, RawData_t& data, CommandResponsePtr& response) {
-        ble_error_t err = gap().setAdvertisingPayload(handle, mbed::make_Span(data.cbegin(), data.size()));
+        ble_error_t err = gap().setAdvertisingScanResponse(handle, mbed::make_Span(data.cbegin(), data.size()));
         reportErrorOrSuccess(response, err);
     }
 };
