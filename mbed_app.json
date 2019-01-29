@@ -10,7 +10,8 @@
     ],
     "target_overrides": {
         "*": {
-	        "platform.stdio-flush-at-exit": false
+	        "platform.stdio-flush-at-exit": false,
+            "platform.stdio-baud-rate": 115200
         },
         "K64F": {
             "target.features_add": ["BLE"],
