@@ -157,7 +157,10 @@ static inline bool fromString(const char* str, ble::address_t& val) {
 serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const Gap::Address_t& addr);
 
 inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, const ble::address_t& addr) {
-    return os << addr.data();
+    MacAddressString_t converted;
+    snprintf(converted.str, sizeof(converted.str), "%02X:%02X:%02X:%02X:%02X:%02X",
+        addr[5], addr[4], addr[3],addr[2],addr[1],addr[0]);
+    return os << converted.str;
 }
 
 /// convert Gap::ConnectionParams_t from CLI to structure
