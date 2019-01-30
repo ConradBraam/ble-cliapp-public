@@ -66,7 +66,8 @@ struct SerializerDescription<ble::peer_address_type_t> {
             { ble::peer_address_type_t::PUBLIC, "PUBLIC" },
             { ble::peer_address_type_t::RANDOM, "RANDOM" },
             { ble::peer_address_type_t::PUBLIC_IDENTITY, "PUBLIC_IDENTITY" },
-            { ble::peer_address_type_t::RANDOM_STATIC_IDENTITY, "RANDOM_STATIC_IDENTITY" }
+            { ble::peer_address_type_t::RANDOM_STATIC_IDENTITY, "RANDOM_STATIC_IDENTITY" },
+            { ble::peer_address_type_t::ANONYMOUS, "ANONYMOUS" }
         };
 
         return makeConstArray(map);
