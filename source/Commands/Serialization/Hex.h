@@ -3,6 +3,7 @@
 
 #include "util/Vector.h"
 #include "Serialization/JSONOutputStream.h"
+#include "platform/Span.h"
 
 /**
  * @brief Convert the string representation of a byte in asci hexadecimal
@@ -48,5 +49,8 @@ static inline bool fromString(const char* str, RawData_t& value) {
     return true;
 }
 
+static inline serialization::JSONOutputStream& operator<<(serialization::JSONOutputStream& os, mbed::Span<const uint8_t> data) {
+    return serializeRawDataToHexString(os, data.data(), data.size());
+}
 
 #endif //BLE_CLIAPP_SERIALIZATION_HEX_H_

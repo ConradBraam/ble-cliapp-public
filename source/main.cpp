@@ -15,6 +15,9 @@
 #include "Commands/GattServerCommands.h"
 #include "Commands/GattClientCommands.h"
 #include "Commands/SecurityManagerCommands.h"
+#include "Commands/parameters/AdvertisingParameters.h"
+#include "Commands/parameters/ScanParameters.h"
+#include "Commands/parameters/ConnectionParameters.h"
 
 #include "util/CriticalSectionLock.h"
 typedef ::util::CriticalSectionLock CriticalSection;
@@ -155,6 +158,9 @@ void initialize_app_commands(void) {
     registerCommandSuite<GattServerCommandSuiteDescription>();
     registerCommandSuite<GattClientCommandSuiteDescription>();
     registerCommandSuite<SecurityManagerCommandSuiteDescription>();
+    registerCommandSuite<AdvertisingParametersCommandSuiteDescription>();
+    registerCommandSuite<ScanParametersCommandSuiteDescription>();
+    registerCommandSuite<ConnectionParametersCommandSuiteDescription>();
 }
 
 void scheduleBleEventsProcessing(BLE::OnEventsToProcessCallbackContext* context) {

@@ -7,3 +7,11 @@ mbed_settings.py
 .vscode/c_cpp_properties.json
 .vscode/settings.json
 mbed_settings.pyc
+mbed-os
+mbed-client-cli
+shields/TARGET_CORDIO_BLUENRG
+shields/TARGET_ST_BLUENRG
+
+# clion 
+.idea
+cmake-*/
