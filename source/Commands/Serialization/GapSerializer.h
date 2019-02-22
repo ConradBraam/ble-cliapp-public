@@ -1,6 +1,7 @@
 #ifndef BLE_CLIAPP_GAP_SERIALIZER_H_
 #define BLE_CLIAPP_GAP_SERIALIZER_H_
 
+#include <stdio.h>
 #include "ble/Gap.h"
 #include "Serialization/Serializer.h"
 #include "Serialization/JSONOutputStream.h"

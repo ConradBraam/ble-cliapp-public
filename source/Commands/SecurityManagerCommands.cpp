@@ -2,8 +2,8 @@
 #include <cctype>
 #include <algorithm>
 
-#include <ble/BLE.h>
-#include <ble/SecurityManager.h>
+#include "ble/BLE.h"
+#include "ble/SecurityManager.h"
 
 #include "Serialization/Serializer.h"
 #include "Serialization/SecurityManagerSerialization.h"
