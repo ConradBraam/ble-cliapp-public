@@ -1,7 +1,6 @@
 //
 // Created by Vincent Coubard on 2018-11-30.
 //
-
 #include "ble/BLE.h"
 #include "ble/Gap.h"
 #include "Serialization/GapSerializer.h"
