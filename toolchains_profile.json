@@ -14,10 +14,10 @@
                "-Wl,--wrap,_calloc_r", "-Wl,--wrap,exit", "-Wl,--wrap,atexit", "-Wl,--cref",
                "--specs=nano.specs"]
     },
-    "ARM": {
+    "ARMC6": {
         "common": ["-c", "--gnu", "-Ospace", "--split_sections",
                    "--apcs=interwork", "--brief_diagnostics", "--restrict",
-                   "--multibyte_chars", "-O3", "-DMBED_RTOS_SINGLE_THREAD", "-g"],
+                   "--multibyte_chars", "-O0", "-DMBED_RTOS_SINGLE_THREAD", "-g"],
         "asm": [],
         "c": ["--md", "--no_depend_system_headers", "--c99", "-D__ASSERT_MSG"],
         "cxx": ["--cpp", "--no_rtti", "--no_vla"],
